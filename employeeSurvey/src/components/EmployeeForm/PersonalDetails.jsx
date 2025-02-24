@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { TextField, Grid, MenuItem } from "@mui/material";
+import { TextField, Grid, MenuItem, Typography } from "@mui/material";
 
 const PersonalDetailsForm = ({ setPersonalDetails }) => {
   const [formData, setFormData] = useState({
@@ -15,7 +15,7 @@ const PersonalDetailsForm = ({ setPersonalDetails }) => {
     passportNumber: "",
     religion: "",
     race: "",
-    numberOfDependents: 0,  // Ensure this is initialized as a number
+    numberOfDependents: 0,  
   });
 
     // Function to extract birthday and gender from NIC number
@@ -49,10 +49,7 @@ const PersonalDetailsForm = ({ setPersonalDetails }) => {
             const dob = new Date(birthYear, 0, dayOfYear);
             var dateOfBirth = dob.toISOString().split("T")[0]; // Declare with var/let
         }
-        
-        // Convert dayOfYear to actual date
-        // const dob = new Date(birthYear, 0, dayOfYear);
-        // const dateOfBirth = dob.toISOString().split("T")[0]; // Format: YYYY-MM-DD
+       
     
         return { dateOfBirth, gender };
       };
@@ -80,6 +77,7 @@ const PersonalDetailsForm = ({ setPersonalDetails }) => {
 
   return (
     <Grid container spacing={2}>
+       <Typography sx={{ ml: 2, mt: 3 }} variant="h4" gutterBottom>Personal Details</Typography>
       <Grid item xs={12}>
         <TextField label="EPF Number" name="epfNumber" fullWidth variant="outlined" value={formData.epfNumber} onChange={handleChange} required />
       </Grid>
@@ -89,13 +87,6 @@ const PersonalDetailsForm = ({ setPersonalDetails }) => {
       <Grid item xs={12}>
         <TextField label="Full Name" name="fullName" fullWidth variant="outlined" value={formData.fullName} onChange={handleChange} required />
       </Grid>
-      {/* <Grid item xs={12} sm={6}>
-        <TextField select label="Gender" name="gender" fullWidth variant="outlined" value={formData.gender} onChange={handleChange} required>
-          <MenuItem value="Male">Male</MenuItem>
-          <MenuItem value="Female">Female</MenuItem>
-          <MenuItem value="Other">Other</MenuItem>
-        </TextField>
-      </Grid> */}
        <Grid item xs={12}>
         <TextField label="NIC Number" name="nicNumber" fullWidth variant="outlined" value={formData.nicNumber} onChange={handleChange} required />
       </Grid>
@@ -137,7 +128,7 @@ const PersonalDetailsForm = ({ setPersonalDetails }) => {
       </Grid> */}
      
       <Grid item xs={12}>
-        <TextField label="Driving License" name="drivingLicense" fullWidth variant="outlined" value={formData.drivingLicense} onChange={handleChange} required />
+        <TextField label="Driving License" name="drivingLicense" fullWidth variant="outlined" value={formData.drivingLicense} onChange={handleChange} />
       </Grid>
       <Grid item xs={12}>
         <TextField label="Passport Number" name="passportNumber" fullWidth variant="outlined" value={formData.passportNumber} onChange={handleChange} />
@@ -149,7 +140,7 @@ const PersonalDetailsForm = ({ setPersonalDetails }) => {
         <TextField label="Race" name="race" fullWidth variant="outlined" value={formData.race} onChange={handleChange} required />
       </Grid>
       <Grid item xs={12}>
-        <TextField label="Number of Dependents" name="numberOfDependents" type="number" fullWidth variant="outlined" value={formData.numberOfDependents} onChange={handleChange} required />
+        <TextField label="Number of Dependents" name="numberOfDependents"  fullWidth variant="outlined" value={formData.numberOfDependents} onChange={handleChange} required />
       </Grid>
     </Grid>
   );

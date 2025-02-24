@@ -3,7 +3,7 @@ import axios from "axios";
 // Correct API Base URL
 const API_BASE_URL = "https://localhost:7277/api/PersonalDetails";
 
-export const submitEmployeeData = async (personalDetails, spouseDetails) => {
+export const submitEmployeeData = async (personalDetails, spouseDetails, contactDetails) => {
   try {
     // Structure the payload to match backend expectations
     const payload = {
@@ -31,7 +31,27 @@ export const submitEmployeeData = async (personalDetails, spouseDetails) => {
         workPlaceAddress: spouseDetails.workPlaceAddress,
         workPlaceTeleNumber: spouseDetails.workPlaceTeleNumber,
       },
+      contactDetails: [
+        {
+          temporaryAddress: contactDetails.temporaryAddress,
+          temporaryPostalCode: contactDetails.temporaryPostalCode,
+          temporaryDistrict: contactDetails.temporaryDistrict,
+          temporaryProvince: contactDetails.temporaryProvince,
+          distantBetWorkPlaceAndTemporyAddress: contactDetails.distantBetWorkPlaceAndTemporyAddress,
+          permanentAddress: contactDetails.temporaryAddress, // Replacing with temporaryAddress
+          permanentPostalCode: contactDetails.temporaryPostalCode,
+          permanentGramaDivision: contactDetails.temporaryGramaDivision || "",
+          permanentAGADivision: contactDetails.temporaryAGADivision || "",
+          permanentElectoral: contactDetails.temporaryElectoral || "",
+          policeDivision: contactDetails.policeDivision || "",
+          permanentDistrict: contactDetails.temporaryDistrict,
+          permanentProvince: contactDetails.temporaryProvince,
+          distantBetWorkPlaceAndPermanentAddress: contactDetails.distantBetWorkPlaceAndTemporyAddress,
+          telephoneNumber: contactDetails.telephoneNumber || 0,
+        },
+      ],
     };
+    
 
     console.log("Sending Payload:", payload);  // Log for debugging
 
