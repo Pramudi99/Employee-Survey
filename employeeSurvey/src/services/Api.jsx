@@ -1,72 +1,147 @@
 import axios from "axios";
 
-// Correct API Base URL
 const API_BASE_URL = "https://localhost:7277/api/PersonalDetails";
 
-export const submitEmployeeData = async (personalDetails, spouseDetails, contactDetails) => {
+const formatDate = (date) => (date ? new Date(date).toISOString() : null);
+
+export const submitEmployeeData = async (
+  personalDetails,
+  spouseDetails,
+  contactDetails,
+  employmentDetails
+) => {
   try {
-    // Structure the payload to match backend expectations
     const payload = {
-      epfNumber: personalDetails.epfNumber,
-      nameWithInitials: personalDetails.nameWithInitials,
-      fullName: personalDetails.fullName,
-      gender: personalDetails.gender,
-      maritalStatus: personalDetails.maritalStatus,
-      bloodGroup: personalDetails.bloodGroup,
-      dateOfBirth: personalDetails.dateOfBirth,
-      nicNumber: personalDetails.nicNumber,
-      drivingLicense: personalDetails.drivingLicense,
-      passportNumber: personalDetails.passportNumber,
-      religion: personalDetails.religion,
-      race: personalDetails.race,
-      numberOfDependents: personalDetails.numberOfDependents,
-      spouseDetails: {
-        nameWithInitials: spouseDetails.nameWithInitials,
-        fullName: spouseDetails.fullName,
-        dateOfBirth: spouseDetails.dateOfBirth,
-        nicNumber: spouseDetails.nicNumber,
-        address: spouseDetails.address,
-        postalCode: spouseDetails.postalCode,
-        contactNumber: spouseDetails.contactNumber,
-        workPlaceAddress: spouseDetails.workPlaceAddress,
-        workPlaceTeleNumber: spouseDetails.workPlaceTeleNumber,
-      },
-      contactDetails: [
-        {
-          temporaryAddress: contactDetails.temporaryAddress,
-          temporaryPostalCode: contactDetails.temporaryPostalCode,
-          temporaryDistrict: contactDetails.temporaryDistrict,
-          temporaryProvince: contactDetails.temporaryProvince,
-          distantBetWorkPlaceAndTemporyAddress: contactDetails.distantBetWorkPlaceAndTemporyAddress,
-          permanentAddress: contactDetails.temporaryAddress, // Replacing with temporaryAddress
-          permanentPostalCode: contactDetails.temporaryPostalCode,
-          permanentGramaDivision: contactDetails.temporaryGramaDivision || "",
-          permanentAGADivision: contactDetails.temporaryAGADivision || "",
-          permanentElectoral: contactDetails.temporaryElectoral || "",
-          policeDivision: contactDetails.policeDivision || "",
-          permanentDistrict: contactDetails.temporaryDistrict,
-          permanentProvince: contactDetails.temporaryProvince,
-          distantBetWorkPlaceAndPermanentAddress: contactDetails.distantBetWorkPlaceAndTemporyAddress,
-          telephoneNumber: contactDetails.telephoneNumber || 0,
-        },
-      ],
+      epfNumber: personalDetails?.epfNumber || "",
+      nameWithInitials: personalDetails?.nameWithInitials || "",
+      fullName: personalDetails?.fullName || "",
+      gender: personalDetails?.gender || "",
+      maritalStatus: personalDetails?.maritalStatus || "",
+      bloodGroup: personalDetails?.bloodGroup || "",
+      dateOfBirth: formatDate(personalDetails?.dateOfBirth),
+      nicNumber: personalDetails?.nicNumber || "",
+      drivingLicense: personalDetails?.drivingLicense || "",
+      passportNumber: personalDetails?.passportNumber || "",
+      religion: personalDetails?.religion || "",
+      race: personalDetails?.race || "",
+      numberOfDependents: personalDetails?.numberOfDependents
+        ? Number(personalDetails.numberOfDependents)
+        : 0,
+
+      spouseDetails: spouseDetails
+        ? {
+            nameWithInitials: spouseDetails.nameWithInitials || "",
+            fullName: spouseDetails.fullName || "",
+            dateOfBirth: formatDate(spouseDetails.dateOfBirth),
+            nicNumber: spouseDetails.nicNumber || "",
+            address: spouseDetails.address || "",
+            postalCode: spouseDetails.postalCode
+              ? Number(spouseDetails.postalCode)
+              : 0,
+            contactNumber: spouseDetails.contactNumber
+              ? Number(spouseDetails.contactNumber)
+              : 0,
+            workPlaceAddress: spouseDetails.workPlaceAddress || "",
+            workPlaceTeleNumber: spouseDetails.workPlaceTeleNumber
+              ? Number(spouseDetails.workPlaceTeleNumber)
+              : 0,
+          }
+        : null,
+
+      contactDetails: contactDetails
+        ? [
+            {
+              contactId: contactDetails.contactId
+                ? Number(contactDetails.contactId)
+                : 0,
+              temporaryAddress: contactDetails.temporaryAddress || "",
+              temporaryPostalCode: contactDetails.temporaryPostalCode
+                ? Number(contactDetails.temporaryPostalCode)
+                : 0,
+              temporaryDistrict: contactDetails.temporaryDistrict || "",
+              temporaryProvince: contactDetails.temporaryProvince || "",
+              distantBetWorkPlaceAndTemporyAddress:
+                contactDetails.distantBetWorkPlaceAndTemporyAddress || "",
+              permanentAddress: contactDetails.permanentAddress || "",
+              permanentPostalCode: contactDetails.permanentPostalCode
+                ? Number(contactDetails.permanentPostalCode)
+                : 0,
+              permanentGramaDivision: contactDetails.permanentGramaDivision || "",
+              permanentAGADivision: contactDetails.permanentAGADivision || "",
+              permanentElectoral: contactDetails.permanentElectoral || "",
+              policeDivision: contactDetails.policeDivision || "",
+              permanentDistrict: contactDetails.permanentDistrict || "",
+              permanentProvince: contactDetails.permanentProvince || "",
+              distantBetWorkPlaceAndPermanentAddress:
+                contactDetails.distantBetWorkPlaceAndPermanentAddress || "",
+              telephoneNumber: contactDetails.telephoneNumber
+                ? Number(contactDetails.telephoneNumber)
+                : 0,
+            },
+          ]
+        : [],
+
+      employmentDetails: employmentDetails
+        ? {
+            presentJobCategory: employmentDetails.presentJobCategory || "",
+            presentDesignation: employmentDetails.presentDesignation || "",
+            presentGrade: employmentDetails.presentGrade || "",
+            joinedAs: employmentDetails.joinedAs || "",
+            joinedDetails: employmentDetails.joinedDetails
+              ? {
+                  joinedType: employmentDetails.joinedDetails.joinedType || "",
+                  epfNumber: employmentDetails.joinedDetails.epfNumber || "",
+                  designation: employmentDetails.joinedDetails.designation || "",
+                  grade: employmentDetails.joinedDetails.grade || "",
+                  date: formatDate(employmentDetails.joinedDetails.date),
+                }
+              : {},
+            employmentAddresses: Array.isArray(employmentDetails.employmentAddresses)
+              ? employmentDetails.employmentAddresses.map((address) => ({
+                  addressType: address?.addressType || "",
+                  location: address?.location || "",
+                  function: address?.function || "",
+                  subFunction: address?.subFunction || "",
+                }))
+              : [],
+              
+
+            promotions: Array.isArray(employmentDetails.promotions)
+              ? employmentDetails.promotions.map((promotion) => ({
+                  grade: promotion?.grade || "",
+                  designation: promotion?.designation || "",
+                  durationFrom: formatDate(promotion?.durationFrom),
+                  durationTo: formatDate(promotion?.durationTo),
+                  location: promotion?.location || "",
+                  function: promotion?.function || "",
+                  subFunction: promotion?.subFunction || "",
+                }))
+              : [],
+          }
+        : null,
     };
-    
 
-    console.log("Sending Payload:", payload);  // Log for debugging
+    console.log("🚀 Sending Payload:", JSON.stringify(payload, null, 2));
 
-    // Send data to backend
-    const response = await axios.post(`${API_BASE_URL}/add`, payload, {
-      headers: { "Content-Type": "application/json" }
+    const response = await axios.post(`${API_BASE_URL}/add`, JSON.stringify(payload), {
+      headers: { "Content-Type": "application/json" },
     });
 
+    console.log("✅ Response:", response.data);
+    
     if (response.status === 201) {
       return { message: "Data submitted successfully!", data: response.data };
     } else {
       throw new Error("Unexpected server response.");
     }
   } catch (error) {
-    console.error("Error submitting data:", error);
+    console.error("❌ Error submitting data:", error.response ? error.response.data : error.message);
     throw new Error(error.response?.data?.message || "Failed to submit data.");
   }
 };
+
+
+
+
+
+
