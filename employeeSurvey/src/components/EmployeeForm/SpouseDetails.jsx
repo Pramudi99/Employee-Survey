@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { TextField, Grid, Typography } from "@mui/material";
+import { TextField, Grid, Typography, MenuItem } from "@mui/material";
 
 const SpouseDetailsForm = ({ setSpouseDetails }) => {
   const [formData, setFormData] = useState({
+    title: "",
     nameWithInitials: "",
     fullName: "",
     dateOfBirth: "",
@@ -58,14 +59,22 @@ const SpouseDetailsForm = ({ setSpouseDetails }) => {
   };
 
   return (
-    <Grid container spacing={2} sx={{ mt: 2 }}>
+    <Grid container spacing={2} sx={{ mt: 2, ml:1 }}>
       <Typography sx={{ ml: 2, mt: 3 }} variant="h4" gutterBottom>Details of the Spouse</Typography>
-      <Grid item xs={12}>
-        <TextField label="Name with Initials" name="nameWithInitials" fullWidth variant="outlined" value={formData.nameWithInitials} onChange={handleChange} required />
-      </Grid>
-      <Grid item xs={12}>
-        <TextField label="Full Name" name="fullName" fullWidth variant="outlined" value={formData.fullName} onChange={handleChange} required />
-      </Grid>
+      <Grid container spacing={2}>
+          <Grid item xs={12} sm={1.5}>
+            <TextField  select label="Title"  name="title"  fullWidth  variant="outlined"  value={formData.title || "Mr"}  onChange={handleChange}  required  >
+              <MenuItem value="Mr">Mr.</MenuItem>
+              <MenuItem value="Mrs">Mrs.</MenuItem>
+              <MenuItem value="Miss">Miss.</MenuItem>
+            </TextField>
+          </Grid>
+
+          <Grid item xs={12} sm={10.5}>
+            <TextField label="Name with Initials" name="nameWithInitials"fullWidth variant="outlined" value={formData.nameWithInitials} onChange={handleChange}  required />
+          </Grid>
+        </Grid>
+
       <Grid item xs={12}>
         <TextField label="NIC Number" name="nicNumber" fullWidth variant="outlined" value={formData.nicNumber} onChange={handleChange} required />
       </Grid>

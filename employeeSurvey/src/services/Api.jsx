@@ -13,6 +13,7 @@ export const submitEmployeeData = async (
   try {
     const payload = {
       epfNumber: personalDetails?.epfNumber || "",
+      title: personalDetails?.title || "",
       nameWithInitials: personalDetails?.nameWithInitials || "",
       fullName: personalDetails?.fullName || "",
       gender: personalDetails?.gender || "",
@@ -30,6 +31,7 @@ export const submitEmployeeData = async (
 
       spouseDetails: spouseDetails
         ? {
+            title:spouseDetails.title || "",
             nameWithInitials: spouseDetails.nameWithInitials || "",
             fullName: spouseDetails.fullName || "",
             dateOfBirth: formatDate(spouseDetails.dateOfBirth),

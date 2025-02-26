@@ -5,6 +5,7 @@ const PersonalDetailsForm = ({ setPersonalDetails }) => {
   const [formData, setFormData] = useState({
     epfNumber: "",
     nameWithInitials: "",
+    title:"",
     fullName: "",
     gender: "",
     maritalStatus: "",
@@ -81,7 +82,14 @@ const PersonalDetailsForm = ({ setPersonalDetails }) => {
       <Grid item xs={12}>
         <TextField label="EPF Number" name="epfNumber" fullWidth variant="outlined" value={formData.epfNumber} onChange={handleChange} required />
       </Grid>
-      <Grid item xs={12}>
+      <Grid item xs={12} sm={1.5}>
+        <TextField select label="Title" name="title" fullWidth variant="outlined" value={formData.title || "Mr"} onChange={handleChange} required>
+          <MenuItem value="Mr">Mr.</MenuItem>
+          <MenuItem value="Mrs">Mrs.</MenuItem>
+          <MenuItem value="Miss">Miss.</MenuItem>
+        </TextField>
+      </Grid>
+      <Grid item xs={10.5}>
         <TextField label="Name with Initials" name="nameWithInitials" fullWidth variant="outlined" value={formData.nameWithInitials} onChange={handleChange} required />
       </Grid>
       <Grid item xs={12}>
@@ -94,10 +102,10 @@ const PersonalDetailsForm = ({ setPersonalDetails }) => {
         <TextField label="Date of Birth" name="dateOfBirth" type="date" fullWidth variant="outlined" InputLabelProps={{ shrink: true }} value={formData.dateOfBirth} onChange={handleChange} required />
       </Grid>
       <Grid item xs={12} sm={6}>
-        <TextField select label="Gender" name="gender" fullWidth variant="outlined" value={formData.gender} onChange={handleChange} required>
-          <MenuItem value="Male">Male</MenuItem>
+        <TextField label="Gender" name="gender" fullWidth variant="outlined" value={formData.gender} onChange={handleChange}  InputProps={{readOnly: true,}} />
+          {/* <MenuItem value="Male">Male</MenuItem>
           <MenuItem value="Female">Female</MenuItem>
-        </TextField>
+        </TextField> */}
       </Grid>
       <Grid item xs={12} sm={6}>
         <TextField select label="Marital Status" name="maritalStatus" fullWidth variant="outlined" value={formData.maritalStatus} onChange={handleChange} required>
@@ -105,7 +113,8 @@ const PersonalDetailsForm = ({ setPersonalDetails }) => {
           <MenuItem value="Married">Married</MenuItem>
           <MenuItem value="Divorced">Divorced</MenuItem>
           <MenuItem value="Separated">Separated</MenuItem>
-          <MenuItem value="Widowed">Widowed</MenuItem>
+          <MenuItem value="Widowed">Widow</MenuItem>
+          <MenuItem value="Widowed">Widower</MenuItem>
         </TextField>
       </Grid>
       <Grid item xs={12} sm={6}>
@@ -134,10 +143,21 @@ const PersonalDetailsForm = ({ setPersonalDetails }) => {
         <TextField label="Passport Number" name="passportNumber" fullWidth variant="outlined" value={formData.passportNumber} onChange={handleChange} />
       </Grid>
       <Grid item xs={12} sm={6}>
-        <TextField label="Religion" name="religion" fullWidth variant="outlined" value={formData.religion} onChange={handleChange} required />
+        <TextField select label="Religion" name="religion" fullWidth variant="outlined" value={formData.religion || "Buddhism"} onChange={handleChange} required >
+          <MenuItem value="Buddhism">Buddhism</MenuItem>
+          <MenuItem value="Hindu">Hindu</MenuItem>
+          <MenuItem value="Islam">Islam</MenuItem>
+          <MenuItem value="Christianity">Christianity</MenuItem>
+        </TextField>
       </Grid>
       <Grid item xs={12} sm={6}>
-        <TextField label="Race" name="race" fullWidth variant="outlined" value={formData.race} onChange={handleChange} required />
+        <TextField select label="Race" name="race" fullWidth variant="outlined" value={formData.race || "Sinhala"} onChange={handleChange} required >
+        <MenuItem value="Sinhala">Sinhala</MenuItem>
+          <MenuItem value="Tamil">Tamil</MenuItem>
+          <MenuItem value="Muslim">Muslim</MenuItem>
+          <MenuItem value="Burgher">Burgher</MenuItem>
+          <MenuItem value="Malay"> Malay</MenuItem>
+        </TextField>
       </Grid>
       <Grid item xs={12}>
         <TextField label="Number of Dependents" name="numberOfDependents"  fullWidth variant="outlined" value={formData.numberOfDependents} onChange={handleChange} required />

@@ -36,10 +36,12 @@ const ContactDetails = ( {setContactDetails} ) => {
         updatedFormData.permanentProvince = addressInfo.Province_Name;
         updatedFormData.permanentDistrict = addressInfo.District_Name;
         updatedFormData.permanentElectoral = addressInfo.Polling_Division_Name;
+        updatedFormData.permanentAGADivision = addressInfo.DSD_Name;
       } else {
         updatedFormData.permanentProvince = "";
         updatedFormData.permanentDistrict = "";
         updatedFormData.permanentElectoral = "";
+        updatedFormData.permanentAGADivision = "";
       }
     }
 
@@ -69,7 +71,7 @@ const ContactDetails = ( {setContactDetails} ) => {
             <TextField label="Temporary Address" name="temporaryAddress" fullWidth variant="outlined" value={formData.temporaryAddress} onChange={handleChange} required />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField label="Postal Code" name="temporaryPostalCode" type="number" fullWidth variant="outlined" value={formData.temporaryPostalCode} onChange={handleChange} required />
+            <TextField label="Postal Code" name="temporaryPostalCode" fullWidth variant="outlined" value={formData.temporaryPostalCode} onChange={handleChange} required />
           </Grid>
           <Grid item xs={12} sm={6}>
             <TextField label="District" name="temporaryDistrict" fullWidth variant="outlined" value={formData.temporaryDistrict} onChange={handleChange} required />

@@ -1,13 +1,8 @@
-
-
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   TextField,
   Grid,
   Typography,
-  Card,
-  CardContent,
   MenuItem,
   Button,
   IconButton,
@@ -20,7 +15,7 @@ const EmploymentDetailsForm = ({ setEmploymentDetails }) => {
     presentDesignation: "",
     presentGrade: "",
     joinedAs: "",
-    joinedDetails: {}, // Initially empty, will be set based on joinedAs
+    joinedDetails: {},
     employmentAddresses: [
       { addressType: "Permanent", location: "", function: "", subFunction: "" },
       { addressType: "Temporary", location: "", function: "", subFunction: "" },
@@ -28,90 +23,79 @@ const EmploymentDetailsForm = ({ setEmploymentDetails }) => {
     promotions: [],
   });
 
+  useEffect(() => {
+    setEmploymentDetails(employmentDetails);
+  }, [employmentDetails, setEmploymentDetails]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-  
-    // Update the local state
     setLocalEmploymentDetails((prevDetails) => ({
       ...prevDetails,
-      [name]: value
+      [name]: value,
+      ...(name === "joinedAs" && {
+        joinedDetails: value === "Permanent"
+          ? { joinedType: "Permanent", epfNumber: "", designation: "", grade: "", date: "" }
+          : { joinedType: "Contract", epfNumber: "", designation: "", grade: "", date: "" },
+      }),
     }));
-  
-    // If the 'joinedAs' field changes, update the 'joinedDetails' object accordingly
-    if (name === "joinedAs") {
-      const joinedType = value === "Permanent" ? "Permanent" : "Contract";
-      
-      // Update the local state and global state with the updated 'joinedType'
-      setLocalEmploymentDetails((prevDetails) => ({
-        ...prevDetails,
-        joinedAs: value,
-        joinedDetails: { ...prevDetails.joinedDetails, joinedType } // Set the correct joinedType
-      }));
-  
-      // Also update the global state
-      setEmploymentDetails((prevDetails) => ({
-        ...prevDetails,
-        joinedAs: value,
-        joinedDetails: { ...prevDetails.joinedDetails, joinedType }
-      }));
-    } else {
-      // For other fields, just update both the local and global state
-      setEmploymentDetails((prevDetails) => ({
-        ...prevDetails,
-        [name]: value
-      }));
-    }
   };
-  
-  
+
+  const handleJoinedDetailsChange = (field, value) => {
+    setLocalEmploymentDetails((prevDetails) => ({
+      ...prevDetails,
+      joinedDetails: { ...prevDetails.joinedDetails, [field]: value },
+    }));
+  };
 
   const handleEmploymentAddressChange = (index, field, value) => {
     const updatedAddresses = [...employmentDetails.employmentAddresses];
     updatedAddresses[index][field] = value;
-    setLocalEmploymentDetails({ ...employmentDetails, employmentAddresses: updatedAddresses });
-    setEmploymentDetails({ ...employmentDetails, employmentAddresses: updatedAddresses });
-  };
-
-  const handleJoinedDetailsChange = (field, value) => {
-    const updatedJoinedDetails = { ...employmentDetails.joinedDetails, [field]: value };
-    setLocalEmploymentDetails({ ...employmentDetails, joinedDetails: updatedJoinedDetails });
-    setEmploymentDetails({ ...employmentDetails, joinedDetails: updatedJoinedDetails });
+    setLocalEmploymentDetails((prevDetails) => ({
+      ...prevDetails,
+      employmentAddresses: updatedAddresses,
+    }));
   };
 
   const handlePromotionChange = (index, field, value) => {
     const updatedPromotions = [...employmentDetails.promotions];
     updatedPromotions[index][field] = value;
-    setLocalEmploymentDetails({ ...employmentDetails, promotions: updatedPromotions });
-    setEmploymentDetails({ ...employmentDetails, promotions: updatedPromotions });
+    setLocalEmploymentDetails((prevDetails) => ({
+      ...prevDetails,
+      promotions: updatedPromotions,
+    }));
   };
 
   const addPromotion = () => {
     const newPromotion = { grade: "", designation: "", durationFrom: "", durationTo: "", location: "", function: "", subFunction: "" };
-    setLocalEmploymentDetails({ ...employmentDetails, promotions: [...employmentDetails.promotions, newPromotion] });
-    setEmploymentDetails({ ...employmentDetails, promotions: [...employmentDetails.promotions, newPromotion] });
+    setLocalEmploymentDetails((prevDetails) => ({
+      ...prevDetails,
+      promotions: [...prevDetails.promotions, newPromotion],
+    }));
   };
 
   const removePromotion = (index) => {
     const updatedPromotions = employmentDetails.promotions.filter((_, i) => i !== index);
-    setLocalEmploymentDetails({ ...employmentDetails, promotions: updatedPromotions });
-    setEmploymentDetails({ ...employmentDetails, promotions: updatedPromotions });
+    setLocalEmploymentDetails((prevDetails) => ({
+      ...prevDetails,
+      promotions: updatedPromotions,
+    }));
   };
 
   return (
-    <Grid container spacing={2}>
+    <Grid container spacing={2} sx={{ mt: 2}}>
       <Typography variant="h4" gutterBottom>
         Employment Details
       </Typography>
 
-      <Typography variant="h5" sx={{ mt: 2, mb: 3 }}>
-        Details of Employment Addresses
+      <Typography variant="h5" sx={{ mt: 4, mb: 1}}>
+        Details of Permanent Location
       </Typography>
       {employmentDetails.employmentAddresses.map((address, index) => (
         <Grid
           container
           spacing={2}
           key={index}
-          sx={{ mb: 2, p: 2, border: "1px solid #ccc", borderRadius: "5px" }}
+          sx={{ mb: 2, p: 2, border: "non", borderRadius: "5px" }}
         >
           <Grid item xs={12}>
             <Typography variant="subtitle1" fontWeight="bold">
@@ -238,9 +222,9 @@ const EmploymentDetailsForm = ({ setEmploymentDetails }) => {
           <Grid item xs={12} sm={6}>
             <TextField
               fullWidth
-              label="C.T No"
-              value={employmentDetails.joinedDetails.ctNo || ""}
-              onChange={(e) => handleJoinedDetailsChange("ctNo", e.target.value)}
+              label="Contract No"
+              value={employmentDetails.joinedDetails.epfNumber || ""}
+              onChange={(e) => handleJoinedDetailsChange("epfNumber", e.target.value)}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
