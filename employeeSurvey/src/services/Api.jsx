@@ -8,7 +8,8 @@ export const submitEmployeeData = async (
   personalDetails,
   spouseDetails,
   contactDetails,
-  employmentDetails
+  employmentDetails,
+  academicDetails
 ) => {
   try {
     const payload = {
@@ -119,8 +120,60 @@ export const submitEmployeeData = async (
                   subFunction: promotion?.subFunction || "",
                 }))
               : [],
+
+                dependents: Array.isArray(employmentDetails.dependents)
+                  ? employmentDetails.dependents.map((dependent) => ({
+                      dependentFullName: dependent?.fullName || "",
+                      dependentGender: dependent?.gender || "",
+                      dependentDateOfBirth: formatDate(dependent?.dateOfBirth),
+                      dependentOccupation: dependent?.occupation || "",
+                      occupationAddress: dependent?.occupationAddress || "",
+                    }))
+                  : [],
+              
           }
         : null,
+
+        // employmentDetails: employmentDetails
+        // ? {
+        //     dependents: Array.isArray(employmentDetails.dependents)
+        //       ? employmentDetails.dependents.map((dependent) => ({
+        //           dependentFullName: dependent?.fullName || "",
+        //           dependentGender: dependent?.gender || "",
+        //           dependentDateOfBirth: formatDate(dependent?.dateOfBirth),
+        //           dependentOccupation: dependent?.occupation || "",
+        //           occupationAddress: dependent?.occupationAddress || "",
+        //         }))
+        //       : [],
+        //   }
+        // : null,
+
+        academicDetails: academicDetails
+        ? {
+            schoolLeavingYear: academicDetails.schoolLeavingYear || 0,
+            schoolLeavingGrade: academicDetails.schoolLeavingGrade || "",
+            schoolName: academicDetails.schoolName || "",
+            examResults: Array.isArray(academicDetails.examResults)
+              ? academicDetails.examResults.map((exam) => ({
+                  indexNumber: exam.indexNumber || 0,
+                  examType: exam.examType || "",
+                  attemptYear: exam.attemptYear || 0,
+                  attempt: exam.attempt || 0,
+                  academicDetailsId: exam.academicDetailsId || 0,
+                  subjectTable: Array.isArray(exam.subjectTable)
+                    ? exam.subjectTable.map((subject) => ({
+                        subjectId: subject.subjectId || 0,
+                        subjectName: subject.subjectName || "",
+                        subjectResults: subject.subjectResults || "",
+                        indexNumber: subject.indexNumber || 0,
+                      }))
+                    : [],
+                }))
+              : [],
+          }
+        : null,
+
+
     };
 
     console.log("🚀 Sending Payload:", JSON.stringify(payload, null, 2));

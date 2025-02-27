@@ -39,6 +39,7 @@ import PersonalDetailsForm from "./PersonalDetails";
 import SpouseDetailsForm from "./SpouseDetails";
 import ContactDetails from "./ContactDetails";
 import EmploymentDetailsForm from "./EmploymentDetailsForm";
+import AcademicDetails from "./AcademicDetails";
 import { submitEmployeeData } from "../../services/Api";
 import { Button, Container, Typography } from "@mui/material";
 
@@ -47,6 +48,7 @@ const EmployeeForm = () => {
   const [spouseDetails, setSpouseDetails] = useState({});
   const [contactDetails, setContactDetails] = useState({});
   const [employmentDetails, setEmploymentDetails] = useState({});
+  const [academicDetails, setAcademicDetails] = useState ({});
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -55,6 +57,7 @@ const EmployeeForm = () => {
       spouseDetails,
       contactDetails,
       employmentDetails,
+      academicDetails,
     });
 
     if (!employmentDetails || Object.keys(employmentDetails).length === 0) {
@@ -63,7 +66,7 @@ const EmployeeForm = () => {
     }
 
     try {
-      await submitEmployeeData(personalDetails, spouseDetails, contactDetails, employmentDetails);
+      await submitEmployeeData(personalDetails, spouseDetails, contactDetails, employmentDetails,academicDetails);
       console.log("🎉 Data submitted successfully!");
     } catch (error) {
       console.error("❌ Submission failed:", error.message);
@@ -79,6 +82,7 @@ const EmployeeForm = () => {
       <ContactDetails setContactDetails={setContactDetails} />
       <SpouseDetailsForm setSpouseDetails={setSpouseDetails} />
       <EmploymentDetailsForm setEmploymentDetails={setEmploymentDetails} />
+      <AcademicDetails setAcademicDetails={setAcademicDetails}/>
       <Button
         variant="contained"
         color="primary"

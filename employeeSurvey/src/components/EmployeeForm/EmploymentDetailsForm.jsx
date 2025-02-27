@@ -21,6 +21,7 @@ const EmploymentDetailsForm = ({ setEmploymentDetails }) => {
       { addressType: "Temporary", location: "", function: "", subFunction: "" },
     ],
     promotions: [],
+    dependents : [],
   });
 
   useEffect(() => {
@@ -80,7 +81,32 @@ const EmploymentDetailsForm = ({ setEmploymentDetails }) => {
       promotions: updatedPromotions,
     }));
   };
+ 
 
+  const handleDependentChange = (index, field, value) => {
+    const updatedDependents = [...employmentDetails.dependents];
+    updatedDependents[index][field] = value;
+    setLocalEmploymentDetails((prevDetails) => ({
+      ...prevDetails,
+      dependents: updatedDependents,
+    }));
+  };
+
+  const addDependent = () => {
+    const newDependent = { fullName: "", gender: "", dateOfBirth: "", occupation: "", occupationAddress: "" };
+    setLocalEmploymentDetails((prevDetails) => ({
+      ...prevDetails,
+      dependents: [...prevDetails.dependents, newDependent],
+    }));
+  };
+
+  const removeDependent = (index) => {
+    const updatedDependents = employmentDetails.dependents.filter((_, i) => i !== index);
+    setLocalEmploymentDetails((prevDetails) => ({
+      ...prevDetails,
+      dependents: updatedDependents,
+    }));
+  };
   return (
     <Grid container spacing={2} sx={{ mt: 2}}>
       <Typography variant="h4" gutterBottom>
@@ -336,6 +362,84 @@ const EmploymentDetailsForm = ({ setEmploymentDetails }) => {
       <Button variant="outlined" startIcon={<Add />} onClick={addPromotion} sx={{ mt: 2 }}>
         Add Promotion
       </Button>
+
+
+
+
+      <Typography variant="h5" sx={{ mt: 4 }}>
+        Details of Dependent
+      </Typography>
+      {employmentDetails.dependents.map((dependent, index) => (
+        <Grid
+          container
+          spacing={2}
+          key={index}
+          sx={{ mt: 2, p: 2, border: "1px solid #ccc", borderRadius: "5px" }}
+        >
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="FullName"
+              value={dependent.fullName}
+              onChange={(e) => handleDependentChange(index, "fullanme", e.target.value)}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Gender"
+              value={dependent.gender}
+              onChange={(e) => handleDependentChange(index, "gender", e.target.value)}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="DateOfBirth"
+              type="date"
+              InputLabelProps={{ shrink: true }}
+              value={dependent.dateOfBirth}
+              onChange={(e) => handleDependentChange(index, "dateOfBirth", e.target.value)}
+            />
+          </Grid>
+          {/* <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Duration To"
+              type="date"
+              InputLabelProps={{ shrink: true }}
+              value={promotion.durationTo}
+              onChange={(e) => handlePromotionChange(index, "durationTo", e.target.value)}
+            />
+          </Grid> */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Occupation"
+              value={dependent.occupation}
+              onChange={(e) => handleDependentChange(index, "occupation", e.target.value)}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="OccupationAddress"
+              value={dependent.occupationAddress}
+              onChange={(e) => handleDependentChange(index, "occupationAddress", e.target.value)}
+            />
+          </Grid>
+          
+          <Grid item xs={12}>
+            <IconButton color="error" onClick={() => removeDependent(index)}>
+              <Delete />
+            </IconButton>
+          </Grid>
+        </Grid>
+      ))}
+      <Button variant="outlined" startIcon={<Add />} onClick={addDependent} sx={{ mt: 2 }}>
+        Add Dependent
+      </Button>
+    
     </Grid>
   );
 };
