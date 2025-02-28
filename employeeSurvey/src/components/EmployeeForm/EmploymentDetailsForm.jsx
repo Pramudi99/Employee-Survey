@@ -20,8 +20,12 @@ const EmploymentDetailsForm = ({ setEmploymentDetails }) => {
       { addressType: "Permanent", location: "", function: "", subFunction: "" },
       { addressType: "Temporary", location: "", function: "", subFunction: "" },
     ],
-    promotions: [],
-    dependents : [],
+    promotions: [
+      { grade: "", designation: "", durationFrom: "", durationTo: "", location: "", function: "", subFunction: "" }
+    ],
+    dependents : [
+      { fullName: "", gender: "", dateOfBirth: "", occupation: "", occupationAddress: "" }
+    ],
   });
 
   useEffect(() => {
@@ -75,11 +79,20 @@ const EmploymentDetailsForm = ({ setEmploymentDetails }) => {
   };
 
   const removePromotion = (index) => {
+    if (employmentDetails.promotions.length > 1) {
     const updatedPromotions = employmentDetails.promotions.filter((_, i) => i !== index);
     setLocalEmploymentDetails((prevDetails) => ({
       ...prevDetails,
       promotions: updatedPromotions,
     }));
+  }
+  };
+
+
+  const isLastPromotionFilled = () => {
+    const lastPromotion =     employmentDetails.promotions
+      [    employmentDetails.promotions.length - 1];
+    return Object.values(lastPromotion).every((value) => value.trim() !== "");
   };
  
 
@@ -107,55 +120,73 @@ const EmploymentDetailsForm = ({ setEmploymentDetails }) => {
       dependents: updatedDependents,
     }));
   };
+
+  const isLastDependentFilled = () => {
+    const lastDependent =     employmentDetails.dependents
+      [    employmentDetails.dependents.length - 1];
+    return Object.values(lastDependent).every((value) => value.trim() !== "");
+  };
   return (
     <Grid container spacing={2} sx={{ mt: 2}}>
-      <Typography variant="h4" gutterBottom>
-        Employment Details
-      </Typography>
+       <Typography sx={{ ml: 3, mt: -2 }} variant="h4" gutterBottom style={{ fontWeight: 'bold', color:"rgb(129, 43, 57)", fontFamily: 'Roboto, sans-serif', }}>
+        Employment Details 
+        </Typography>
+        <Grid item xs={11.8} container spacing={1} sx={{ ml: 1 }}>
+        <Grid container spacing={2}>
+  <Grid item xs={12}>
+    <Typography 
+      sx={{ ml: 1.5, mt: -2 }} 
+      variant="h5" 
+      gutterBottom 
+      style={{ fontWeight: 'bold', color: "rgb(58, 53, 54)", fontFamily: 'Roboto, sans-serif', textAlign: "left" }}
+    >
+      Details of Employment location
+    </Typography>
+  </Grid>
 
-      <Typography variant="h5" sx={{ mt: 4, mb: 1}}>
-        Details of Permanent Location
-      </Typography>
-      {employmentDetails.employmentAddresses.map((address, index) => (
-        <Grid
-          container
-          spacing={2}
-          key={index}
-          sx={{ mb: 2, p: 2, border: "non", borderRadius: "5px" }}
-        >
-          <Grid item xs={12}>
-            <Typography variant="subtitle1" fontWeight="bold">
-              {address.addressType} Address
-            </Typography>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Location"
-              value={address.location}
-              onChange={(e) => handleEmploymentAddressChange(index, "location", e.target.value)}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Function"
-              value={address.function}
-              onChange={(e) => handleEmploymentAddressChange(index, "function", e.target.value)}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label="Sub Function"
-              value={address.subFunction}
-              onChange={(e) => handleEmploymentAddressChange(index, "subFunction", e.target.value)}
-            />
-          </Grid>
+  {employmentDetails.employmentAddresses.map((address, index) => (
+    <Grid item xs={12} sx={{ ml: 2}} sm={5.7} key={index}> {/* Each address takes half width */}
+      <Grid
+        container
+        spacing={1}
+        sx={{ mb: 2,  }} // Optional styling
+      >
+        <Grid item xs={12}>
+          <Typography variant="subtitle1" fontWeight="bold" >
+            {address.addressType} Address
+          </Typography>
         </Grid>
-      ))}
+        <Grid item xs={12}>
+          <TextField
+            fullWidth
+            label="Location"
+            value={address.location}
+            onChange={(e) => handleEmploymentAddressChange(index, "location", e.target.value)}
+            />
+        </Grid>
+        <Grid item xs={12}>
+          <TextField
+            fullWidth
+            label="Function"
+            value={address.function}
+            onChange={(e) => handleEmploymentAddressChange(index, "function", e.target.value)}
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <TextField
+            fullWidth
+            label="Sub Function"
+            value={address.subFunction}
+            onChange={(e) => handleEmploymentAddressChange(index, "subFunction", e.target.value)}
+          />
+        </Grid>
+      </Grid>
+    </Grid>
+  ))}
+</Grid>
 
-      <Grid container spacing={2} sx={{ mt: 3 }}>
+
+      <Grid item xs={11.7} container spacing={1} sx={{ ml: 0 }}>
         <Grid item xs={12} sm={6}>
           <TextField
             select
@@ -178,6 +209,7 @@ const EmploymentDetailsForm = ({ setEmploymentDetails }) => {
             name="presentDesignation"
             value={employmentDetails.presentDesignation}
             onChange={handleChange}
+            required
           />
         </Grid>
         <Grid item xs={12} sm={6}>
@@ -187,6 +219,7 @@ const EmploymentDetailsForm = ({ setEmploymentDetails }) => {
             name="presentGrade"
             value={employmentDetails.presentGrade}
             onChange={handleChange}
+            required
           />
         </Grid>
         <Grid item xs={12} sm={6}>
@@ -197,6 +230,7 @@ const EmploymentDetailsForm = ({ setEmploymentDetails }) => {
             value={employmentDetails.joinedAs}
             onChange={handleChange}
             fullWidth
+            required
           >
             <MenuItem value="Permanent">Permanent</MenuItem>
             <MenuItem value="Contract">Contract</MenuItem>
@@ -205,32 +239,35 @@ const EmploymentDetailsForm = ({ setEmploymentDetails }) => {
       </Grid>
 
       {employmentDetails.joinedAs === "Permanent" && (
-        <Grid container spacing={2} sx={{ mt: 3 }}>
-          <Grid item xs={12} sm={6}>
+        <Grid container spacing={2} sx={{ mt: 3, ml: 2 }}>
+          <Grid item xs={12} sm={5.5}>
             <TextField
               fullWidth
               label="EPF Number"
               value={employmentDetails.joinedDetails.epfNumber || ""}
               onChange={(e) => handleJoinedDetailsChange("epfNumber", e.target.value)}
+              required
             />
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sm={5.5}>
             <TextField
               fullWidth
               label="Designation"
               value={employmentDetails.joinedDetails.designation || ""}
               onChange={(e) => handleJoinedDetailsChange("designation", e.target.value)}
+              required
             />
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sm={5.5}>
             <TextField
               fullWidth
               label="Grade"
               value={employmentDetails.joinedDetails.grade || ""}
               onChange={(e) => handleJoinedDetailsChange("grade", e.target.value)}
+              required
             />
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sm={5.5}>
             <TextField
               fullWidth
               label="Date of Joining"
@@ -238,38 +275,42 @@ const EmploymentDetailsForm = ({ setEmploymentDetails }) => {
               InputLabelProps={{ shrink: true }}
               value={employmentDetails.joinedDetails.date || ""}
               onChange={(e) => handleJoinedDetailsChange("date", e.target.value)}
+              required
             />
           </Grid>
         </Grid>
       )}
 
       {employmentDetails.joinedAs === "Contract" && (
-        <Grid container spacing={2} sx={{ mt: 3 }}>
-          <Grid item xs={12} sm={6}>
+        <Grid container spacing={2} sx={{ mt: 3 , ml : 2}}>
+          <Grid item xs={12} sm={5.5}>
             <TextField
               fullWidth
               label="Contract No"
               value={employmentDetails.joinedDetails.epfNumber || ""}
               onChange={(e) => handleJoinedDetailsChange("epfNumber", e.target.value)}
+              required
             />
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sm={5.5}>
             <TextField
               fullWidth
               label="Designation"
               value={employmentDetails.joinedDetails.designation || ""}
               onChange={(e) => handleJoinedDetailsChange("designation", e.target.value)}
+              required
             />
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sm={5.5}>
             <TextField
               fullWidth
               label="Grade"
               value={employmentDetails.joinedDetails.grade || ""}
               onChange={(e) => handleJoinedDetailsChange("grade", e.target.value)}
+              required
             />
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sm={5.5}>
             <TextField
               fullWidth
               label="Date of Joining"
@@ -277,22 +318,25 @@ const EmploymentDetailsForm = ({ setEmploymentDetails }) => {
               InputLabelProps={{ shrink: true }}
               value={employmentDetails.joinedDetails.date || ""}
               onChange={(e) => handleJoinedDetailsChange("date", e.target.value)}
+              required
             />
           </Grid>
         </Grid>
       )}
 
-      <Typography variant="h5" sx={{ mt: 4 }}>
+    <Grid >
+       <Typography sx={{ ml: 2  , mt:4 }} variant="h5" gutterBottom style={{ fontWeight:'bold', color:"rgb(58, 53, 54)", fontFamily: 'Roboto, sans-serif', textAlign: "left",  }}>
         Promotions
-      </Typography>
+        </Typography>
+      </Grid>
       {employmentDetails.promotions.map((promotion, index) => (
         <Grid
           container
           spacing={2}
           key={index}
-          sx={{ mt: 2, p: 2, border: "1px solid #ccc", borderRadius: "5px" }}
+          sx={{ mt: -3, p: 2, }}
         >
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sm={2}>
             <TextField
               fullWidth
               label="Grade"
@@ -300,7 +344,7 @@ const EmploymentDetailsForm = ({ setEmploymentDetails }) => {
               onChange={(e) => handlePromotionChange(index, "grade", e.target.value)}
             />
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sm={4}>
             <TextField
               fullWidth
               label="Designation"
@@ -308,7 +352,7 @@ const EmploymentDetailsForm = ({ setEmploymentDetails }) => {
               onChange={(e) => handlePromotionChange(index, "designation", e.target.value)}
             />
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sm={3}>
             <TextField
               fullWidth
               label="Duration From"
@@ -318,7 +362,7 @@ const EmploymentDetailsForm = ({ setEmploymentDetails }) => {
               onChange={(e) => handlePromotionChange(index, "durationFrom", e.target.value)}
             />
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sm={3}>
             <TextField
               fullWidth
               label="Duration To"
@@ -328,7 +372,7 @@ const EmploymentDetailsForm = ({ setEmploymentDetails }) => {
               onChange={(e) => handlePromotionChange(index, "durationTo", e.target.value)}
             />
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sm={4}>
             <TextField
               fullWidth
               label="Location"
@@ -336,7 +380,7 @@ const EmploymentDetailsForm = ({ setEmploymentDetails }) => {
               onChange={(e) => handlePromotionChange(index, "location", e.target.value)}
             />
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sm={4}>
             <TextField
               fullWidth
               label="Function"
@@ -344,7 +388,7 @@ const EmploymentDetailsForm = ({ setEmploymentDetails }) => {
               onChange={(e) => handlePromotionChange(index, "function", e.target.value)}
             />
           </Grid>
-          <Grid item xs={12}>
+          <Grid item xs={12} sm={4}>
             <TextField
               fullWidth
               label="Sub Function"
@@ -353,35 +397,41 @@ const EmploymentDetailsForm = ({ setEmploymentDetails }) => {
             />
           </Grid>
           <Grid item xs={12}>
-            <IconButton color="error" onClick={() => removePromotion(index)}>
-              <Delete />
-            </IconButton>
+          {employmentDetails.promotions.length > 1 && (
+              <IconButton onClick={() => removePromotion(index)} color="secondary">
+                <Delete />
+              </IconButton>
+            )}
           </Grid>
         </Grid>
       ))}
-      <Button variant="outlined" startIcon={<Add />} onClick={addPromotion} sx={{ mt: 2 }}>
+      <Button variant="outlined" startIcon={<Add />} onClick={addPromotion} sx={{ mt: 1, ml: 2}} disabled={!isLastPromotionFilled()}>
         Add Promotion
       </Button>
 
 
 
 
-      <Typography variant="h5" sx={{ mt: 4 }}>
-        Details of Dependent
-      </Typography>
+
+      <Grid>
+      <Grid >
+       <Typography sx={{ ml: 1.5 , mt:4 }} variant="h5" gutterBottom style={{ fontWeight: 'bold', color:"rgb(58, 53, 54)", fontFamily: 'Roboto, sans-serif', textAlign: "left",  }}>
+              Details of Dependent
+          </Typography>
+        </Grid>
       {employmentDetails.dependents.map((dependent, index) => (
         <Grid
           container
           spacing={2}
           key={index}
-          sx={{ mt: 2, p: 2, border: "1px solid #ccc", borderRadius: "5px" }}
+          sx={{ mt: -3, p: 2,  }}
         >
           <Grid item xs={12} sm={6}>
             <TextField
               fullWidth
               label="FullName"
               value={dependent.fullName}
-              onChange={(e) => handleDependentChange(index, "fullanme", e.target.value)}
+              onChange={(e) => handleDependentChange(index, "fullName", e.target.value)}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -429,16 +479,22 @@ const EmploymentDetailsForm = ({ setEmploymentDetails }) => {
             />
           </Grid>
           
+          {employmentDetails.dependents.length > 1 && (
           <Grid item xs={12}>
             <IconButton color="error" onClick={() => removeDependent(index)}>
               <Delete />
             </IconButton>
           </Grid>
+          )}
         </Grid>
       ))}
-      <Button variant="outlined" startIcon={<Add />} onClick={addDependent} sx={{ mt: 2 }}>
+      <Button variant="outlined" startIcon={<Add />} onClick={addDependent} sx={{ mt: 2, ml:2 }} disabled={!isLastDependentFilled()}>
         Add Dependent
       </Button>
+      
+
+      </Grid>
+      </Grid>
     
     </Grid>
   );

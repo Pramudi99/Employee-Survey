@@ -59,9 +59,11 @@ const SpouseDetailsForm = ({ setSpouseDetails }) => {
   };
 
   return (
-    <Grid container spacing={2} sx={{ mt: 2, ml:1 }}>
-      <Typography sx={{ ml: 2, mt: 3 }} variant="h4" gutterBottom>Details of the Spouse</Typography>
-      <Grid container spacing={2}>
+    <Grid container spacing={2} sx={{ mt: -2, ml:1 }}>
+     <Typography sx={{ ml: 1, mt: 10 }} variant="h4" gutterBottom style={{ fontWeight: 'bold', color:"rgb(129, 43, 57)", fontFamily: 'Roboto, sans-serif', textAlign:'center'}}>
+             Details of Spouse 
+             </Typography>
+             <Grid item xs={11.5} container spacing={1} sx={{ ml: 0, mt:0}}>
           <Grid item xs={12} sm={1.5}>
             <TextField  select label="Title"  name="title"  fullWidth  variant="outlined"  value={formData.title || "Mr"}  onChange={handleChange}  required  >
               <MenuItem value="Mr">Mr.</MenuItem>
@@ -73,7 +75,7 @@ const SpouseDetailsForm = ({ setSpouseDetails }) => {
           <Grid item xs={12} sm={10.5}>
             <TextField label="Name with Initials" name="nameWithInitials"fullWidth variant="outlined" value={formData.nameWithInitials} onChange={handleChange}  required />
           </Grid>
-        </Grid>
+        
 
       <Grid item xs={12}>
         <TextField label="NIC Number" name="nicNumber" fullWidth variant="outlined" value={formData.nicNumber} onChange={handleChange} required />
@@ -95,6 +97,7 @@ const SpouseDetailsForm = ({ setSpouseDetails }) => {
       </Grid>
       <Grid item xs={12} sm={6}>
         <TextField label="Contact No at the place of work" name="workPlaceTeleNumber" fullWidth variant="outlined" value={formData.workPlaceTeleNumber} onChange={handleChange} required />
+      </Grid>
       </Grid>
     </Grid>
   );

@@ -63,10 +63,16 @@ const ContactDetails = ( {setContactDetails} ) => {
   
 
   return (
-    <Grid container spacing={2} sx={{ ml:0}}>
-        <Typography sx={{ ml: 0, mt: 3 }} variant="h4" gutterBottom>Contact Details</Typography>
+    <Grid item xs={11.4} container spacing={1} sx={{ ml:3}}>
+      {/* <Grid item xs={12} container spacing={1} sx={{ ml: 2 }}></Grid> */}
+      <Grid >
+       <Typography sx={{  mt : 5   }} variant="h5" gutterBottom style={{ fontWeight: 'bold', color:"rgb(58, 53, 54)", fontFamily: 'Roboto, sans-serif', textAlign: "left",  }}>
+        Contact Details 
+        </Typography>
+      </Grid>
         <Grid container spacing={2}>
-        <Typography variant="h6" sx={{ mt: 4, ml:2 }}>Temporary Address Details</Typography>
+        <Typography variant="h6" sx={{ mt: 3, ml:2 }} style={{ fontSize:"18px", color:"rgb(65, 63, 63)", }}>
+          Temporary Address Details</Typography>
           <Grid item xs={12}>
             <TextField label="Temporary Address" name="temporaryAddress" fullWidth variant="outlined" value={formData.temporaryAddress} onChange={handleChange} required />
           </Grid>
@@ -84,7 +90,9 @@ const ContactDetails = ( {setContactDetails} ) => {
           </Grid>
         </Grid>
 
-        <Typography variant="h6" sx={{ mt: 4 }}>Permanent Address Details</Typography>
+        <Typography variant="h6" sx={{ mt: 5, ml:0, mb:2 }} style={{ fontSize:"18px", color:"rgb(41, 40, 40)", }}>
+          Permanent Address Details
+          </Typography>
         <Grid container spacing={2}>
           <Grid item xs={12}>
             <TextField label="Permanent Address" name="permanentAddress" fullWidth variant="outlined" value={formData.permanentAddress} onChange={handleChange} required />
