@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { TextField, Grid, MenuItem, Typography } from "@mui/material";
 
-const PersonalDetailsForm = ({ setPersonalDetails }) => {
+const PersonalDetailsForm = ({ setPersonalDetails, parentData }) => {
   const [formData, setFormData] = useState({
     epfNumber: "",
     nameWithInitials: "",
@@ -18,6 +18,15 @@ const PersonalDetailsForm = ({ setPersonalDetails }) => {
     race: "",
     numberOfDependents: 0,  
   });
+
+  useEffect(() => {
+    if (parentData) {
+      setFormData((prevData) => ({
+        ...prevData,
+        ...parentData,
+      }));
+    }
+  }, [parentData]);
 
     // Function to extract birthday and gender from NIC number
     const extractNICDetails = (nic) => {
@@ -113,9 +122,7 @@ const PersonalDetailsForm = ({ setPersonalDetails }) => {
       </Grid>
       <Grid item xs={12} sm={6}>
         <TextField label="Gender" name="gender" fullWidth variant="outlined" value={formData.gender} onChange={handleChange}  InputProps={{readOnly: true,}} />
-          {/* <MenuItem value="Male">Male</MenuItem>
-          <MenuItem value="Female">Female</MenuItem>
-        </TextField> */}
+          
       </Grid>
       <Grid item xs={12} sm={6}>
         <TextField select label="Marital Status" name="maritalStatus" fullWidth variant="outlined" value={formData.maritalStatus} onChange={handleChange} required>
@@ -178,15 +185,3 @@ const PersonalDetailsForm = ({ setPersonalDetails }) => {
 };
 
 export default PersonalDetailsForm;
-
-
-
-
-
-
-
-
-
-
-
-

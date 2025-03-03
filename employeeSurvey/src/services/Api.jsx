@@ -2,14 +2,28 @@ import axios from "axios";
 
 const API_BASE_URL = "https://localhost:7277/api/PersonalDetails";
 
-const formatDate = (date) => (date ? new Date(date).toISOString() : null);
+const formatDate = (date) => {
+  if (!date) return null;
+  return new Date(date).toISOString();  // Keeps time information
+};
+
+export const fetchEmployeeData = async (epfNumber) => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/${epfNumber}`);
+    return response.data;
+  } catch (error) {
+    console.error("❌ API Error:", error.message);
+    throw error;
+  }
+};
 
 export const submitEmployeeData = async (
   personalDetails,
   spouseDetails,
   contactDetails,
   employmentDetails,
-  academicDetails
+  academicDetails,
+  dependentDetails
 ) => {
   try {
     const payload = {
@@ -30,27 +44,21 @@ export const submitEmployeeData = async (
         ? Number(personalDetails.numberOfDependents)
         : 0,
 
-      spouseDetails: spouseDetails
+        spouseDetails: spouseDetails
         ? {
-            title:spouseDetails.title || "",
+            title: spouseDetails.title || "",
             nameWithInitials: spouseDetails.nameWithInitials || "",
             fullName: spouseDetails.fullName || "",
             dateOfBirth: formatDate(spouseDetails.dateOfBirth),
             nicNumber: spouseDetails.nicNumber || "",
             address: spouseDetails.address || "",
-            postalCode: spouseDetails.postalCode
-              ? Number(spouseDetails.postalCode)
-              : 0,
-            contactNumber: spouseDetails.contactNumber
-              ? Number(spouseDetails.contactNumber)
-              : 0,
+            postalCode: spouseDetails.postalCode ? Number(spouseDetails.postalCode) : 0,
+            contactNumber: spouseDetails.contactNumber ? Number(spouseDetails.contactNumber) : 0,
             workPlaceAddress: spouseDetails.workPlaceAddress || "",
-            workPlaceTeleNumber: spouseDetails.workPlaceTeleNumber
-              ? Number(spouseDetails.workPlaceTeleNumber)
-              : 0,
+            workPlaceTeleNumber: spouseDetails.workPlaceTeleNumber ? Number(spouseDetails.workPlaceTeleNumber) : 0,
           }
-        : null,
-
+        : {},
+      
       contactDetails: contactDetails
         ? [
             {
@@ -109,47 +117,49 @@ export const submitEmployeeData = async (
               : [],
               
 
-            promotions: Array.isArray(employmentDetails.promotions)
+              promotions: Array.isArray(employmentDetails.promotions)
               ? employmentDetails.promotions.map((promotion) => ({
                   grade: promotion?.grade || "",
                   designation: promotion?.designation || "",
-                  durationFrom: formatDate(promotion?.durationFrom),
-                  durationTo: formatDate(promotion?.durationTo),
+                  durationFrom: promotion ? formatDate(promotion?.durationFrom) : "", // Required if promotion exists
+                  durationTo: promotion ? formatDate(promotion?.durationTo) : "", // Required if promotion exists
                   location: promotion?.location || "",
                   function: promotion?.function || "",
                   subFunction: promotion?.subFunction || "",
                 }))
               : [],
+            
 
-                dependents: Array.isArray(employmentDetails.dependents)
-                  ? employmentDetails.dependents.map((dependent) => ({
-                      dependentFullName: dependent?.fullName || "",
-                      dependentGender: dependent?.gender || "",
-                      dependentDateOfBirth: formatDate(dependent?.dateOfBirth),
-                      dependentOccupation: dependent?.occupation || "",
-                      occupationAddress: dependent?.occupationAddress || "",
-                    }))
-                  : [],
+                // dependents: Array.isArray(employmentDetails.dependents)
+                //   ? employmentDetails.dependents.map((dependent) => ({
+                //       dependentFullName: dependent?.fullName || "",
+                //       dependentGender: dependent?.gender || "",
+                //       dependentDateOfBirth: formatDate(dependent?.dateOfBirth),
+                //       dependentOccupation: dependent?.occupation || "",
+                //       occupationAddress: dependent?.occupationAddress || "",
+                //     }))
+                //   : [],
               
           }
         : null,
 
-        // employmentDetails: employmentDetails
-        // ? {
-        //     dependents: Array.isArray(employmentDetails.dependents)
-        //       ? employmentDetails.dependents.map((dependent) => ({
-        //           dependentFullName: dependent?.fullName || "",
-        //           dependentGender: dependent?.gender || "",
-        //           dependentDateOfBirth: formatDate(dependent?.dateOfBirth),
-        //           dependentOccupation: dependent?.occupation || "",
-        //           occupationAddress: dependent?.occupationAddress || "",
-        //         }))
-        //       : [],
-        //   }
-        // : null,
+        dependentDetails: Array.isArray(dependentDetails.dependents)
+            ? dependentDetails.dependents.map((dependent) => ({
+                dependentDetailsID: dependent?.dependentDetailsID || 0,
+                dependentFullName: dependent?.fullName || "",
+                dependentGender: dependent?.gender || "",
+                dependentDateOfBirth: formatDate(dependent?.dateOfBirth),
+                dependentOccupation: dependent?.occupation || "",
+                occupationAddress: dependent?.occupationAddress || "",
+                epfNumber: personalDetails?.epfNumber || "",
+              }))
+            : [],
+
+
 
         academicDetails: academicDetails
         ? {
+            academicDetailsId: academicDetails.academicDetailsId || 0, 
             schoolLeavingYear: academicDetails.schoolLeavingYear || 0,
             schoolLeavingGrade: academicDetails.schoolLeavingGrade || "",
             schoolName: academicDetails.schoolName || "",
@@ -184,19 +194,13 @@ export const submitEmployeeData = async (
 
     console.log("✅ Response:", response.data);
     
-    if (response.status === 201) {
+    if (response.status >= 200 && response.status < 300) {
       return { message: "Data submitted successfully!", data: response.data };
     } else {
-      throw new Error("Unexpected server response.");
+      throw new Error(`Unexpected server response (Status: ${response.status}).`);
     }
   } catch (error) {
     console.error("❌ Error submitting data:", error.response ? error.response.data : error.message);
     throw new Error(error.response?.data?.message || "Failed to submit data.");
   }
 };
-
-
-
-
-
-

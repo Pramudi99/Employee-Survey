@@ -9,7 +9,7 @@ import {
 } from "@mui/material";
 import { Add, Delete } from "@mui/icons-material";
 
-const EmploymentDetailsForm = ({ setEmploymentDetails }) => {
+const EmploymentDetailsForm = ({ setEmploymentDetails, parentData }) => {
   const [employmentDetails, setLocalEmploymentDetails] = useState({
     presentJobCategory: "",
     presentDesignation: "",
@@ -20,17 +20,59 @@ const EmploymentDetailsForm = ({ setEmploymentDetails }) => {
       { addressType: "Permanent", location: "", function: "", subFunction: "" },
       { addressType: "Temporary", location: "", function: "", subFunction: "" },
     ],
-    promotions: [
-      { grade: "", designation: "", durationFrom: "", durationTo: "", location: "", function: "", subFunction: "" }
-    ],
-    dependents : [
-      { fullName: "", gender: "", dateOfBirth: "", occupation: "", occupationAddress: "" }
-    ],
+    promotions: [],
   });
 
+
+
+  useEffect(() => {
+    // console.log("Parent data:", parentData); // Debugging output
+  
+    setLocalEmploymentDetails((prevDetails) => {
+      const newDetails = {
+        ...prevDetails,
+        presentJobCategory: parentData?.presentJobCategory || prevDetails.presentJobCategory,
+        presentDesignation: parentData?.presentDesignation || prevDetails.presentDesignation,
+        presentGrade: parentData?.presentGrade || prevDetails.presentGrade,
+        joinedAs: parentData?.joinedDetails?.joinedType || prevDetails.joinedAs,
+        joinedDetails: parentData?.joinedDetails
+          ? {
+              joinedType: parentData.joinedDetails.joinedType || prevDetails.joinedDetails.joinedType,
+              epfNumber: parentData.joinedDetails.epfNumber || prevDetails.joinedDetails.epfNumber,
+              designation: parentData.joinedDetails.designation || prevDetails.joinedDetails.designation,
+              grade: parentData.joinedDetails.grade || prevDetails.joinedDetails.grade,
+              date: parentData.joinedDetails.date || prevDetails.joinedDetails.date,
+            }
+          : prevDetails.joinedDetails,
+        promotions: Array.isArray(parentData?.promotions) ? parentData.promotions : prevDetails.promotions,
+        employmentAddresses: Array.isArray(parentData?.employmentAddresses) ? parentData.employmentAddresses : prevDetails.employmentAddresses,
+      };
+  
+      // Prevent unnecessary updates
+      if (JSON.stringify(prevDetails) === JSON.stringify(newDetails)) {
+        return prevDetails;
+      }
+      
+      return newDetails;
+    });
+  }, [parentData]);
+  
+  useEffect(() => {
+    setEmploymentDetails((prev) => {
+      if (JSON.stringify(prev) !== JSON.stringify(employmentDetails)) {
+        return employmentDetails;
+      }
+      return prev;
+    });
+  }, [employmentDetails, setEmploymentDetails]);
+  
+  
   useEffect(() => {
     setEmploymentDetails(employmentDetails);
   }, [employmentDetails, setEmploymentDetails]);
+  
+
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -52,14 +94,24 @@ const EmploymentDetailsForm = ({ setEmploymentDetails }) => {
     }));
   };
 
+  // const handleEmploymentAddressChange = (index, field, value) => {
+  //   const updatedAddresses = [...employmentDetails.employmentAddresses];
+  //   updatedAddresses[index][field] = value;
+  //   setLocalEmploymentDetails((prevDetails) => ({
+  //     ...prevDetails,
+  //     employmentAddresses: updatedAddresses,
+  //   }));
+  // };
+
   const handleEmploymentAddressChange = (index, field, value) => {
-    const updatedAddresses = [...employmentDetails.employmentAddresses];
-    updatedAddresses[index][field] = value;
-    setLocalEmploymentDetails((prevDetails) => ({
-      ...prevDetails,
-      employmentAddresses: updatedAddresses,
-    }));
+    setLocalEmploymentDetails((prevDetails) => {
+      const updatedAddresses = prevDetails.employmentAddresses.map((address, i) =>
+        i === index ? { ...address, [field]: value } : address
+      );
+      return { ...prevDetails, employmentAddresses: updatedAddresses };
+    });
   };
+  
 
   const handlePromotionChange = (index, field, value) => {
     const updatedPromotions = [...employmentDetails.promotions];
@@ -89,43 +141,12 @@ const EmploymentDetailsForm = ({ setEmploymentDetails }) => {
   };
 
 
-  const isLastPromotionFilled = () => {
-    const lastPromotion =     employmentDetails.promotions
-      [    employmentDetails.promotions.length - 1];
-    return Object.values(lastPromotion).every((value) => value.trim() !== "");
-  };
+  // const isLastPromotionFilled = () => {
+  //   const lastPromotion =     employmentDetails.promotions
+  //     [    employmentDetails.promotions.length - 1];
+  //   return Object.values(lastPromotion).every((value) => value.trim() !== "");
+  // };
  
-
-  const handleDependentChange = (index, field, value) => {
-    const updatedDependents = [...employmentDetails.dependents];
-    updatedDependents[index][field] = value;
-    setLocalEmploymentDetails((prevDetails) => ({
-      ...prevDetails,
-      dependents: updatedDependents,
-    }));
-  };
-
-  const addDependent = () => {
-    const newDependent = { fullName: "", gender: "", dateOfBirth: "", occupation: "", occupationAddress: "" };
-    setLocalEmploymentDetails((prevDetails) => ({
-      ...prevDetails,
-      dependents: [...prevDetails.dependents, newDependent],
-    }));
-  };
-
-  const removeDependent = (index) => {
-    const updatedDependents = employmentDetails.dependents.filter((_, i) => i !== index);
-    setLocalEmploymentDetails((prevDetails) => ({
-      ...prevDetails,
-      dependents: updatedDependents,
-    }));
-  };
-
-  const isLastDependentFilled = () => {
-    const lastDependent =     employmentDetails.dependents
-      [    employmentDetails.dependents.length - 1];
-    return Object.values(lastDependent).every((value) => value.trim() !== "");
-  };
   return (
     <Grid container spacing={2} sx={{ mt: 2}}>
        <Typography sx={{ ml: 3, mt: -2 }} variant="h4" gutterBottom style={{ fontWeight: 'bold', color:"rgb(129, 43, 57)", fontFamily: 'Roboto, sans-serif', }}>
@@ -144,7 +165,7 @@ const EmploymentDetailsForm = ({ setEmploymentDetails }) => {
     </Typography>
   </Grid>
 
-  {employmentDetails.employmentAddresses.map((address, index) => (
+  {employmentDetails?.employmentAddresses?.map((address, index) => (
     <Grid item xs={12} sx={{ ml: 2}} sm={5.7} key={index}> {/* Each address takes half width */}
       <Grid
         container
@@ -329,7 +350,7 @@ const EmploymentDetailsForm = ({ setEmploymentDetails }) => {
         Promotions
         </Typography>
       </Grid>
-      {employmentDetails.promotions.map((promotion, index) => (
+      {employmentDetails?.promotions?.map((promotion, index) => (
         <Grid
           container
           spacing={2}
@@ -405,95 +426,10 @@ const EmploymentDetailsForm = ({ setEmploymentDetails }) => {
           </Grid>
         </Grid>
       ))}
-      <Button variant="outlined" startIcon={<Add />} onClick={addPromotion} sx={{ mt: 1, ml: 2}} disabled={!isLastPromotionFilled()}>
+      <Button variant="outlined" startIcon={<Add />} onClick={addPromotion} sx={{ mt: 1, ml: 2}} >
         Add Promotion
       </Button>
 
-
-
-
-
-      <Grid>
-      <Grid >
-       <Typography sx={{ ml: 1.5 , mt:4 }} variant="h5" gutterBottom style={{ fontWeight: 'bold', color:"rgb(58, 53, 54)", fontFamily: 'Roboto, sans-serif', textAlign: "left",  }}>
-              Details of Dependent
-          </Typography>
-        </Grid>
-      {employmentDetails.dependents.map((dependent, index) => (
-        <Grid
-          container
-          spacing={2}
-          key={index}
-          sx={{ mt: -3, p: 2,  }}
-        >
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="FullName"
-              value={dependent.fullName}
-              onChange={(e) => handleDependentChange(index, "fullName", e.target.value)}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Gender"
-              value={dependent.gender}
-              onChange={(e) => handleDependentChange(index, "gender", e.target.value)}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="DateOfBirth"
-              type="date"
-              InputLabelProps={{ shrink: true }}
-              value={dependent.dateOfBirth}
-              onChange={(e) => handleDependentChange(index, "dateOfBirth", e.target.value)}
-            />
-          </Grid>
-          {/* <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Duration To"
-              type="date"
-              InputLabelProps={{ shrink: true }}
-              value={promotion.durationTo}
-              onChange={(e) => handlePromotionChange(index, "durationTo", e.target.value)}
-            />
-          </Grid> */}
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Occupation"
-              value={dependent.occupation}
-              onChange={(e) => handleDependentChange(index, "occupation", e.target.value)}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="OccupationAddress"
-              value={dependent.occupationAddress}
-              onChange={(e) => handleDependentChange(index, "occupationAddress", e.target.value)}
-            />
-          </Grid>
-          
-          {employmentDetails.dependents.length > 1 && (
-          <Grid item xs={12}>
-            <IconButton color="error" onClick={() => removeDependent(index)}>
-              <Delete />
-            </IconButton>
-          </Grid>
-          )}
-        </Grid>
-      ))}
-      <Button variant="outlined" startIcon={<Add />} onClick={addDependent} sx={{ mt: 2, ml:2 }} disabled={!isLastDependentFilled()}>
-        Add Dependent
-      </Button>
-      
-
-      </Grid>
       </Grid>
     
     </Grid>

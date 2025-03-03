@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { TextField, Grid, Typography, MenuItem } from "@mui/material";
 
-const SpouseDetailsForm = ({ setSpouseDetails }) => {
+const SpouseDetailsForm = ({ setSpouseDetails, parentData }) => {
   const [formData, setFormData] = useState({
     title: "",
     nameWithInitials: "",
@@ -15,12 +15,24 @@ const SpouseDetailsForm = ({ setSpouseDetails }) => {
     workPlaceTeleNumber: "",
     gender: ""
   });
+       
 
-  // 🔄 Update parent state AFTER render
+  useEffect(() => {
+    if (parentData && JSON.stringify(parentData) !== JSON.stringify(formData)) {
+      setFormData((prevData) => ({
+        ...prevData,
+        ...parentData,
+      }));
+    }
+  }, [parentData]);
+  
+  
   useEffect(() => {
     setSpouseDetails(formData);
   }, [formData, setSpouseDetails]);
-
+  
+  
+  
   const extractNICDetails = (nic) => {
     let birthYear, dayOfYear;
     if (/^\d{9}[VX]$/.test(nic)) {
@@ -44,19 +56,38 @@ const SpouseDetailsForm = ({ setSpouseDetails }) => {
     return { dateOfBirth, gender };
   };
 
+  // const handleChange = (e) => {
+  //   const { name, value } = e.target;
+  //   setFormData((prevFormData) => {
+  //     let updatedFormData = { ...prevFormData, [name]: value };
+
+  //     // If NIC changes, auto-update DOB & Gender
+  //     if (name === "nicNumber") {
+  //       const { dateOfBirth, gender } = extractNICDetails(value);
+  //       updatedFormData = { ...updatedFormData, dateOfBirth, gender };
+  //     }
+  //     return updatedFormData;
+  //   });
+  // };
+
+
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevFormData) => {
       let updatedFormData = { ...prevFormData, [name]: value };
-
-      // If NIC changes, auto-update DOB & Gender
+  
       if (name === "nicNumber") {
         const { dateOfBirth, gender } = extractNICDetails(value);
         updatedFormData = { ...updatedFormData, dateOfBirth, gender };
       }
+  
+      setSpouseDetails(updatedFormData); // Only update on user input
+  
       return updatedFormData;
     });
   };
+  
 
   return (
     <Grid container spacing={2} sx={{ mt: -2, ml:1 }}>
