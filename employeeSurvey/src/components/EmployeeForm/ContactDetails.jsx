@@ -2,12 +2,12 @@ import { Grid, Typography, TextField } from "@mui/material";
 import React, { useState, useEffect, useRef } from "react";
 import addressData from "../../data/addressData.json";
 
-// Updated ContactDetails component
 const ContactDetails = ({ setContactDetails, parentData }) => {
   // Initialize with empty object if parentData is undefined
   const initialData = parentData || {};
-
-  // State to store form data
+  const prevParentDataRef = useRef(initialData);
+  
+  // State to store form data - ensure all values are at least empty strings to keep inputs controlled
   const [formData, setFormData] = useState({
     temporaryAddress: initialData.temporaryAddress || "",
     temporaryPostalCode: initialData.temporaryPostalCode || "",
@@ -27,13 +27,15 @@ const ContactDetails = ({ setContactDetails, parentData }) => {
     contactId: initialData.contactId || 0,  // Preserve contactId for updates
   });
 
-  const prevParentDataRef = useRef(initialData);
+  // Track if form has been updated by user input
+  const formUpdatedByUser = useRef(false);
 
   // Update formData when parentData changes
   useEffect(() => {
-    // Only update if parentData exists and has changed
+    // Only update if parentData exists
     if (parentData && JSON.stringify(prevParentDataRef.current) !== JSON.stringify(parentData)) {
-      setFormData({
+      // Create a new object ensuring all fields have at least empty string values
+      const updatedData = {
         temporaryAddress: parentData.temporaryAddress || "",
         temporaryPostalCode: parentData.temporaryPostalCode || "",
         temporaryDistrict: parentData.temporaryDistrict || "",
@@ -50,29 +52,53 @@ const ContactDetails = ({ setContactDetails, parentData }) => {
         distantBetWorkPlaceAndPermanentAddress: parentData.distantBetWorkPlaceAndPermanentAddress || "",
         telephoneNumber: parentData.telephoneNumber || "",
         contactId: parentData.contactId || 0,
-      });
+      };
+
+      setFormData(updatedData);
       prevParentDataRef.current = parentData;
+      // Reset user update flag when parent data changes
+      formUpdatedByUser.current = false;
     }
   }, [parentData]);
 
-  // Rest of component remains the same...
-  // Update setContactDetails when formData changes
+  // Update parent component only when form is changed by user input
   useEffect(() => {
-    setContactDetails(formData);
+    if (formUpdatedByUser.current) {
+      // Make a defensive copy to ensure we don't pass undefined values back up
+      const dataToSend = { ...formData };
+      
+      // Ensure no undefined values are sent to parent
+      Object.keys(dataToSend).forEach(key => {
+        if (dataToSend[key] === undefined) {
+          dataToSend[key] = "";
+        }
+      });
+      
+      setContactDetails(dataToSend);
+    }
   }, [formData, setContactDetails]);
 
   // Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
-    const updatedFormData = { ...formData, [name]: value };
+    
+    // Set flag to indicate this is a user-initiated update
+    formUpdatedByUser.current = true;
 
+    // Start with a copy of current form data
+    const updatedFormData = { ...formData };
+    
+    // Set the changed field (always ensure it's at least an empty string)
+    updatedFormData[name] = value || "";
+
+    // Handle dependent fields for permanentGramaDivision
     if (name === "permanentGramaDivision") {
       const addressInfo = addressData.find((item) => item.GND_Name === value);
       if (addressInfo) {
-        updatedFormData.permanentProvince = addressInfo.Province_Name;
-        updatedFormData.permanentDistrict = addressInfo.District_Name;
-        updatedFormData.permanentElectoral = addressInfo.Polling_Division_Name;
-        updatedFormData.permanentAGADivision = addressInfo.DSD_Name;
+        updatedFormData.permanentProvince = addressInfo.Province_Name || "";
+        updatedFormData.permanentDistrict = addressInfo.District_Name || "";
+        updatedFormData.permanentElectoral = addressInfo.Polling_Division_Name || "";
+        updatedFormData.permanentAGADivision = addressInfo.DSD_Name || "";
       } else {
         updatedFormData.permanentProvince = "";
         updatedFormData.permanentDistrict = "";
@@ -81,9 +107,10 @@ const ContactDetails = ({ setContactDetails, parentData }) => {
       }
     }
 
+    // Handle dependent fields for temporaryDistrict
     if (name === "temporaryDistrict") {
       const addressInfo = addressData.find((item) => item.District_Name === value);
-      updatedFormData.temporaryProvince = addressInfo ? addressInfo.Province_Name : "";
+      updatedFormData.temporaryProvince = addressInfo ? (addressInfo.Province_Name || "") : "";
     }
 
     setFormData(updatedFormData);

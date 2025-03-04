@@ -16,22 +16,24 @@ const SpouseDetailsForm = ({ setSpouseDetails, parentData }) => {
     gender: ""
   });
        
-
+  // Only update formData when parentData changes
   useEffect(() => {
     if (parentData && JSON.stringify(parentData) !== JSON.stringify(formData)) {
-      setFormData((prevData) => ({
-        ...prevData,
-        ...parentData,
-      }));
+      setFormData(parentData);
     }
   }, [parentData]);
   
+  // Only update parent when formData changes due to user input
+  // NOT when formData changes due to parentData updates
+  const isUserChange = useRef(false);
   
   useEffect(() => {
-    setSpouseDetails(formData);
+    // Only update the parent if this was a user-initiated change
+    if (isUserChange.current) {
+      setSpouseDetails(formData);
+      isUserChange.current = false;
+    }
   }, [formData, setSpouseDetails]);
-  
-  
   
   const extractNICDetails = (nic) => {
     let birthYear, dayOfYear;
@@ -56,24 +58,11 @@ const SpouseDetailsForm = ({ setSpouseDetails, parentData }) => {
     return { dateOfBirth, gender };
   };
 
-  // const handleChange = (e) => {
-  //   const { name, value } = e.target;
-  //   setFormData((prevFormData) => {
-  //     let updatedFormData = { ...prevFormData, [name]: value };
-
-  //     // If NIC changes, auto-update DOB & Gender
-  //     if (name === "nicNumber") {
-  //       const { dateOfBirth, gender } = extractNICDetails(value);
-  //       updatedFormData = { ...updatedFormData, dateOfBirth, gender };
-  //     }
-  //     return updatedFormData;
-  //   });
-  // };
-
-
-
   const handleChange = (e) => {
     const { name, value } = e.target;
+    // Flag that this change was initiated by the user
+    isUserChange.current = true;
+    
     setFormData((prevFormData) => {
       let updatedFormData = { ...prevFormData, [name]: value };
   
@@ -82,12 +71,9 @@ const SpouseDetailsForm = ({ setSpouseDetails, parentData }) => {
         updatedFormData = { ...updatedFormData, dateOfBirth, gender };
       }
   
-      setSpouseDetails(updatedFormData); // Only update on user input
-  
       return updatedFormData;
     });
   };
-  
 
   return (
     <Grid container spacing={2} sx={{ mt: -2, ml:1 }}>

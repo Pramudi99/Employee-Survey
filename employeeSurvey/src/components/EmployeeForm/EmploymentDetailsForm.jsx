@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   TextField,
   Grid,
@@ -23,11 +23,19 @@ const EmploymentDetailsForm = ({ setEmploymentDetails, parentData }) => {
     promotions: [],
   });
 
+  // Reference to track if update is from parent data
+  const isUpdatingFromParent = useRef(false);
+  // Reference to track initial render
+  const isInitialRender = useRef(true);
+  // Reference to store previous value for comparison
+  const prevEmploymentDetails = useRef(employmentDetails);
 
-
+  // Handle parent data updates
   useEffect(() => {
-    // console.log("Parent data:", parentData); // Debugging output
-  
+    if (!parentData) return;
+    
+    isUpdatingFromParent.current = true;
+    
     setLocalEmploymentDetails((prevDetails) => {
       const newDetails = {
         ...prevDetails,
@@ -57,22 +65,26 @@ const EmploymentDetailsForm = ({ setEmploymentDetails, parentData }) => {
     });
   }, [parentData]);
   
+  // Update parent component with changes
   useEffect(() => {
-    setEmploymentDetails((prev) => {
-      if (JSON.stringify(prev) !== JSON.stringify(employmentDetails)) {
-        return employmentDetails;
-      }
-      return prev;
-    });
+    // Skip initial render
+    if (isInitialRender.current) {
+      isInitialRender.current = false;
+      return;
+    }
+    
+    // Skip if update is from parent
+    if (isUpdatingFromParent.current) {
+      isUpdatingFromParent.current = false;
+      return;
+    }
+    
+    // Check if the data has actually changed
+    if (JSON.stringify(prevEmploymentDetails.current) !== JSON.stringify(employmentDetails)) {
+      setEmploymentDetails(employmentDetails);
+      prevEmploymentDetails.current = employmentDetails;
+    }
   }, [employmentDetails, setEmploymentDetails]);
-  
-  
-  useEffect(() => {
-    setEmploymentDetails(employmentDetails);
-  }, [employmentDetails, setEmploymentDetails]);
-  
-
-
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -94,15 +106,6 @@ const EmploymentDetailsForm = ({ setEmploymentDetails, parentData }) => {
     }));
   };
 
-  // const handleEmploymentAddressChange = (index, field, value) => {
-  //   const updatedAddresses = [...employmentDetails.employmentAddresses];
-  //   updatedAddresses[index][field] = value;
-  //   setLocalEmploymentDetails((prevDetails) => ({
-  //     ...prevDetails,
-  //     employmentAddresses: updatedAddresses,
-  //   }));
-  // };
-
   const handleEmploymentAddressChange = (index, field, value) => {
     setLocalEmploymentDetails((prevDetails) => {
       const updatedAddresses = prevDetails.employmentAddresses.map((address, i) =>
@@ -112,14 +115,15 @@ const EmploymentDetailsForm = ({ setEmploymentDetails, parentData }) => {
     });
   };
   
-
   const handlePromotionChange = (index, field, value) => {
-    const updatedPromotions = [...employmentDetails.promotions];
-    updatedPromotions[index][field] = value;
-    setLocalEmploymentDetails((prevDetails) => ({
-      ...prevDetails,
-      promotions: updatedPromotions,
-    }));
+    setLocalEmploymentDetails((prevDetails) => {
+      const updatedPromotions = [...prevDetails.promotions];
+      updatedPromotions[index][field] = value;
+      return {
+        ...prevDetails,
+        promotions: updatedPromotions,
+      };
+    });
   };
 
   const addPromotion = () => {
@@ -132,20 +136,15 @@ const EmploymentDetailsForm = ({ setEmploymentDetails, parentData }) => {
 
   const removePromotion = (index) => {
     if (employmentDetails.promotions.length > 1) {
-    const updatedPromotions = employmentDetails.promotions.filter((_, i) => i !== index);
-    setLocalEmploymentDetails((prevDetails) => ({
-      ...prevDetails,
-      promotions: updatedPromotions,
-    }));
-  }
+      setLocalEmploymentDetails((prevDetails) => {
+        const updatedPromotions = prevDetails.promotions.filter((_, i) => i !== index);
+        return {
+          ...prevDetails,
+          promotions: updatedPromotions,
+        };
+      });
+    }
   };
-
-
-  // const isLastPromotionFilled = () => {
-  //   const lastPromotion =     employmentDetails.promotions
-  //     [    employmentDetails.promotions.length - 1];
-  //   return Object.values(lastPromotion).every((value) => value.trim() !== "");
-  // };
  
   return (
     <Grid container spacing={2} sx={{ mt: 2}}>

@@ -28,6 +28,8 @@ const PersonalDetailsForm = ({ setPersonalDetails, parentData }) => {
     }
   }, [parentData]);
 
+  
+
     // Function to extract birthday and gender from NIC number
     const extractNICDetails = (nic) => {
         let birthYear, dayOfYear;

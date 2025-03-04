@@ -34,19 +34,20 @@ const AcademicDetails = ({ setAcademicDetails, parentData }) => {
   // When parentData changes, update the form data
   useEffect(() => {
     if (parentData && Object.keys(parentData).length > 0) {
-      setFormData(prevData => {
-        // Only update if the data is actually different
-        if (JSON.stringify(prevData) !== JSON.stringify(parentData)) {
-          return parentData;
-        }
-        return prevData;
-      });
+      // Prevent infinite loops by checking if data is actually different
+      if (JSON.stringify(formData) !== JSON.stringify(parentData)) {
+        setFormData(parentData);
+      }
     }
   }, [parentData]);
 
-  useEffect(() => {
-    setAcademicDetails(formData);
-  }, [formData, setAcademicDetails]);
+  // Only notify parent when form data changes due to user input, not from parent data changes
+  const updateParent = (updatedData) => {
+    // Only update parent if the data is actually different
+    if (JSON.stringify(updatedData) !== JSON.stringify(parentData)) {
+      setAcademicDetails(updatedData);
+    }
+  };
 
   const handleChange = (e, field, examIndex = null, subjectIndex = null) => {
     const { value } = e.target;
@@ -62,11 +63,13 @@ const AcademicDetails = ({ setAcademicDetails, parentData }) => {
       updatedFormData[field] = value;
     }
 
-    setFormData({ ...updatedFormData });
+    setFormData(updatedFormData);
+    // Update parent after user input
+    updateParent(updatedFormData);
   };
 
   const addExam = () => {
-    setFormData({
+    const updatedFormData = {
       ...formData,
       examResults: [
         ...formData.examResults,
@@ -79,24 +82,32 @@ const AcademicDetails = ({ setAcademicDetails, parentData }) => {
           subjectTable: [{ subjectName: "", subjectResults: "" }],
         },
       ],
-    });
+    };
+    setFormData(updatedFormData);
+    updateParent(updatedFormData);
   };
 
   const removeExam = (index) => {
     const updatedExams = formData.examResults.filter((_, i) => i !== index);
-    setFormData({ ...formData, examResults: updatedExams });
+    const updatedFormData = { ...formData, examResults: updatedExams };
+    setFormData(updatedFormData);
+    updateParent(updatedFormData);
   };
 
   const addSubject = (examIndex) => {
     const updatedExams = [...formData.examResults];
     updatedExams[examIndex].subjectTable.push({ subjectName: "", subjectResults: "" });
-    setFormData({ ...formData, examResults: updatedExams });
+    const updatedFormData = { ...formData, examResults: updatedExams };
+    setFormData(updatedFormData);
+    updateParent(updatedFormData);
   };
 
   const removeSubject = (examIndex, subjectIndex) => {
     const updatedExams = [...formData.examResults];
     updatedExams[examIndex].subjectTable = updatedExams[examIndex].subjectTable.filter((_, i) => i !== subjectIndex);
-    setFormData({ ...formData, examResults: updatedExams });
+    const updatedFormData = { ...formData, examResults: updatedExams };
+    setFormData(updatedFormData);
+    updateParent(updatedFormData);
   };
 
   const isLastSubjectFilled = (examIndex) => {

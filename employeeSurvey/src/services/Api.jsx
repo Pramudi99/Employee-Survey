@@ -44,7 +44,7 @@ export const submitEmployeeData = async (
         ? Number(personalDetails.numberOfDependents)
         : 0,
 
-        spouseDetails: spouseDetails
+      spouseDetails: spouseDetails
         ? {
             title: spouseDetails.title || "",
             nameWithInitials: spouseDetails.nameWithInitials || "",
@@ -59,6 +59,7 @@ export const submitEmployeeData = async (
           }
         : {},
       
+      // Fixed contact details to match the expected format
       contactDetails: contactDetails
         ? [
             {
@@ -71,20 +72,25 @@ export const submitEmployeeData = async (
                 : 0,
               temporaryDistrict: contactDetails.temporaryDistrict || "",
               temporaryProvince: contactDetails.temporaryProvince || "",
-              distantBetWorkPlaceAndTemporyAddress:
-                contactDetails.distantBetWorkPlaceAndTemporyAddress || "",
+              // Convert to string instead of number to match API expectation
+              distantBetWorkPlaceAndTemporyAddress: contactDetails.distantBetWorkPlaceAndTemporyAddress
+                ? String(contactDetails.distantBetWorkPlaceAndTemporyAddress)
+                : "",
               permanentAddress: contactDetails.permanentAddress || "",
               permanentPostalCode: contactDetails.permanentPostalCode
                 ? Number(contactDetails.permanentPostalCode)
                 : 0,
+              // Add missing fields from expected format
               permanentGramaDivision: contactDetails.permanentGramaDivision || "",
               permanentAGADivision: contactDetails.permanentAGADivision || "",
               permanentElectoral: contactDetails.permanentElectoral || "",
               policeDivision: contactDetails.policeDivision || "",
               permanentDistrict: contactDetails.permanentDistrict || "",
               permanentProvince: contactDetails.permanentProvince || "",
-              distantBetWorkPlaceAndPermanentAddress:
-                contactDetails.distantBetWorkPlaceAndPermanentAddress || "",
+              // Convert to string instead of number to match API expectation
+              distantBetWorkPlaceAndPermanentAddress: contactDetails.distantBetWorkPlaceAndPermanentAddress
+                ? String(contactDetails.distantBetWorkPlaceAndPermanentAddress)
+                : "",
               telephoneNumber: contactDetails.telephoneNumber
                 ? Number(contactDetails.telephoneNumber)
                 : 0,
@@ -116,51 +122,37 @@ export const submitEmployeeData = async (
                 }))
               : [],
               
-
-              promotions: Array.isArray(employmentDetails.promotions)
+            promotions: Array.isArray(employmentDetails.promotions)
               ? employmentDetails.promotions.map((promotion) => ({
                   grade: promotion?.grade || "",
                   designation: promotion?.designation || "",
-                  durationFrom: promotion ? formatDate(promotion?.durationFrom) : "", // Required if promotion exists
-                  durationTo: promotion ? formatDate(promotion?.durationTo) : "", // Required if promotion exists
+                  durationFrom: promotion ? formatDate(promotion?.durationFrom) : "",
+                  durationTo: promotion ? formatDate(promotion?.durationTo) : "",
                   location: promotion?.location || "",
                   function: promotion?.function || "",
                   subFunction: promotion?.subFunction || "",
                 }))
               : [],
-            
-
-                // dependents: Array.isArray(employmentDetails.dependents)
-                //   ? employmentDetails.dependents.map((dependent) => ({
-                //       dependentFullName: dependent?.fullName || "",
-                //       dependentGender: dependent?.gender || "",
-                //       dependentDateOfBirth: formatDate(dependent?.dateOfBirth),
-                //       dependentOccupation: dependent?.occupation || "",
-                //       occupationAddress: dependent?.occupationAddress || "",
-                //     }))
-                //   : [],
-              
           }
         : null,
 
-        dependentDetails: Array.isArray(dependentDetails.dependents)
-            ? dependentDetails.dependents.map((dependent) => ({
-                dependentDetailsID: dependent?.dependentDetailsID || 0,
-                dependentFullName: dependent?.fullName || "",
-                dependentGender: dependent?.gender || "",
-                dependentDateOfBirth: formatDate(dependent?.dateOfBirth),
-                dependentOccupation: dependent?.occupation || "",
-                occupationAddress: dependent?.occupationAddress || "",
-                epfNumber: personalDetails?.epfNumber || "",
-              }))
-            : [],
+      dependentDetails: Array.isArray(dependentDetails.dependents)
+        ? dependentDetails.dependents.map((dependent) => ({
+            dependentDetailsID: dependent?.dependentDetailsID || 0,
+            dependentFullName: dependent?.fullName || "",
+            dependentGender: dependent?.gender || "",
+            dependentDateOfBirth: formatDate(dependent?.dateOfBirth),
+            dependentOccupation: dependent?.occupation || "",
+            occupationAddress: dependent?.occupationAddress || "",
+            epfNumber: personalDetails?.epfNumber || "",
+          }))
+        : [],
 
-
-
-        academicDetails: academicDetails
+      academicDetails: academicDetails
         ? {
             academicDetailsId: academicDetails.academicDetailsId || 0, 
             schoolLeavingYear: academicDetails.schoolLeavingYear || 0,
+            // Fix type: schoolLeavingGrade should be a string, not a number
             schoolLeavingGrade: academicDetails.schoolLeavingGrade || "",
             schoolName: academicDetails.schoolName || "",
             examResults: Array.isArray(academicDetails.examResults)
@@ -182,8 +174,6 @@ export const submitEmployeeData = async (
               : [],
           }
         : null,
-
-
     };
 
     console.log("🚀 Sending Payload:", JSON.stringify(payload, null, 2));
