@@ -124,7 +124,7 @@ const ContactDetails = ({ setContactDetails, parentData }) => {
           variant="h5"
           gutterBottom
           style={{
-            fontWeight: "bold",
+            fontStyle: "italic",
             color: "rgb(58, 53, 54)",
             fontFamily: "Roboto, sans-serif",
             textAlign: "left",
@@ -136,7 +136,7 @@ const ContactDetails = ({ setContactDetails, parentData }) => {
 
       {/* Temporary Address Section */}
       <Grid container spacing={2}>
-        <Typography variant="h6" sx={{ mt: 3, ml: 2 }} style={{ fontSize: "18px", color: "rgb(65, 63, 63)" }}>
+        <Typography variant="h6" sx={{ mt: 3, ml: 2 }} style={{ fontStyle: "italic", fontSize: "18px", color: "rgb(65, 63, 63)" }}>
           Temporary Address Details
         </Typography>
         <Grid item xs={12}>
@@ -157,7 +157,7 @@ const ContactDetails = ({ setContactDetails, parentData }) => {
       </Grid>
 
       {/* Permanent Address Section */}
-      <Typography variant="h6" sx={{ mt: 5, ml: 0, mb: 2 }} style={{ fontSize: "18px", color: "rgb(41, 40, 40)" }}>
+      <Typography variant="h6" sx={{ mt: 5, ml: 0, mb: 2 }} style={{ fontStyle: "italic", fontSize: "18px", color: "rgb(41, 40, 40)" }}>
         Permanent Address Details
       </Typography>
       <Grid container spacing={2}>

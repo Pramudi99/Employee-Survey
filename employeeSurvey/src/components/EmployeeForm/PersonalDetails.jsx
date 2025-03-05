@@ -90,12 +90,12 @@ const PersonalDetailsForm = ({ setPersonalDetails, parentData }) => {
   return (
     
     <Grid container spacing={2}>
-      <Typography sx={{ ml: 3, mt: 4 }} variant="h4" gutterBottom style={{ fontWeight: 'bold', color:"rgb(129, 43, 57)", fontFamily: 'Roboto, sans-serif', textAlign:'center'}}>
+      <Typography sx={{ ml: 3, mt: 4 }} variant="h4" gutterBottom style={{ fontStyle: "italic", color:"rgb(129, 43, 57)", fontFamily: 'Roboto, sans-serif', textAlign:'center'}}>
         General Details 
         </Typography>
         <Grid item xs={11.5} container spacing={1} sx={{ ml: 2 , mt:3}}>
         <Grid >
-       <Typography sx={{ ml: 1 , mt: -2  }} variant="h5" gutterBottom style={{ fontWeight: 'bold', color:"rgb(58, 53, 54)", fontFamily: 'Roboto, sans-serif', textAlign: "left",  }}>
+       <Typography sx={{ ml: 1 , mt: -2  }} variant="h5" gutterBottom style={{ fontStyle: "italic", color:"rgb(58, 53, 54)", fontFamily: 'Roboto, sans-serif', textAlign: "left",  }}>
         Personal Details 
         </Typography>
       </Grid>
@@ -104,7 +104,7 @@ const PersonalDetailsForm = ({ setPersonalDetails, parentData }) => {
       </Grid>
 
       <Grid item xs={12} sm={1.5}>
-        <TextField select label="Title" name="title" fullWidth variant="outlined" value={formData.title || "Mr"} onChange={handleChange} required>
+        <TextField select label="Title" name="title" fullWidth variant="outlined" value={formData.title} onChange={handleChange} required>
           <MenuItem value="Mr">Mr.</MenuItem>
           <MenuItem value="Mrs">Mrs.</MenuItem>
           <MenuItem value="Miss">Miss.</MenuItem>
@@ -162,7 +162,7 @@ const PersonalDetailsForm = ({ setPersonalDetails, parentData }) => {
         <TextField label="Passport Number" name="passportNumber" fullWidth variant="outlined" value={formData.passportNumber} onChange={handleChange} />
       </Grid>
       <Grid item xs={12} sm={6}>
-        <TextField select label="Religion" name="religion" fullWidth variant="outlined" value={formData.religion || "Buddhism"} onChange={handleChange} required >
+        <TextField select label="Religion" name="religion" fullWidth variant="outlined" value={formData.religion} onChange={handleChange} required >
           <MenuItem value="Buddhism">Buddhism</MenuItem>
           <MenuItem value="Hindu">Hindu</MenuItem>
           <MenuItem value="Islam">Islam</MenuItem>
@@ -170,7 +170,7 @@ const PersonalDetailsForm = ({ setPersonalDetails, parentData }) => {
         </TextField>
       </Grid>
       <Grid item xs={12} sm={6}>
-        <TextField select label="Race" name="race" fullWidth variant="outlined" value={formData.race || "Sinhala"} onChange={handleChange} required >
+        <TextField select label="Race" name="race" fullWidth variant="outlined" value={formData.race} onChange={handleChange} required >
         <MenuItem value="Sinhala">Sinhala</MenuItem>
           <MenuItem value="Tamil">Tamil</MenuItem>
           <MenuItem value="Muslim">Muslim</MenuItem>

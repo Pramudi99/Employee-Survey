@@ -4,8 +4,11 @@ import { Add, Delete } from "@mui/icons-material";
 
 const DependentDetails = ({ setDependentDetails, parentData }) => {
     const [dependentDetails, setLocalDependentDetails] = useState({
-        dependents: [],
+        dependents: [
+        ],
     });
+
+    const [showAddPromotion, setShowAddPromotion] = useState(false);
 
      useEffect(() => {
         // console.log("Parent data:", parentData); // Debugging output
@@ -51,6 +54,7 @@ const DependentDetails = ({ setDependentDetails, parentData }) => {
 
     // Add a new dependent
     const addDependent = () => {
+        setShowAddPromotion(true);
         setLocalDependentDetails((prevDetails) => ({
             dependents: [
                 ...prevDetails.dependents,
@@ -67,12 +71,30 @@ const DependentDetails = ({ setDependentDetails, parentData }) => {
     };
 
     return (
-        <Grid container spacing={2}>
-            <Grid item xs={12}>
+        <Grid container item xs={11.7} spacing={2} sx={{ ml: 2, mt: 2 }}>
+            {/* <Grid item xs={12}>
                 <Typography sx={{ ml: 1.5, mt: 4 }} variant="h5" gutterBottom style={{ fontWeight: 'bold', color: "rgb(58, 53, 54)", fontFamily: 'Roboto, sans-serif', textAlign: "left" }}>
                     Details of Dependent
                 </Typography>
-            </Grid>
+            </Grid> */}
+
+            <Grid container alignItems="center" sx={{ ml: 0, mt: 4 }}>
+                      <Typography 
+                        variant="h6" 
+                        gutterBottom 
+                        style={{  fontStyle: "italic", color: "gold", fontFamily: 'Roboto, sans-serif', textAlign: "left" }}
+                      >
+                        If you have dependents{" "}
+                        <Button 
+                          onClick={addDependent} 
+                          variant="text" 
+                          color="secondary"
+                          sx={{ fontSize: "1rem", textTransform: "none" }} 
+                        >
+                          Click Here
+                        </Button> 
+                      </Typography>
+                    </Grid>
 
             {dependentDetails.dependents.map((dependent, index) => (
                 <Grid container spacing={2} key={index} sx={{ mt: -1, p: 2, borderBottom: "1px solid #ddd" }}>
@@ -107,9 +129,11 @@ const DependentDetails = ({ setDependentDetails, parentData }) => {
             ))}
 
             <Grid item xs={12}>
-                <Button variant="outlined" startIcon={<Add />} onClick={addDependent} sx={{ mt: 2 }}>
+            {showAddPromotion && (
+                <Button variant="text" startIcon={<Add />} onClick={addDependent} sx={{ mt: 2 }}>
                     Add Dependent
                 </Button>
+            )}
             </Grid>
         </Grid>
     );

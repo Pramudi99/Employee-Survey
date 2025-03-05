@@ -1,7 +1,3 @@
-
-
-
-
 import { useState } from "react";
 import PersonalDetailsForm from "./PersonalDetails";
 import SpouseDetailsForm from "./SpouseDetails";
@@ -12,16 +8,40 @@ import { submitEmployeeData, fetchEmployeeData } from "../../services/Api";
 import { Button, Container, Typography, Paper, Box, TextField } from "@mui/material";
 import DependentDetails from "./DependentDetails";
 
+const initialPersonalDetails = {};
+const initialSpouseDetails = {};
+const initialContactDetails = {};
+const initialEmploymentDetails = {};
+const initialAcademicDetails = {
+  schoolLeavingYear: "",
+  schoolLeavingGrade: "",
+  schoolName: "",
+  examResults: [
+    {
+      indexNumber: "",
+      examType: "",
+      attemptYear: "",
+      attempt: "",
+      academicDetailsId: 0,
+      subjectTable: [
+        {
+          subjectName: "",
+          subjectResults: "",
+        },
+      ],
+    },
+  ]
+};
+const initialDependentDetails = { dependents: [] };
 
 const EmployeeForm = () => {
-  const [personalDetails, setPersonalDetails] = useState({});
-  const [spouseDetails, setSpouseDetails] = useState({});
-  const [contactDetails, setContactDetails] = useState({});
-  const [employmentDetails, setEmploymentDetails] = useState({});
-  const [academicDetails, setAcademicDetails] = useState ({});
-  const [dependentDetails, setDependentDetails] = useState ({});
+  const [personalDetails, setPersonalDetails] = useState(initialPersonalDetails);
+  const [spouseDetails, setSpouseDetails] = useState(initialSpouseDetails);
+  const [contactDetails, setContactDetails] = useState(initialContactDetails);
+  const [employmentDetails, setEmploymentDetails] = useState(initialEmploymentDetails);
+  const [academicDetails, setAcademicDetails] = useState(initialAcademicDetails);
+  const [dependentDetails, setDependentDetails] = useState(initialDependentDetails);
   const [epfNumber, setEpfNumber] = useState("");
-
 
   const handleFetchEmployeeData = async () => {
     if (!epfNumber) {
@@ -90,33 +110,12 @@ const EmployeeForm = () => {
           }))
         });
       } else {
-        // Keep default state if no data
-        setAcademicDetails({
-          schoolLeavingYear: "",
-          schoolLeavingGrade: "",
-          schoolName: "",
-          examResults: [
-            {
-              indexNumber: "",
-              examType: "",
-              attemptYear: "",
-              attempt: "",
-              academicDetailsId: 0,
-              subjectTable: [
-                {
-                  subjectName: "",
-                  subjectResults: "",
-                },
-              ],
-            },
-          ]
-        });
+        setAcademicDetails(initialAcademicDetails);
       }
     } catch (error) {
       console.error("❌ Error fetching employee data:", error.message);
     }
   };
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -135,14 +134,17 @@ const EmployeeForm = () => {
     }
 
     try {
-      await submitEmployeeData(personalDetails, spouseDetails, contactDetails, employmentDetails,academicDetails, dependentDetails);
+      await submitEmployeeData(personalDetails, spouseDetails, contactDetails, employmentDetails, academicDetails, dependentDetails);
       console.log("🎉 Data submitted successfully!");
 
-      // setPersonalDetails({});
-      // setSpouseDetails({});
-      // setContactDetails({});
-      // setEmploymentDetails({});
-      // setAcademicDetails({});
+      // Reset all form states
+      setPersonalDetails(initialPersonalDetails);
+      setSpouseDetails(initialSpouseDetails);
+      setContactDetails(initialContactDetails);
+      setEmploymentDetails(initialEmploymentDetails);
+      setAcademicDetails(initialAcademicDetails);
+      setDependentDetails(initialDependentDetails);
+      setEpfNumber(""); // Also reset EPF number
 
     } catch (error) {
       console.error("❌ Submission failed:", error.message);
@@ -177,31 +179,15 @@ const EmployeeForm = () => {
         </Button>
       </Box>
 
-
-
      <Box display="flex" gap={2} mt={2} width="100%">
-
      <Paper elevation={3} sx={{ padding: 3, flex: 1, width: "100%" }}>
      <PersonalDetailsForm parentData={personalDetails} setPersonalDetails={setPersonalDetails} />
      <ContactDetails parentData={contactDetails} setContactDetails={setContactDetails} />
-      {/* </Paper> */}
-     {/* <Paper elevation={3} sx={{ padding: 3, flex: 1, width: "100%" }}> */}
      <EmploymentDetailsForm parentData={employmentDetails} setEmploymentDetails={setEmploymentDetails} />
+     <SpouseDetailsForm parentData={spouseDetails} setSpouseDetails={setSpouseDetails} />
      <DependentDetails parentData={dependentDetails} setDependentDetails={setDependentDetails}/>
-      {/* </Paper> */}
-
-     
-      {/* </Box>
-    
-      <Box display="flex" gap={2} mt={2} width="100%"> */}
-        {/* <Paper elevation={3} sx={{ padding: 3, flex: 1, width: "100%" }}> */}
-        <SpouseDetailsForm parentData={spouseDetails} setSpouseDetails={setSpouseDetails} />
-              {/* </Paper> */}
-      
-
-      {/* <Paper elevation={3} sx={{ padding: 3, flex: 1, width: "100%" }}> */}
-      <AcademicDetails setAcademicDetails={setAcademicDetails} parentData={academicDetails}/>
-      </Paper></Box>
+     <AcademicDetails setAcademicDetails={setAcademicDetails} parentData={academicDetails}/>
+     </Paper></Box>
       <Button
         variant="contained"
         color="primary"

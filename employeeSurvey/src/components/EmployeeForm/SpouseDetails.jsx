@@ -77,12 +77,12 @@ const SpouseDetailsForm = ({ setSpouseDetails, parentData }) => {
 
   return (
     <Grid container spacing={2} sx={{ mt: -2, ml:1 }}>
-     <Typography sx={{ ml: 1, mt: 10 }} variant="h4" gutterBottom style={{ fontWeight: 'bold', color:"rgb(129, 43, 57)", fontFamily: 'Roboto, sans-serif', textAlign:'center'}}>
+     <Typography sx={{ ml: 1, mt: 4 }} variant="h4" gutterBottom style={{ fontStyle: "italic", color:"rgb(129, 43, 57)", fontFamily: 'Roboto, sans-serif', textAlign:'center'}}>
              Details of Spouse 
              </Typography>
              <Grid item xs={11.5} container spacing={1} sx={{ ml: 0, mt:0}}>
           <Grid item xs={12} sm={1.5}>
-            <TextField  select label="Title"  name="title"  fullWidth  variant="outlined"  value={formData.title || "Mr"}  onChange={handleChange}  required  >
+            <TextField  select label="Title"  name="title"  fullWidth  variant="outlined"  value={formData.title}  onChange={handleChange}  required  >
               <MenuItem value="Mr">Mr.</MenuItem>
               <MenuItem value="Mrs">Mrs.</MenuItem>
               <MenuItem value="Miss">Miss.</MenuItem>

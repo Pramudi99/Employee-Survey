@@ -23,6 +23,13 @@ const EmploymentDetailsForm = ({ setEmploymentDetails, parentData }) => {
     promotions: [],
   });
 
+  const [showAddPromotion, setShowAddPromotion] = useState(false);
+
+  const handleShowButton = () => {
+    setShowAddPromotion(true); // Show the "Add Promotion" button when clicked
+  };
+
+
   // Reference to track if update is from parent data
   const isUpdatingFromParent = useRef(false);
   // Reference to track initial render
@@ -127,6 +134,7 @@ const EmploymentDetailsForm = ({ setEmploymentDetails, parentData }) => {
   };
 
   const addPromotion = () => {
+    setShowAddPromotion(true);
     const newPromotion = { grade: "", designation: "", durationFrom: "", durationTo: "", location: "", function: "", subFunction: "" };
     setLocalEmploymentDetails((prevDetails) => ({
       ...prevDetails,
@@ -147,18 +155,18 @@ const EmploymentDetailsForm = ({ setEmploymentDetails, parentData }) => {
   };
  
   return (
-    <Grid container spacing={2} sx={{ mt: 2}}>
-       <Typography sx={{ ml: 3, mt: -2 }} variant="h4" gutterBottom style={{ fontWeight: 'bold', color:"rgb(129, 43, 57)", fontFamily: 'Roboto, sans-serif', }}>
+    <Grid container spacing={2} sx={{ mt: 3}}>
+       <Typography sx={{ ml: 3, mt: 2 }} variant="h4" gutterBottom style={{ fontStyle: "italic", color:"rgb(129, 43, 57)", fontFamily: 'Roboto, sans-serif', }}>
         Employment Details 
         </Typography>
         <Grid item xs={11.8} container spacing={1} sx={{ ml: 1 }}>
         <Grid container spacing={2}>
   <Grid item xs={12}>
     <Typography 
-      sx={{ ml: 1.5, mt: -2 }} 
+      sx={{ ml: 1.5, mt: 3 }} 
       variant="h5" 
       gutterBottom 
-      style={{ fontWeight: 'bold', color: "rgb(58, 53, 54)", fontFamily: 'Roboto, sans-serif', textAlign: "left" }}
+      style={{ fontStyle: "italic", color: "rgb(58, 53, 54)", fontFamily: 'Roboto, sans-serif', textAlign: "left" }}
     >
       Details of Employment location
     </Typography>
@@ -344,11 +352,24 @@ const EmploymentDetailsForm = ({ setEmploymentDetails, parentData }) => {
         </Grid>
       )}
 
-    <Grid >
-       <Typography sx={{ ml: 2  , mt:4 }} variant="h5" gutterBottom style={{ fontWeight:'bold', color:"rgb(58, 53, 54)", fontFamily: 'Roboto, sans-serif', textAlign: "left",  }}>
-        Promotions
-        </Typography>
-      </Grid>
+        <Grid container alignItems="center" sx={{ ml: 0, mt: 4 }}>
+          <Typography 
+            variant="h6" 
+            gutterBottom 
+            style={{ fontStyle: "italic", color: "gold", fontFamily: 'Roboto, sans-serif', textAlign: "left" }}
+          >
+            If you have a promotion{" "}
+            <Button 
+              onClick={addPromotion} 
+              variant="text" 
+              color="secondary"
+              sx={{ fontSize: "1rem", textTransform: "none" }} 
+            >
+              Click Here
+            </Button> 
+          </Typography>
+        </Grid>
+        
       {employmentDetails?.promotions?.map((promotion, index) => (
         <Grid
           container
@@ -375,7 +396,7 @@ const EmploymentDetailsForm = ({ setEmploymentDetails, parentData }) => {
           <Grid item xs={12} sm={3}>
             <TextField
               fullWidth
-              label="Duration From"
+              label="Start From"
               type="date"
               InputLabelProps={{ shrink: true }}
               value={promotion.durationFrom}
@@ -385,7 +406,7 @@ const EmploymentDetailsForm = ({ setEmploymentDetails, parentData }) => {
           <Grid item xs={12} sm={3}>
             <TextField
               fullWidth
-              label="Duration To"
+              label="To"
               type="date"
               InputLabelProps={{ shrink: true }}
               value={promotion.durationTo}
@@ -418,17 +439,19 @@ const EmploymentDetailsForm = ({ setEmploymentDetails, parentData }) => {
           </Grid>
           <Grid item xs={12}>
           {employmentDetails.promotions.length > 1 && (
-              <IconButton onClick={() => removePromotion(index)} color="secondary">
+              <IconButton onClick={() => removePromotion(index)} color="error">
                 <Delete />
               </IconButton>
             )}
           </Grid>
         </Grid>
       ))}
-      <Button variant="outlined" startIcon={<Add />} onClick={addPromotion} sx={{ mt: 1, ml: 2}} >
+
+      {showAddPromotion && (
+      <Button variant="text " startIcon={<Add />} onClick={addPromotion} sx={{ mt: 1, ml: 2}} >
         Add Promotion
       </Button>
-
+      )}
       </Grid>
     
     </Grid>

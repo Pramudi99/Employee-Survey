@@ -119,13 +119,13 @@ const AcademicDetails = ({ setAcademicDetails, parentData }) => {
   };
   
   return (
-    <Grid container spacing={2}>
+    <Grid item xs={11.7} container spacing={2}  sx={{ ml: 0, mt: 4 }}>
       <Typography 
-        sx={{ ml: 2, mt: 4 }} 
+        sx={{ ml: 2, mt: 0 }} 
         variant="h4" 
         gutterBottom 
         style={{ 
-          fontWeight: "bold", 
+          fontStyle: "italic", 
           color: "rgb(129, 43, 57)", 
           fontFamily: 'Roboto, sans-serif', 
           textAlign: 'left'
@@ -163,9 +163,14 @@ const AcademicDetails = ({ setAcademicDetails, parentData }) => {
           />
         </Grid>
         
+
+        <Grid>
+        <Typography>
         <Grid item xs={12} container spacing={2} sx={{ mt: 2}}>
           {formData.examResults.map((exam, examIndex) => (
             <React.Fragment key={examIndex}>
+              <Grid item xs={11.8} sx={{ ml:2, mt: 4, borderBottom: "1px solid #ccc", pb: 2 }}>
+              <Grid container spacing={2}>
               <Grid item xs={3}>
                 <TextField 
                   label="Exam Type" 
@@ -209,14 +214,16 @@ const AcademicDetails = ({ setAcademicDetails, parentData }) => {
                       fullWidth 
                       value={subject.subjectName} 
                       onChange={(e) => handleChange(e, "subjectName", examIndex, subjectIndex)} 
+                      variant="standard"
                     />
                   </Grid>
-                  <Grid item xs={5}>
+                  <Grid item xs={1.5}>
                     <TextField 
                       label="Subject Results" 
                       fullWidth 
                       value={subject.subjectResults} 
                       onChange={(e) => handleChange(e, "subjectResults", examIndex, subjectIndex)} 
+                      variant="standard"
                     />
                   </Grid>
                   <Grid item xs={2}>
@@ -234,6 +241,8 @@ const AcademicDetails = ({ setAcademicDetails, parentData }) => {
                     )}
                   </Grid>
                 </React.Fragment>
+
+                
               ))}
               
               <Grid item xs={12} sm={6}>
@@ -247,9 +256,14 @@ const AcademicDetails = ({ setAcademicDetails, parentData }) => {
                   </Button>
                 )}
               </Grid>
+              </Grid>
+              </Grid>
             </React.Fragment>
           ))}
           
+           </Grid>
+          </Typography>
+         
           <Grid item xs={12} sm={2}>
             <Button 
               onClick={addExam} 
