@@ -16,7 +16,7 @@ function App() {
   return (
     <Box
       sx={{
-        backgroundColor: "#e0f7fa", // Light blue background
+        backgroundColor: "#ebff79", // Light blue background
         minHeight: "100vh", // Full height
         display: "flex",
         justifyContent: "center",

@@ -8,7 +8,7 @@ const DependentDetails = ({ setDependentDetails, parentData }) => {
         ],
     });
 
-    const [showAddPromotion, setShowAddPromotion] = useState(false);
+    const [showAddDependent, setShowAddDependent] = useState(false);
 
      useEffect(() => {
         // console.log("Parent data:", parentData); // Debugging output
@@ -54,7 +54,7 @@ const DependentDetails = ({ setDependentDetails, parentData }) => {
 
     // Add a new dependent
     const addDependent = () => {
-        setShowAddPromotion(true);
+        setShowAddDependent(true);
         setLocalDependentDetails((prevDetails) => ({
             dependents: [
                 ...prevDetails.dependents,
@@ -129,7 +129,7 @@ const DependentDetails = ({ setDependentDetails, parentData }) => {
             ))}
 
             <Grid item xs={12}>
-            {showAddPromotion && (
+            {showAddDependent && (
                 <Button variant="text" startIcon={<Add />} onClick={addDependent} sx={{ mt: 2 }}>
                     Add Dependent
                 </Button>
