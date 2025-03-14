@@ -790,7 +790,7 @@ const EmploymentDetailsForm = ({ setEmploymentDetails, parentData }) => {
 
 
       <Grid item xs={11.7} container spacing={1} sx={{ ml: 0 }}>
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={12} sm={3}>
           <TextField
             select
             label="Present Job Category"
@@ -809,7 +809,7 @@ const EmploymentDetailsForm = ({ setEmploymentDetails, parentData }) => {
             <MenuItem value="Non Executive">Non Executive</MenuItem>
           </TextField>
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={12} sm={3}>
           <TextField
             fullWidth
             label="Present Designation"
@@ -822,11 +822,12 @@ const EmploymentDetailsForm = ({ setEmploymentDetails, parentData }) => {
             onKeyDown={(e) => handleKeyDown(e, "presentDesignation", "presentGrade")}
             inputRef={(el) => registerFieldRef("presentDesignation", el)}
           />
+           
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={12} sm={3}>
           <TextField
             fullWidth
-            label="Present Grade"
+            select label="Present Grade"
             name="presentGrade"
             value={employmentDetails.presentGrade}
             onChange={handleChange}
@@ -835,9 +836,18 @@ const EmploymentDetailsForm = ({ setEmploymentDetails, parentData }) => {
             helperText={errors.presentGrade}
             onKeyDown={(e) => handleKeyDown(e, "presentGrade", "joinedAs")}
             inputRef={(el) => registerFieldRef("presentGrade", el)}
-          />
+          >
+             <MenuItem value="A1">A1</MenuItem> <MenuItem value="A2"></MenuItem>A2<MenuItem value="A3">A3</MenuItem>
+            <MenuItem value="A4">A4</MenuItem> <MenuItem value="A5"></MenuItem>A5<MenuItem value="A6">A6</MenuItem>
+            <MenuItem value="A7">A7</MenuItem>
+            <MenuItem value="B1">B1</MenuItem><MenuItem value="B2">B2</MenuItem><MenuItem value="B3">B3</MenuItem>
+            <MenuItem value="C1">C1</MenuItem>
+            <MenuItem value="C2">C2</MenuItem>
+            <MenuItem value="C3">C3</MenuItem>
+            <MenuItem value="C4">C4</MenuItem>
+            </TextField>
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={12} sm={3}>
           <TextField
             select
             label="Joined As"
@@ -898,7 +908,7 @@ const EmploymentDetailsForm = ({ setEmploymentDetails, parentData }) => {
           <Grid item xs={12} sm={5.5}>
             <TextField
               fullWidth
-              label="Grade"
+              select label="Grade"
               value={employmentDetails.joinedDetails.grade || ""}
               onChange={(e) => handleJoinedDetailsChange("grade", e.target.value)}
               required
@@ -906,7 +916,16 @@ const EmploymentDetailsForm = ({ setEmploymentDetails, parentData }) => {
               helperText={errors["joinedDetails.grade"]}
               onKeyDown={(e) => handleKeyDown(e, "joinedDetails.grade", "joinedDetails.date")}
               inputRef={(el) => registerFieldRef("joinedDetails.grade", el)}
-            />
+              >
+              <MenuItem value="A1">A1</MenuItem> <MenuItem value="A2"></MenuItem>A2<MenuItem value="A3">A3</MenuItem>
+             <MenuItem value="A4">A4</MenuItem> <MenuItem value="A5"></MenuItem>A5<MenuItem value="A6">A6</MenuItem>
+             <MenuItem value="A7">A7</MenuItem>
+             <MenuItem value="B1">B1</MenuItem><MenuItem value="B2">B2</MenuItem><MenuItem value="B3">B3</MenuItem>
+             <MenuItem value="C1">C1</MenuItem>
+             <MenuItem value="C2">C2</MenuItem>
+             <MenuItem value="C3">C3</MenuItem>
+             <MenuItem value="C4">C4</MenuItem>
+             </TextField>
           </Grid>
           <Grid item xs={12} sm={5.5}>
             <TextField
@@ -967,7 +986,7 @@ const EmploymentDetailsForm = ({ setEmploymentDetails, parentData }) => {
           <Grid item xs={12} sm={5.5}>
             <TextField
               fullWidth
-              label="Grade"
+              select label="Grade"
               value={employmentDetails.joinedDetails.grade || ""}
               onChange={(e) => handleJoinedDetailsChange("grade", e.target.value)}
               required
@@ -975,7 +994,16 @@ const EmploymentDetailsForm = ({ setEmploymentDetails, parentData }) => {
               helperText={errors["joinedDetails.grade"]}
               onKeyDown={(e) => handleKeyDown(e, "joinedDetails.grade", "joinedDetails.date")}
               inputRef={(el) => registerFieldRef("joinedDetails.grade", el)}
-            />
+              >
+              <MenuItem value="A1">A1</MenuItem> <MenuItem value="A2"></MenuItem>A2<MenuItem value="A3">A3</MenuItem>
+             <MenuItem value="A4">A4</MenuItem> <MenuItem value="A5"></MenuItem>A5<MenuItem value="A6">A6</MenuItem>
+             <MenuItem value="A7">A7</MenuItem>
+             <MenuItem value="B1">B1</MenuItem><MenuItem value="B2">B2</MenuItem><MenuItem value="B3">B3</MenuItem>
+             <MenuItem value="C1">C1</MenuItem>
+             <MenuItem value="C2">C2</MenuItem>
+             <MenuItem value="C3">C3</MenuItem>
+             <MenuItem value="C4">C4</MenuItem>
+             </TextField>
           </Grid>
           <Grid item xs={12} sm={5.5}>
             <TextField

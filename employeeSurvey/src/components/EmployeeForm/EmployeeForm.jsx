@@ -152,7 +152,7 @@ const EmployeeForm = () => {
   };
 
   return (
-    <Container maxWidth={false} sx={{ width: "90vw", maxWidth: "2000px" }}>
+    <Container maxWidth={false} sx={{ width: "110vw", maxWidth: "1200px" }}>
      <Typography
         variant="h2"
         gutterBottom

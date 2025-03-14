@@ -427,7 +427,20 @@ const ContactDetails = ({ setContactDetails, parentData }) => {
           Contact Details
         </Typography>
       </Grid>
-
+      {/* <TextField 
+            label="EPF Number" 
+            name="epfNumber" 
+            fullWidth 
+            variant="outlined" 
+            value={formData.epfNumber} 
+            onChange={handleChange} 
+            onBlur={handleBlur}
+            onKeyDown={(e) => handleKeyDown(e, "epfNumber")}
+            inputRef={(el) => fieldRefs.current["epfNumber"] = el}
+            required 
+            error={errors.epfNumber && touched.epfNumber}
+            helperText={getHelperText("epfNumber")}
+          /> */}
       {/* Temporary Address Section */}
       <Grid container spacing={2}>
         <Typography variant="h6" sx={{ mt: 3, ml: 2 }} style={{ fontStyle: "italic", fontSize: "18px", color: "rgb(65, 63, 63)" }}>
