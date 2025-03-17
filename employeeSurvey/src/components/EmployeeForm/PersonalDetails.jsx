@@ -728,6 +728,14 @@
 // export default PersonalDetailsForm;
 
 
+
+
+
+
+
+
+
+
 import { useState, useEffect, useRef } from "react";
 import { TextField, Grid, MenuItem, Typography, FormHelperText } from "@mui/material";
 
@@ -889,7 +897,56 @@ const [errorMessages, setErrorMessages] = useState({
         message = "EPF Number cannot exceed 7 digits";
         setShowErrors(prev => ({...prev, [name]: true}));
       }
-    } else {
+    }
+    
+    
+    
+    else if (name === "nicNumber") {
+      // Check if it's empty
+      if (!value || value.toString().trim() === "") {
+        isValid = false;
+        message = "NIC Number is required";
+      } 
+    else if (!/^\d{9}[VvXx]$/.test(value) && !/^\d{12}$/.test(value)) {
+      isValid = false;
+      
+      // More specific error messages based on format problems
+      if (/^\d{9}[^VvXx]/.test(value)) {
+        message = "10th character must be V or X";
+      } else if (/^\d{9}[VvXx].+/.test(value)) {
+        message = "No characters allowed after V/X";
+      } else if (/^\d{10,11}$/.test(value)) {
+        message = "NIC must be exactly 12 digits";
+      } else if (/\D/.test(value.substring(0, 9))) {
+        message = "First 9 characters must be digits";
+      } else {
+        message = "Invalid NIC format. Use 9 digits + V/X or 12 digits";
+      }
+      
+      setShowErrors(prev => ({...prev, [name]: true}));
+    
+    }
+    } 
+    else if (name === "numberOfDependents") {
+      // Check if it's empty
+      if (!value && value !== 0 && value !== "0") {
+        isValid = false;
+        message = "Number of Dependents is required";
+      } 
+      // Check if it's a number
+      else if (isNaN(Number(value))) {
+        isValid = false;
+        message = "Number of Dependents must be a number";
+        setShowErrors(prev => ({...prev, [name]: true}));
+      }
+      // Check if it exceeds 2 digits
+      else if (Number(value) > 99) {
+        isValid = false;
+        message = "Number of Dependents cannot exceed 99";
+        setShowErrors(prev => ({...prev, [name]: true}));
+      }
+    
+    }else {
       // Default message for other fields
       message = isValid ? "" : `${name.charAt(0).toUpperCase() + name.slice(1).replace(/([A-Z])/g, ' $1')} is required`;
     }
@@ -955,16 +1012,20 @@ const [errorMessages, setErrorMessages] = useState({
   const extractNICDetails = (nic) => {
     let birthYear, dayOfYear;
     
-    if (/^\d{9}[VX]$/.test(nic)) {
+    // Clean the NIC (handle capital/lowercase V/X)
+    const cleanNic = nic.toUpperCase();
+    
+    if (/^\d{9}[VX]$/.test(cleanNic)) {
       // Old NIC format: 921532345V
-      birthYear = `19${nic.substring(0, 2)}`;
-      dayOfYear = parseInt(nic.substring(2, 5), 10);
-    } else if (/^\d{12}$/.test(nic)) {
-      // New NIC format: 20021230345V
-      birthYear = nic.substring(0, 4);
-      dayOfYear = parseInt(nic.substring(4, 7), 10);
+      birthYear = `19${cleanNic.substring(0, 2)}`;
+      dayOfYear = parseInt(cleanNic.substring(2, 5), 10);
+    } else if (/^\d{12}$/.test(cleanNic)) {
+      // New NIC format: 200212345678
+      birthYear = cleanNic.substring(0, 4);
+      dayOfYear = parseInt(cleanNic.substring(4, 7), 10);
     } else {
-      return { dateOfBirth: "", gender: "" }; // Invalid NIC format
+      // Invalid format - don't extract details
+      return { dateOfBirth: "", gender: "" };
     }
 
     // Determine gender
@@ -1006,24 +1067,79 @@ const [errorMessages, setErrorMessages] = useState({
       setShowErrors(prev => ({...prev, [name]: true}));
     }
     }
+ // Special handling for NIC number
+ if (name === "nicNumber") {
+  // Validate as user types
+  
+  // First 9 characters must be digits
+  if (value.length <= 9) {
+    if (!/^\d*$/.test(value)) {
+      validateField(name, value);
+      setShowErrors(prev => ({...prev, [name]: true}));
+      return; // Prevent update with invalid character
+    }
+  } 
+  // 10th character can be V, X, or a digit
+  else if (value.length === 10) {
+    if (!/^\d{9}([VvXx]|\d)$/.test(value)) {
+      validateField(name, value);
+      setShowErrors(prev => ({...prev, [name]: true}));
+      return;
+    }
+  } 
+  // If 10th character was V or X, no more characters allowed
+  else if (value.length > 10 && /^\d{9}[VvXx]/.test(value)) {
+    validateField(name, value);
+    setShowErrors(prev => ({...prev, [name]: true}));
+    return;
+  } 
+  // If continuing with digits, only allow up to 12 total
+  else if (value.length > 10 && value.length <= 12) {
+    if (!/^\d+$/.test(value)) {
+      validateField(name, value);
+      setShowErrors(prev => ({...prev, [name]: true}));
+      return;
+    }
+  } 
+  // Never allow more than 12 characters
+  else if (value.length > 12) {
+    validateField(name, value);
+    setShowErrors(prev => ({...prev, [name]: true}));
+    return;
+  }
+    
+    // Run validation anyway to update error state
+    validateField(name, value);
+  }
+
 
     setFormData((prevFormData) => {
       let updatedFormData = { ...prevFormData, [name]: value };
 
       if (name === "nicNumber") {
         const { dateOfBirth, gender } = extractNICDetails(value);
-        updatedFormData = { ...updatedFormData, dateOfBirth, gender };
-        
-        // Also validate the date of birth field since it was auto-filled
-        validateField("dateOfBirth", dateOfBirth);
+         // Only update date of birth and gender if a valid NIC was provided
+         if (dateOfBirth) {
+          updatedFormData = { ...updatedFormData, dateOfBirth, gender };
+          
+          // Also validate the date of birth field since it was auto-filled
+          validateField("dateOfBirth", dateOfBirth);
+        }
       }
 
-      if (name === "numberOfDependents") {
-        updatedFormData[name] = value ? Number(value) : 0;
-      }
+            // Special handling for number of dependents
+        if (name === "numberOfDependents") {
+          // Allow input to be processed for validation
+          validateField(name, value);
+          
+          // If exceeding 2 digits (99), show error
+          if (Number(value) > 99) {
+            setShowErrors(prev => ({...prev, [name]: true}));
+          }
+        }
 
-      // Validate field without showing error yet
-      validateField(name, value);
+      // // Validate field without showing error yet
+      // validateField(name, value);
 
       setPersonalDetails(updatedFormData);  // Pass updated data to parent
       return updatedFormData; // Ensures React gets the correct state update
@@ -1160,6 +1276,8 @@ const [errorMessages, setErrorMessages] = useState({
             required 
             error={shouldShowError("nicNumber")}
             helperText={getHelperText("nicNumber")}
+            inputProps={{ maxLength: 12 }}
+            placeholder="9 digits + V/X or 12 digits"
           />
         </Grid>
         <Grid item xs={12} sm={4}>
@@ -1306,6 +1424,11 @@ const [errorMessages, setErrorMessages] = useState({
                 required
                 error={shouldShowError("numberOfDependents")}
                 helperText={getHelperText("numberOfDependents")}
+                inputProps={{ 
+                  min: 0, 
+                  max: 99,
+                  maxLength: 2
+                }}
               />
             </Grid>
 

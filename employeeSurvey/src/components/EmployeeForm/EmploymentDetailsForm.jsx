@@ -995,10 +995,18 @@ const EmploymentDetailsForm = ({ setEmploymentDetails, parentData }) => {
               onKeyDown={(e) => handleKeyDown(e, "joinedDetails.grade", "joinedDetails.date")}
               inputRef={(el) => registerFieldRef("joinedDetails.grade", el)}
               >
-              <MenuItem value="A1">A1</MenuItem> <MenuItem value="A2"></MenuItem>A2<MenuItem value="A3">A3</MenuItem>
-             <MenuItem value="A4">A4</MenuItem> <MenuItem value="A5"></MenuItem>A5<MenuItem value="A6">A6</MenuItem>
+              <MenuItem value="A1">A1</MenuItem>
+              <MenuItem value="A2">A2</MenuItem> 
+              <MenuItem value="A3">A3</MenuItem>
+             <MenuItem value="A4">A4</MenuItem>
+             <MenuItem value="A5">A5</MenuItem>
+             <MenuItem value="A6">A6</MenuItem>
              <MenuItem value="A7">A7</MenuItem>
-             <MenuItem value="B1">B1</MenuItem><MenuItem value="B2">B2</MenuItem><MenuItem value="B3">B3</MenuItem>
+
+             <MenuItem value="B1">B1</MenuItem>
+             <MenuItem value="B2">B2</MenuItem>
+             <MenuItem value="B3">B3</MenuItem>
+             
              <MenuItem value="C1">C1</MenuItem>
              <MenuItem value="C2">C2</MenuItem>
              <MenuItem value="C3">C3</MenuItem>

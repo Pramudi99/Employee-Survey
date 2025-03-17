@@ -1,11 +1,4 @@
-// import EmployeeForm from "./components/EmployeeForm/EmployeeForm";
-// import EmploymentDetailsForm from "./components/EmployeeForm/EmploymentDetailsForm";
 
-// function App() {
-//   return <EmployeeForm />;
-// }
-
-// export default App;
 
 
 
@@ -30,3 +23,16 @@ function App() {
 }
 
 export default App;
+
+
+
+// // In your main application file
+// import SriLankaAddressAutocomplete from './SriLankaAddressAutocomplete';
+
+// function App() {
+//   return (
+//     <div className="App">
+//       <SriLankaAddressAutocomplete apiKey="YOUR_NEW_API_KEY" />
+//     </div>
+//   );
+// }
