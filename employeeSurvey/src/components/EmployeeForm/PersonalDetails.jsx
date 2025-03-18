@@ -815,12 +815,14 @@ const [errorMessages, setErrorMessages] = useState({
     "nicNumber",
     "dateOfBirth", 
     "maritalStatus",
-    "bloodGroup",
-    "drivingLicense",
-    "passportNumber",
-    "religion",
+     "religion",
     "race",
-    "numberOfDependents"
+    "bloodGroup",
+     "numberOfDependents",
+    "drivingLicense",
+    "passportNumber"
+   
+
   ];
 
   useEffect(() => {
@@ -927,26 +929,36 @@ const [errorMessages, setErrorMessages] = useState({
     
     }
     } 
+
+
     else if (name === "numberOfDependents") {
       // Check if it's empty
-      if (!value && value !== 0 && value !== "0") {
+      if (!value || value.toString().trim() === "") {
         isValid = false;
         message = "Number of Dependents is required";
       } 
-      // Check if it's a number
-      else if (isNaN(Number(value))) {
-        isValid = false;
-        message = "Number of Dependents must be a number";
-        setShowErrors(prev => ({...prev, [name]: true}));
+      // Check if it's a valid number between 0 and 15
+      else {
+        const numValue = parseInt(value, 10);
+        if (isNaN(numValue)) {
+          isValid = false;
+          message = "Please enter a valid number";
+          setShowErrors(prev => ({...prev, [name]: true}));
+        } 
+        else if (numValue < 0) {
+          isValid = false;
+          message = "Minimum value is 0";
+          setShowErrors(prev => ({...prev, [name]: true}));
+        }
+        else if (numValue > 15) {
+          isValid = false;
+          message = "Maximum value is 15";
+          setShowErrors(prev => ({...prev, [name]: true}));
+        }
       }
-      // Check if it exceeds 2 digits
-      else if (Number(value) > 99) {
-        isValid = false;
-        message = "Number of Dependents cannot exceed 99";
-        setShowErrors(prev => ({...prev, [name]: true}));
-      }
-    
-    }else {
+    }
+
+    else {
       // Default message for other fields
       message = isValid ? "" : `${name.charAt(0).toUpperCase() + name.slice(1).replace(/([A-Z])/g, ' $1')} is required`;
     }
@@ -1050,6 +1062,24 @@ const [errorMessages, setErrorMessages] = useState({
   const handleChange = (e) => {
     const { name, value } = e.target;
 
+
+
+    // Special handling for numberOfDependents
+if (name === "numberOfDependents") {
+  const numValue = parseInt(value, 10);
+  
+  // Allow empty string (for user to clear input) but validate it
+  if (value === "") {
+    validateField(name, value);
+    setShowErrors(prev => ({...prev, [name]: true}));
+  }
+  // Validate number range and show error if needed
+  else if (!isNaN(numValue) && (numValue < 0 || numValue > 15)) {
+    validateField(name, value);
+    setShowErrors(prev => ({...prev, [name]: true}));
+  }
+}
+
      // Special handling for EPF number
   if (name === "epfNumber") {
     // Allow input to be processed even with symbols so we can show the error
@@ -1126,21 +1156,7 @@ const [errorMessages, setErrorMessages] = useState({
           validateField("dateOfBirth", dateOfBirth);
         }
       }
-
-            // Special handling for number of dependents
-        if (name === "numberOfDependents") {
-          // Allow input to be processed for validation
-          validateField(name, value);
-          
-          // If exceeding 2 digits (99), show error
-          if (Number(value) > 99) {
-            setShowErrors(prev => ({...prev, [name]: true}));
-          }
-        }
-
-      // // Validate field without showing error yet
-      // validateField(name, value);
-
+         
       setPersonalDetails(updatedFormData);  // Pass updated data to parent
       return updatedFormData; // Ensures React gets the correct state update
     });
@@ -1413,7 +1429,7 @@ const [errorMessages, setErrorMessages] = useState({
               <TextField 
                 label="Number of Dependents" 
                 name="numberOfDependents" 
-                type="number"
+                // type="number"
                 fullWidth 
                 variant="outlined" 
                 value={formData.numberOfDependents} 
@@ -1424,11 +1440,7 @@ const [errorMessages, setErrorMessages] = useState({
                 required
                 error={shouldShowError("numberOfDependents")}
                 helperText={getHelperText("numberOfDependents")}
-                inputProps={{ 
-                  min: 0, 
-                  max: 99,
-                  maxLength: 2
-                }}
+                inputProps={{ min: 0, max: 15 }}
               />
             </Grid>
 

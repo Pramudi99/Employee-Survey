@@ -204,7 +204,7 @@
 
 
 
-import { Grid, Typography, TextField } from "@mui/material";
+import { Grid, Typography, TextField, MenuItem, Autocomplete } from "@mui/material";
 import React, { useState, useEffect, useRef } from "react";
 import addressData from "../../data/addressData.json";
 
@@ -254,6 +254,14 @@ const ContactDetails = ({ setContactDetails, parentData }) => {
     "policeDivision",
     "distantBetWorkPlaceAndPermanentAddress",
     "telephoneNumber"
+  ];
+
+  const sriLankanDistricts = [
+    "Ampara", "Anuradhapura", "Badulla", "Batticaloa", "Colombo", 
+    "Galle", "Gampaha", "Hambantota", "Jaffna", "Kalutara", 
+    "Kandy", "Kegalle", "Kilinochchi", "Kurunegala", "Mannar", 
+    "Matale", "Matara", "Monaragala", "Mullaitivu", "Nuwara Eliya", 
+    "Polonnaruwa", "Puttalam", "Ratnapura", "Trincomalee", "Vavuniya"
   ];
 
   // Update formData when parentData changes
@@ -476,9 +484,9 @@ const ContactDetails = ({ setContactDetails, parentData }) => {
             required 
           />
         </Grid>
-        <Grid item xs={12} sm={6}>
+        {/* <Grid item xs={12} sm={6}>
           <TextField 
-            label="District" 
+            select label="District" 
             name="temporaryDistrict" 
             fullWidth 
             variant="outlined" 
@@ -489,6 +497,38 @@ const ContactDetails = ({ setContactDetails, parentData }) => {
             helperText={errors.temporaryDistrict || ''}
             inputRef={el => inputRefs.current.temporaryDistrict = el}
             required 
+          >
+            <MenuItem value=""></MenuItem>
+            </TextField>
+        </Grid> */}
+        <Grid item xs={12} sm={6}>
+          <Autocomplete
+            options={sriLankanDistricts}
+            value={formData.temporaryDistrict}
+            onChange={(event, newValue) => {
+              // Create a synthetic event object to work with your existing handleChange function
+              const syntheticEvent = {
+                target: {
+                  name: "temporaryDistrict",
+                  value: newValue || ""
+                }
+              };
+              handleChange(syntheticEvent);
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="District"
+                name="temporaryDistrict"
+                fullWidth
+                variant="outlined"
+                error={!!errors.temporaryDistrict}
+                helperText={errors.temporaryDistrict || ''}
+                inputRef={el => inputRefs.current.temporaryDistrict = el}
+                required
+                onKeyPress={handleKeyPress}
+              />
+            )}
           />
         </Grid>
         <Grid item xs={12} sm={6}>
