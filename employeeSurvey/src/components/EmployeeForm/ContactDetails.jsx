@@ -454,7 +454,7 @@ const ContactDetails = ({ setContactDetails, parentData }) => {
         <Typography variant="h6" sx={{ mt: 3, ml: 2 }} style={{ fontStyle: "italic", fontSize: "18px", color: "rgb(65, 63, 63)" }}>
           Temporary Address Details
         </Typography>
-        <Grid item xs={12}>
+        <Grid item xs={10}>
           <TextField 
             label="Temporary Address" 
             name="temporaryAddress" 
@@ -469,7 +469,7 @@ const ContactDetails = ({ setContactDetails, parentData }) => {
             required 
           />
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={12} sm={2}>
           <TextField 
             label="Postal Code" 
             name="temporaryPostalCode" 
@@ -501,7 +501,7 @@ const ContactDetails = ({ setContactDetails, parentData }) => {
             <MenuItem value=""></MenuItem>
             </TextField>
         </Grid> */}
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={12} sm={4}>
           <Autocomplete
             options={sriLankanDistricts}
             value={formData.temporaryDistrict}
@@ -531,7 +531,7 @@ const ContactDetails = ({ setContactDetails, parentData }) => {
             )}
           />
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={12} sm={4}>
           <TextField 
             label="Province" 
             name="temporaryProvince" 
@@ -541,7 +541,7 @@ const ContactDetails = ({ setContactDetails, parentData }) => {
             InputProps={{ readOnly: true }} 
           />
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={12} sm={3}>
           <TextField 
             label="Distance to Workplace (km)" 
             name="distantBetWorkPlaceAndTemporyAddress" 
@@ -564,7 +564,7 @@ const ContactDetails = ({ setContactDetails, parentData }) => {
         Permanent Address Details
       </Typography>
       <Grid container spacing={2}>
-        <Grid item xs={12}>
+        <Grid item xs={12} sm={10}>
           <TextField 
             label="Permanent Address" 
             name="permanentAddress" 
@@ -579,7 +579,7 @@ const ContactDetails = ({ setContactDetails, parentData }) => {
             required 
           />
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={12} sm={2}>
           <TextField 
             label="Postal Code" 
             name="permanentPostalCode" 
@@ -594,7 +594,7 @@ const ContactDetails = ({ setContactDetails, parentData }) => {
             required 
           />
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={12} sm={4}>
           <TextField 
             label="Grama Division" 
             name="permanentGramaDivision" 
@@ -609,7 +609,7 @@ const ContactDetails = ({ setContactDetails, parentData }) => {
             required 
           />
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={12} sm={4}>
           <TextField 
             label="AGA Division" 
             name="permanentAGADivision" 
@@ -619,7 +619,7 @@ const ContactDetails = ({ setContactDetails, parentData }) => {
             InputProps={{ readOnly: true }} 
           />
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={12} sm={4}>
           <TextField 
             label="Electoral Division" 
             name="permanentElectoral" 
@@ -629,7 +629,7 @@ const ContactDetails = ({ setContactDetails, parentData }) => {
             InputProps={{ readOnly: true }} 
           />
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={12} sm={4}>
           <TextField 
             label="Police Division" 
             name="policeDivision" 
@@ -644,7 +644,7 @@ const ContactDetails = ({ setContactDetails, parentData }) => {
             required 
           />
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={12} sm={4}>
           <TextField 
             label="District" 
             name="permanentDistrict" 
@@ -654,7 +654,7 @@ const ContactDetails = ({ setContactDetails, parentData }) => {
             InputProps={{ readOnly: true }} 
           />
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={12} sm={4}>
           <TextField 
             label="Province" 
             name="permanentProvince" 
@@ -680,7 +680,7 @@ const ContactDetails = ({ setContactDetails, parentData }) => {
             required 
           />
         </Grid>
-        <Grid item xs={12}>
+        <Grid item xs={12} sm={6}>
           <TextField 
             label="Telephone Number" 
             name="telephoneNumber" 
