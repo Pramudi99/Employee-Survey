@@ -185,23 +185,51 @@ const SpouseDetailsForm = ({ setSpouseDetails, parentData }) => {
   ];
        
   // Only update formData when parentData changes
-  useEffect(() => {
-    if (parentData && JSON.stringify(parentData) !== JSON.stringify(formData)) {
-      setFormData(parentData);
+useEffect(() => {
+  // Special case: if parentData is empty (after form reset), reset the form
+  if (parentData && Object.keys(parentData).length === 0) {
+    setFormData({
+      title: "",
+      nameWithInitials: "",
+      fullName: "",
+      dateOfBirth: "",
+      nicNumber: "",
+      address: "",
+      postalCode: "",
+      contactNumber: "",
+      workPlaceAddress: "",
+      workPlaceTeleNumber: "",
+      gender: ""
+    });
+    
+    // Reset errors and touched states as well
+    const resetState = Object.keys(errors).reduce((acc, field) => {
+      acc[field] = false;
+      return acc;
+    }, {});
+    
+    setErrors({...resetState});
+    setTouched({...resetState});
+    return;
+  }
+  
+  // Normal case: update from parent data
+  if (parentData && JSON.stringify(parentData) !== JSON.stringify(formData)) {
+    setFormData(parentData);
 
-      // Initialize errors state based on parentData
-      const initialErrors = {};
-      Object.keys(errors).forEach(field => {
-        // Check if field is required and empty in parentData
-        if (isFieldRequired(field) && (!parentData[field] || parentData[field] === "")) {
-          initialErrors[field] = true;
-        } else {
-          initialErrors[field] = false;
-        }
-      });
-      setErrors(initialErrors);
-    }
-  }, [parentData]);
+    // Initialize errors state based on parentData
+    const initialErrors = {};
+    Object.keys(errors).forEach(field => {
+      // Check if field is required and empty in parentData
+      if (isFieldRequired(field) && (!parentData[field] || parentData[field] === "")) {
+        initialErrors[field] = true;
+      } else {
+        initialErrors[field] = false;
+      }
+    });
+    setErrors(initialErrors);
+  }
+}, [parentData]);
   
   // Only update parent when formData changes due to user input
   // NOT when formData changes due to parentData updates

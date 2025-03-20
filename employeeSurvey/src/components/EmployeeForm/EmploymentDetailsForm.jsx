@@ -986,40 +986,101 @@ const EmploymentDetailsForm = ({ setEmploymentDetails, parentData }) => {
     }
   };
 
-  // Handle parent data updates
-  useEffect(() => {
-    if (!parentData) return;
-    
-    isUpdatingFromParent.current = true;
-    
-    setLocalEmploymentDetails((prevDetails) => {
-      const newDetails = {
-        ...prevDetails,
-        presentJobCategory: parentData?.presentJobCategory || prevDetails.presentJobCategory,
-        presentDesignation: parentData?.presentDesignation || prevDetails.presentDesignation,
-        presentGrade: parentData?.presentGrade || prevDetails.presentGrade,
-        joinedAs: parentData?.joinedDetails?.joinedType || prevDetails.joinedAs,
-        joinedDetails: parentData?.joinedDetails
-          ? {
-              joinedType: parentData.joinedDetails.joinedType || prevDetails.joinedDetails.joinedType,
-              epfNumber: parentData.joinedDetails.epfNumber || prevDetails.joinedDetails.epfNumber,
-              designation: parentData.joinedDetails.designation || prevDetails.joinedDetails.designation,
-              grade: parentData.joinedDetails.grade || prevDetails.joinedDetails.grade,
-              date: parentData.joinedDetails.date || prevDetails.joinedDetails.date,
-            }
-          : prevDetails.joinedDetails,
-        promotions: Array.isArray(parentData?.promotions) ? parentData.promotions : prevDetails.promotions,
-        employmentAddresses: Array.isArray(parentData?.employmentAddresses) ? parentData.employmentAddresses : prevDetails.employmentAddresses,
-      };
+
+// In EmploymentDetailsForm.jsx - modify the useEffect that handles parent data updates:
+
+useEffect(() => {
+  if (!parentData) return;
   
-      // Prevent unnecessary updates
-      if (JSON.stringify(prevDetails) === JSON.stringify(newDetails)) {
-        return prevDetails;
-      }
+  isUpdatingFromParent.current = true;
+  
+  setLocalEmploymentDetails((prevDetails) => {
+    // Check if this is a reset operation (all main fields are null)
+    const isReset = parentData.presentJobCategory === null && 
+                    parentData.presentDesignation === null && 
+                    parentData.presentGrade === null;
+    
+    // If it's a reset, return the initial state
+    if (isReset) {
+      return {
+        presentJobCategory: "",
+        presentDesignation: "",
+        presentGrade: "",
+        joinedAs: "",
+        joinedDetails: {},
+        employmentAddresses: [
+          { addressType: "Permanent", location: "", function: "", subFunction: "" },
+          { addressType: "Temporary", location: "", function: "", subFunction: "" },
+        ],
+        promotions: [],
+      };
+    }
+    
+    // Otherwise, handle regular updates
+    const newDetails = {
+      ...prevDetails,
+      presentJobCategory: parentData?.presentJobCategory || prevDetails.presentJobCategory,
+      presentDesignation: parentData?.presentDesignation || prevDetails.presentDesignation,
+      presentGrade: parentData?.presentGrade || prevDetails.presentGrade,
+      joinedAs: parentData?.joinedDetails?.joinedType || prevDetails.joinedAs,
+      joinedDetails: parentData?.joinedDetails
+        ? {
+            joinedType: parentData.joinedDetails.joinedType || prevDetails.joinedDetails.joinedType,
+            epfNumber: parentData.joinedDetails.epfNumber || prevDetails.joinedDetails.epfNumber,
+            designation: parentData.joinedDetails.designation || prevDetails.joinedDetails.designation,
+            grade: parentData.joinedDetails.grade || prevDetails.joinedDetails.grade,
+            date: parentData.joinedDetails.date || prevDetails.joinedDetails.date,
+          }
+        : prevDetails.joinedDetails,
+      promotions: Array.isArray(parentData?.promotions) ? parentData.promotions : prevDetails.promotions,
+      employmentAddresses: Array.isArray(parentData?.employmentAddresses) ? parentData.employmentAddresses : prevDetails.employmentAddresses,
+    };
+
+    // Prevent unnecessary updates
+    if (JSON.stringify(prevDetails) === JSON.stringify(newDetails)) {
+      return prevDetails;
+    }
+    
+    return newDetails;
+  });
+}, [parentData]);
+
+
+
+  // // Handle parent data updates
+  // useEffect(() => {
+  //   if (!parentData) return;
+    
+  //   isUpdatingFromParent.current = true;
+    
+  //   setLocalEmploymentDetails((prevDetails) => {
+  //     const newDetails = {
+  //       ...prevDetails,
+  //       presentJobCategory: parentData?.presentJobCategory || prevDetails.presentJobCategory,
+  //       presentDesignation: parentData?.presentDesignation || prevDetails.presentDesignation,
+  //       presentGrade: parentData?.presentGrade || prevDetails.presentGrade,
+  //       joinedAs: parentData?.joinedDetails?.joinedType || prevDetails.joinedAs,
+  //       joinedDetails: parentData?.joinedDetails
+  //         ? {
+  //             joinedType: parentData.joinedDetails.joinedType || prevDetails.joinedDetails.joinedType,
+  //             epfNumber: parentData.joinedDetails.epfNumber || prevDetails.joinedDetails.epfNumber,
+  //             designation: parentData.joinedDetails.designation || prevDetails.joinedDetails.designation,
+  //             grade: parentData.joinedDetails.grade || prevDetails.joinedDetails.grade,
+  //             date: parentData.joinedDetails.date || prevDetails.joinedDetails.date,
+  //           }
+  //         : prevDetails.joinedDetails,
+  //       promotions: Array.isArray(parentData?.promotions) ? parentData.promotions : prevDetails.promotions,
+  //       employmentAddresses: Array.isArray(parentData?.employmentAddresses) ? parentData.employmentAddresses : prevDetails.employmentAddresses,
+  //     };
+  
+  //     // Prevent unnecessary updates
+  //     if (JSON.stringify(prevDetails) === JSON.stringify(newDetails)) {
+  //       return prevDetails;
+  //     }
       
-      return newDetails;
-    });
-  }, [parentData]);
+  //     return newDetails;
+  //   });
+  // }, [parentData]);
   
  // Update the useEffect that updates the parent component
 useEffect(() => {

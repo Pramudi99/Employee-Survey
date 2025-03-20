@@ -144,7 +144,25 @@ const handleSubmit = async (e) => {
       setPersonalDetails({});  // Empty object instead of initialPersonalDetails
       setSpouseDetails({});
       setContactDetails({});
-      setEmploymentDetails({});
+       // Properly reset employment details with null values instead of empty strings
+    setEmploymentDetails({
+      presentJobCategory: null,
+      presentDesignation: null,
+      presentGrade: null,
+      joinedAs: null,
+      joinedDetails: {
+        joinedType: null,
+        epfNumber: null,
+        designation: null,
+        grade: null,
+        date: null
+      },
+      employmentAddresses: [
+        { addressType: "Permanent", location: null, function: null, subFunction: null },
+        { addressType: "Temporary", location: null, function: null, subFunction: null },
+      ],
+      promotions: []
+    });
       setAcademicDetails({
         schoolLeavingYear: "",
         schoolLeavingGrade: "",
