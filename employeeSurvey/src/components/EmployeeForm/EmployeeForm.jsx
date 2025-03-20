@@ -42,6 +42,7 @@ const EmployeeForm = () => {
   const [academicDetails, setAcademicDetails] = useState(initialAcademicDetails);
   const [dependentDetails, setDependentDetails] = useState(initialDependentDetails);
   const [epfNumber, setEpfNumber] = useState("");
+  const [submissionCompleted, setSubmissionCompleted] = useState(false);
 
   const handleFetchEmployeeData = async () => {
     if (!epfNumber) {
@@ -117,39 +118,64 @@ const EmployeeForm = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    console.log("Submitting data:", {
-      personalDetails,
-      spouseDetails,
-      contactDetails,
-      employmentDetails,
-      academicDetails,
-      dependentDetails
-    });
+  // In EmployeeForm.jsx
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  console.log("Submitting data:", {
+    personalDetails,
+    spouseDetails,
+    contactDetails,
+    employmentDetails,
+    academicDetails,
+    dependentDetails
+  });
 
-    if (!employmentDetails || Object.keys(employmentDetails).length === 0) {
-      console.error("❌ Employment details are missing.");
-      return;
-    }
+  if (!employmentDetails || Object.keys(employmentDetails).length === 0) {
+    console.error("❌ Employment details are missing.");
+    return;
+  }
 
-    try {
-      await submitEmployeeData(personalDetails, spouseDetails, contactDetails, employmentDetails, academicDetails, dependentDetails);
-      console.log("🎉 Data submitted successfully!");
+  try {
+    await submitEmployeeData(personalDetails, spouseDetails, contactDetails, employmentDetails, academicDetails, dependentDetails);
+    console.log("🎉 Data submitted successfully!");
 
-      // Reset all form states
-      setPersonalDetails(initialPersonalDetails);
-      setSpouseDetails(initialSpouseDetails);
-      setContactDetails(initialContactDetails);
-      setEmploymentDetails(initialEmploymentDetails);
-      setAcademicDetails(initialAcademicDetails);
-      setDependentDetails(initialDependentDetails);
-      setEpfNumber(""); // Also reset EPF number
+    // Reset all form states with proper initial values
+    // In EmployeeForm.jsx after successful submission
+      setPersonalDetails({});  // Empty object instead of initialPersonalDetails
+      setSpouseDetails({});
+      setContactDetails({});
+      setEmploymentDetails({});
+      setAcademicDetails({
+        schoolLeavingYear: "",
+        schoolLeavingGrade: "",
+        schoolName: "",
+        examResults: [
+          {
+            indexNumber: "",
+            examType: "",
+            attemptYear: "",
+            attempt: "",
+            academicDetailsId: 0,
+            subjectTable: [
+              {
+                subjectName: "",
+                subjectResults: "",
+              },
+            ],
+          },
+        ]
+      });
+      setDependentDetails({ dependents: [] });
+    setEpfNumber("");
 
-    } catch (error) {
-      console.error("❌ Submission failed:", error.message);
-    }
-  };
+    // Force a re-render of all child components
+    setSubmissionCompleted(true);
+    // Use a longer timeout to ensure all state updates have propagated
+    setTimeout(() => setSubmissionCompleted(false), 300);
+  } catch (error) {
+    console.error("❌ Submission failed:", error.message);
+  }
+};
 
   return (
     <Container maxWidth={false} sx={{ width: "110vw", maxWidth: "1200px" }}>

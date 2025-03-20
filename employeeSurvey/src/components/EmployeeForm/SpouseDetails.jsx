@@ -375,7 +375,7 @@ const SpouseDetailsForm = ({ setSpouseDetails, parentData }) => {
             >
               <MenuItem value="Mr">Mr.</MenuItem>
               <MenuItem value="Mrs">Mrs.</MenuItem>
-              <MenuItem value="Miss">Miss.</MenuItem>
+            
             </TextField>
           </Grid>
 
