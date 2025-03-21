@@ -7,6 +7,7 @@ import AcademicDetails from "./AcademicDetails";
 import { submitEmployeeData, fetchEmployeeData } from "../../services/Api";
 import { Button, Container, Typography, Paper, Box, TextField } from "@mui/material";
 import DependentDetails from "./DependentDetails";
+import DownloadPDFButton from "./DownloadPDFButton";
 
 const initialPersonalDetails = {};
 const initialSpouseDetails = {};
@@ -232,14 +233,18 @@ const handleSubmit = async (e) => {
      <DependentDetails parentData={dependentDetails} setDependentDetails={setDependentDetails}/>
      <AcademicDetails setAcademicDetails={setAcademicDetails} parentData={academicDetails}/>
      </Paper></Box>
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={handleSubmit}
-        sx={{ mt: 2 }}
-      >
-        Submit
-      </Button>
+     <Box display="flex" gap={2} mt={2}>
+  <Button
+    variant="contained"
+    color="primary"
+    onClick={handleSubmit}
+  >
+    Submit
+  </Button>
+  {personalDetails && Object.keys(personalDetails).length > 0 && (
+    <DownloadPDFButton epfNumber={epfNumber} />
+  )}
+</Box>
     </Container>
   );
 };
