@@ -146,6 +146,34 @@
 import React, { useState, useEffect } from 'react';
 import { TextField, Grid, Typography, Button, IconButton, MenuItem, FormHelperText } from "@mui/material";
 import { Add, Delete } from "@mui/icons-material";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
+
+
+const textFieldTheme = createTheme({
+  components: {
+    MuiTextField: {
+      styleOverrides: {
+        root: {
+          '& .MuiOutlinedInput-root': {
+            height: '45px',
+            '& input': {
+              color: '#2C3E50'
+            },
+            '&:hover .MuiOutlinedInput-notchedOutline': {
+              borderColor: '#2C3E50'
+            },
+            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+              borderColor: '#2C3E50'
+            }
+          },
+          '& .MuiInputLabel-root': {
+            color: '#2C3E50'
+          }
+        }
+      }
+    }
+  }
+});
 
 const DependentDetails = ({ setDependentDetails, parentData }) => {
     const [dependentDetails, setLocalDependentDetails] = useState({
@@ -289,23 +317,36 @@ const DependentDetails = ({ setDependentDetails, parentData }) => {
 
     return (
         <Grid container item xs={11.7} spacing={2} sx={{ ml: 2, mt: 2 }}>
-            <Grid container alignItems="center" sx={{ ml: 0, mt: 4 }}>
-                <Typography 
-                    variant="h6" 
-                    gutterBottom 
-                    style={{ fontStyle: "italic", color: "gold", fontFamily: 'Roboto, sans-serif', textAlign: "left" }}
+           <Grid 
+                container 
+                alignItems="center" 
+                sx={{ 
+                    ml: 0, 
+                    mt: 4, 
+                    backgroundColor: "gold"  // Light grey background
+                }}
+                >
+                <Typography
+                    variant="h6"
+                    gutterBottom
+                    style={{ 
+                    fontStyle: "italic", 
+                    color: "rgb(254, 255, 250)", 
+                    fontFamily: 'Roboto, sans-serif', 
+                    textAlign: "left" 
+                    }}
                 >
                     If you have dependents{" "}
-                    <Button 
-                        onClick={addDependent} 
-                        variant="text" 
-                        color="secondary"
-                        sx={{ fontSize: "1rem", textTransform: "none" }} 
+                    <Button
+                    onClick={addDependent}
+                    variant="text"
+                    color="secondary"
+                    sx={{ fontSize: "1rem", textTransform: "none" }}
                     >
-                        Click Here
-                    </Button> 
+                    Click Here
+                    </Button>
                 </Typography>
-            </Grid>
+                </Grid>
 
             {dependentDetails.dependents.map((dependent, index) => {
                 // Use the tracked active state

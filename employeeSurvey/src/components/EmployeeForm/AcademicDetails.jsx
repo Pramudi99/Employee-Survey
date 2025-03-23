@@ -11,6 +11,34 @@ import {
   FormHelperText
 } from "@mui/material";
 import { Add, Delete } from "@mui/icons-material";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
+
+
+const textFieldTheme = createTheme({
+  components: {
+    MuiTextField: {
+      styleOverrides: {
+        root: {
+          '& .MuiOutlinedInput-root': {
+            height: '45px',
+            '& input': {
+              color: '#2C3E50'
+            },
+            '&:hover .MuiOutlinedInput-notchedOutline': {
+              borderColor: '#2C3E50'
+            },
+            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+              borderColor: '#2C3E50'
+            }
+          },
+          '& .MuiInputLabel-root': {
+            color: '#2C3E50'
+          }
+        }
+      }
+    }
+  }
+});
 
 const AcademicDetails = ({ setAcademicDetails, parentData }) => {
   const [formData, setFormData] = useState({
@@ -377,6 +405,7 @@ useEffect(() => {
   };
   
   return (
+     <ThemeProvider theme={textFieldTheme}>
     <Grid item xs={11.7} container spacing={2} sx={{ ml: 0, mt: 4 }}>
       <Typography 
         sx={{ ml: 2, mt: 0 }} 
@@ -384,7 +413,7 @@ useEffect(() => {
         gutterBottom 
         style={{ 
           fontStyle: "italic", 
-          color: "rgb(129, 43, 57)", 
+          color: "#800020", 
           fontFamily: 'Roboto, sans-serif', 
           textAlign: 'left'
         }}
@@ -598,6 +627,7 @@ useEffect(() => {
         </Grid>
       </Grid>
     </Grid>
+    </ThemeProvider>
   );
 };
 

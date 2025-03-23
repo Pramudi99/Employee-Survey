@@ -1,12 +1,36 @@
 
-
-
-
-
-
-
 import { useState, useEffect, useRef } from "react";
 import { TextField, Grid, MenuItem, Typography, FormHelperText } from "@mui/material";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
+
+
+const textFieldTheme = createTheme({
+  components: {
+    MuiTextField: {
+      styleOverrides: {
+        root: {
+          '& .MuiOutlinedInput-root': {
+            height: '45px',
+            '& input': {
+              color: '#2C3E50'
+            },
+            '&:hover .MuiOutlinedInput-notchedOutline': {
+              borderColor: '#2C3E50'
+            },
+            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+              borderColor: '#2C3E50'
+            }
+          },
+          '& .MuiInputLabel-root': {
+            color: '#2C3E50'
+          }
+        }
+      }
+    }
+  }
+});
+
+
 
 const PersonalDetailsForm = ({ setPersonalDetails, parentData }) => {
   const [formData, setFormData] = useState({
@@ -490,6 +514,7 @@ if (name === "numberOfDependents") {
   };
 
   return (
+    <ThemeProvider theme={textFieldTheme}>
     <Grid container spacing={2}>
       <Typography 
         sx={{ ml: 3, mt: 4 }} 
@@ -497,7 +522,7 @@ if (name === "numberOfDependents") {
         gutterBottom 
         style={{ 
           fontStyle: "italic", 
-          color:"rgb(129, 43, 57)", 
+          color:"#800020", 
           fontFamily: 'Roboto, sans-serif', 
           textAlign:'center'
         }}
@@ -520,7 +545,7 @@ if (name === "numberOfDependents") {
             Personal Details 
           </Typography>
         </Grid>
-        <Grid item xs={12}>
+        <Grid item xs={12} >
           <TextField 
             label="EPF Number" 
             name="epfNumber" 
@@ -787,6 +812,7 @@ if (name === "numberOfDependents") {
        
       </Grid>
     </Grid>
+    </ThemeProvider>
   );
 };
 
