@@ -463,9 +463,37 @@ useEffect(() => {
         </Grid>
         
         <Grid item xs={12} container spacing={2} sx={{ mt: 2 }}>
+           <Grid  
+                    container 
+                    alignItems="center" 
+                    sx={{ 
+                      ml: 2, 
+                      mt: 2, 
+                      backgroundColor: "#E0E0E0" ,
+                      borderRadius: 1, 
+                      boxShadow: 3,
+                     
+                    }}       
+                  >
+                <Grid >
+                  <Typography
+                    sx={{ ml: 2, mt: 0 }}
+                    variant="h6"
+                    gutterBottom
+                    style={{
+                      fontStyle: "italic",
+                      color: "rgb(58, 53, 54)",
+                      fontFamily: "Roboto, sans-serif",
+                      textAlign: "left",
+                    }}
+                  >
+                    Education Qualification
+                  </Typography>
+                </Grid>
+               </Grid>
           {formData.examResults.map((exam, examIndex) => (
             <React.Fragment key={examIndex}>
-              <Grid item xs={11.8} sx={{ ml:2, mt: 4, borderBottom: "1px solid #ccc", pb: 2 }}>
+              <Grid item xs={11.8} sx={{ ml:2, mt: 2, borderBottom: "1px solid #ccc", pb: 2 }}>
                 <Grid container spacing={2}>
                   <Grid item xs={3}>
                     <TextField

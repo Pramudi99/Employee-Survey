@@ -452,22 +452,36 @@ const removePromotion = (index) => {
  
   return (
      <ThemeProvider theme={textFieldTheme}>
-    <Grid container spacing={2} sx={{ mt: 3}}>
-       <Typography sx={{ ml: 3, mt: 2 }} variant="h4" gutterBottom style={{ fontStyle: "italic", color:"#800020", fontFamily: 'Roboto, sans-serif', }}>
+    <Grid container spacing={2} sx={{ mt: 2}}>
+       <Typography sx={{ ml: 3.5, mt: 2 }} variant="h4" gutterBottom style={{ fontStyle: "italic", color:"#800020", fontFamily: 'Roboto, sans-serif', }}>
         Employment Details 
         </Typography>
         <Grid item xs={11.8} container spacing={1} sx={{ ml: 1 }}>
         <Grid container spacing={2}>
   <Grid item xs={12}>
-    <Typography 
-      sx={{ ml: 1.5, mt: 3 }} 
-      variant="h5" 
-      gutterBottom 
-      style={{ fontStyle: "italic", color: "rgb(58, 53, 54)", fontFamily: 'Roboto, sans-serif', textAlign: "left" }}
-    >
-      Details of Employment location
-    </Typography>
-  </Grid>
+              <Grid  
+                       container 
+                       alignItems="center" 
+                       sx={{ 
+                         ml: 2, 
+                         mt: -1, 
+                         backgroundColor: "#E0E0E0" ,
+                         borderRadius: 1, 
+                         boxShadow: 3,
+                        
+                       }}
+                       
+                     >
+                      <Typography 
+                        sx={{ ml: 2, mt: 0 }} 
+                        variant="h6" 
+                        gutterBottom 
+                        style={{ fontStyle: "italic", color: "rgb(58, 53, 54)", fontFamily: 'Roboto, sans-serif', textAlign: "left" }}
+                      >
+                        Details of Employment location
+                      </Typography>
+                    </Grid>
+                    </Grid>
 
   {employmentDetails?.employmentAddresses?.map((address, index) => (
     <Grid item xs={12} sx={{ ml: 2}} sm={5.7} key={index}> {/* Each address takes half width */}
@@ -854,31 +868,49 @@ const removePromotion = (index) => {
       )}
  
 
-     <Grid>
-        <Grid container alignItems="center" sx={{ ml: 0, mt: 4 }}>
+     <Grid >
+        <Grid  item xs={0} container alignItems="center" sx={{ ml: 4, mt: 6 }}>
+          <Grid>
+          <Grid 
+                              container 
+                              alignItems="center" 
+                              sx={{ 
+                                ml: 20, 
+                                mt: 0, 
+                                backgroundColor: "rgb(27, 186, 214)" ,
+                                borderRadius: 1, 
+                                boxShadow: 3,  
+                             transparent: "0.8"
+                              }}
+                              
+                            >
           <Typography 
+          sx={{ ml: 15, mt: 1 }}
             variant="h6" 
             gutterBottom 
-            style={{ fontStyle: "italic", color: "gold", fontFamily: 'Roboto, sans-serif', textAlign: "left" }}
+            style={{ fontStyle: "italic", color: "rgb(36, 36, 30)", 
+              fontFamily: 'Roboto, sans-serif', textAlign: "left", 
+             }}
           >
             If you have a promotion{" "}
             <Button 
               onClick={addPromotion} 
-              variant="text" 
+               variant="contained"
               color="secondary"
-              sx={{ fontSize: "1rem", textTransform: "none" }} 
+              sx={{ fontSize: "1rem", textTransform: "none"  , height: "20px" , ml: 2 }} 
             >
               Click Here
             </Button> 
           </Typography>
         </Grid>
-        
+        </Grid>
+        </Grid>
       {employmentDetails?.promotions?.map((promotion, index) => (
         <Grid
           container
           spacing={2}
           key={index}
-          sx={{ mt: -3, p: 2, }}
+          sx={{ mt: 0, p: 2, }}
         >
        <Grid item xs={12} sm={3}>
           <TextField

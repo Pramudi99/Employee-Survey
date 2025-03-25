@@ -527,13 +527,25 @@ if (name === "numberOfDependents") {
           textAlign:'center'
         }}
       >
-        General Details 
+        Personal Details 
       </Typography>
       <Grid item xs={11.5} container spacing={1} sx={{ ml: 2, mt: 3 }}>
+         <Grid  
+                  container 
+                  alignItems="center" 
+                  sx={{ 
+                    mr: 0, 
+                    mt: -5, 
+                    backgroundColor: "#E0E0E0" ,
+                    borderRadius: 1, 
+                    boxShadow: 3,
+                  }}
+                  
+                >
         <Grid>
           <Typography 
-            sx={{ ml: 1, mt: -2 }} 
-            variant="h5" 
+            sx={{ ml: 1, mt: 0 }} 
+            variant="h6" 
             gutterBottom 
             style={{ 
               fontStyle: "italic", 
@@ -542,10 +554,11 @@ if (name === "numberOfDependents") {
               textAlign: "left" 
             }}
           >
-            Personal Details 
+            General Information 
           </Typography>
+          </Grid>
         </Grid>
-        <Grid item xs={12} >
+        <Grid item xs={12} sx={{ mt: 1}} >
           <TextField 
             label="EPF Number" 
             name="epfNumber" 

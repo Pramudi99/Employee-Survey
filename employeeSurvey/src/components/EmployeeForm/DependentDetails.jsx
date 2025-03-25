@@ -316,32 +316,41 @@ const DependentDetails = ({ setDependentDetails, parentData }) => {
     };
 
     return (
-        <Grid container item xs={11.7} spacing={2} sx={{ ml: 2, mt: 2 }}>
-           <Grid 
-                container 
-                alignItems="center" 
-                sx={{ 
-                    ml: 0, 
-                    mt: 4, 
-                    backgroundColor: "gold"  // Light grey background
-                }}
-                >
+        <Grid  item xs={11.7} container spacing={2} sx={{ ml: 2, mt: 2 }}>
+           <Grid   item xs={7}
+                     container 
+                     alignItems="center" 
+                     sx={{ 
+                       ml: 20, 
+                       mt: 5, 
+                       backgroundColor: "rgb(27, 186, 214)" ,
+                       borderRadius: 1, 
+                       boxShadow: 3,  
+                    transparent: "0.8"
+                     }}
+                     
+                   >
                 <Typography
                     variant="h6"
                     gutterBottom
+                    sx={{ ml: 15, mt: -1 }}
                     style={{ 
                     fontStyle: "italic", 
-                    color: "rgb(254, 255, 250)", 
+                    color: "rgb(17, 17, 16)", 
                     fontFamily: 'Roboto, sans-serif', 
-                    textAlign: "left" 
+                    textAlign: "left" ,
+                  
                     }}
                 >
-                    If you have dependents{" "}
+                   
+                        If you have dependents{" "}
+                    {/* If you have dependents{" "} */}
                     <Button
                     onClick={addDependent}
-                    variant="text"
+                    variant="contained"
+                    //  variant="text"
                     color="secondary"
-                    sx={{ fontSize: "1rem", textTransform: "none" }}
+                    sx={{ fontSize: "1rem", textTransform: "none" , height: "20px" , ml: 3}}
                     >
                     Click Here
                     </Button>

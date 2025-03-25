@@ -253,16 +253,18 @@ const ContactDetails = ({ setContactDetails, parentData }) => {
           container 
           alignItems="center" 
           sx={{ 
-            ml: 0, 
+            mr: 0, 
             mt: 10, 
-            backgroundColor: "rgb(201, 199, 199)"  
+            backgroundColor: "#E0E0E0" ,
+            borderRadius: 1, 
+            boxShadow: 3,  
           }}
           
         >
       <Grid >
         <Typography
-          sx={{ ml: 1, mt: 1 }}
-          variant="h5"
+          sx={{ ml: 2, mt: 1 }}
+          variant="h6"
           gutterBottom
           style={{
             fontStyle: "italic",

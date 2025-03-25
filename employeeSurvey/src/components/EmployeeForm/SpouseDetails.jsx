@@ -410,7 +410,8 @@ useEffect(() => {
   return (
      <ThemeProvider theme={textFieldTheme}>
     <Grid container spacing={2} sx={{ mt: 4, ml:1 }}>
-     <Typography sx={{ ml: 1, mt: 4 }} variant="h4" gutterBottom style={{ fontStyle: "italic", color:"#800020", fontFamily: 'Roboto, sans-serif', textAlign:'center'}}>
+      
+     <Typography sx={{ ml: 1, mt: 2 }} variant="h4" gutterBottom style={{ fontStyle: "italic", color:"#800020", fontFamily: 'Roboto, sans-serif', textAlign:'center'}}>
              Details of Spouse 
              </Typography>
              <Grid item xs={11.5} container spacing={1} sx={{ ml: 0, mt:0}}>
