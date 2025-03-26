@@ -194,3 +194,46 @@ export const submitEmployeeData = async (
     throw new Error(error.response?.data?.message || "Failed to submit data.");
   }
 };
+
+// export const checkEPFExistence = async (epfNumber) => {
+//   try {
+//     // Validate input
+//     if (!epfNumber || epfNumber.trim() === '') {
+//       return false;
+//     }
+
+//     // Make API call to check EPF number existence
+//     const response = await axios.get(`${API_BASE_URL}/check-epf/${epfNumber}`);
+    
+//     // Return the full response to handle different scenarios
+//     return response.data;
+//   } catch (error) {
+//     // Log the error for debugging
+//     console.error("❌ Error checking EPF existence:", error.response?.data || error.message);
+    
+//     // Throw the error to be caught in the calling function
+//     throw error;
+//   }
+// };
+
+export const checkEPFExistence = async (epfNumber) => {
+  try {
+    // Validate input
+    if (!epfNumber || epfNumber.trim() === '') {
+      return false;
+    }
+
+    // Make API call to check EPF number existence
+    const response = await axios.get(`${API_BASE_URL}/check-epf/${epfNumber}`);
+    
+    // Return a boolean for easier handling
+    return false; // EPF number does not exist
+  } catch (error) {
+    if (error.response && error.response.status === 400) {
+      return true; // EPF number exists
+    }
+    
+    console.error("❌ Error checking EPF existence:", error.response?.data || error.message);
+    throw error;
+  }
+};

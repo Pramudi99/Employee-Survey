@@ -1,8 +1,6 @@
-
-import { useState, useEffect, useRef } from "react";
-import { TextField, Grid, MenuItem, Typography, FormHelperText } from "@mui/material";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { TextField, Grid, MenuItem, Typography } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-
 
 const textFieldTheme = createTheme({
   components: {
@@ -30,9 +28,7 @@ const textFieldTheme = createTheme({
   }
 });
 
-
-
-const PersonalDetailsForm = ({ setPersonalDetails, parentData }) => {
+const PersonalDetailsForm = ({ setPersonalDetails, parentData, checkEPFExistence }) => {
   const [formData, setFormData] = useState({
     epfNumber: "",
     nameWithInitials: "",
@@ -50,38 +46,34 @@ const PersonalDetailsForm = ({ setPersonalDetails, parentData }) => {
     numberOfDependents: "",
   });
 
- // Add errors state to track validation errors
- const [errors, setErrors] = useState({
-  epfNumber: false,
-  nameWithInitials: false,
-  title: false,
-  fullName: false,
-  nicNumber: false,
-  dateOfBirth: false,
-  maritalStatus: false,
-  bloodGroup: false,
-  religion: false,
-  race: false,
-  numberOfDependents: false,
-});
+  const [errors, setErrors] = useState({
+    epfNumber: false,
+    nameWithInitials: false,
+    title: false,
+    fullName: false,
+    nicNumber: false,
+    dateOfBirth: false,
+    maritalStatus: false,
+    bloodGroup: false,
+    religion: false,
+    race: false,
+    numberOfDependents: false,
+  });
 
+  const [errorMessages, setErrorMessages] = useState({
+    epfNumber: "",
+    nameWithInitials: "",
+    title: "",
+    fullName: "",
+    nicNumber: "",
+    dateOfBirth: "",
+    maritalStatus: "",
+    bloodGroup: "",
+    religion: "",
+    race: "",
+    numberOfDependents: "",
+  });
 
-// Add errorMessages state
-const [errorMessages, setErrorMessages] = useState({
-  epfNumber: "",
-  nameWithInitials: "",
-  title: "",
-  fullName: "",
-  nicNumber: "",
-  dateOfBirth: "",
-  maritalStatus: "",
-  bloodGroup: "",
-  religion: "",
-  race: "",
-  numberOfDependents: "",
-});
-
-  // Track which fields should show errors (only after Enter key press)
   const [showErrors, setShowErrors] = useState({
     epfNumber: false,
     nameWithInitials: false,
@@ -96,32 +88,15 @@ const [errorMessages, setErrorMessages] = useState({
     numberOfDependents: false,
   });
 
-  // Create refs for field navigation
   const fieldRefs = useRef({});
 
-  // Order of fields for navigation
   const fieldOrder = [
-    "epfNumber",
-    "title",
-    "nameWithInitials",
-    "fullName",
-    "nicNumber",
-    "dateOfBirth", 
-    "maritalStatus",
-     "religion",
-    "race",
-    "bloodGroup",
-     "numberOfDependents",
-    "drivingLicense",
-    "passportNumber"
-   
-
+    "epfNumber", "title", "nameWithInitials", "fullName", "nicNumber",
+    "dateOfBirth", "maritalStatus", "religion", "race", "bloodGroup", 
+    "numberOfDependents", "drivingLicense", "passportNumber"
   ];
 
-
-
-
-
+  // Reset form when parent data changes
   useEffect(() => {
     if (parentData) {
       setFormData((prevData) => ({
@@ -129,21 +104,16 @@ const [errorMessages, setErrorMessages] = useState({
         ...parentData,
       }));
 
-      // Initialize errors state based on parentData
       const initialErrors = {};
       Object.keys(errors).forEach(field => {
-        // Check if field is required and empty in parentData
-        if (isFieldRequired(field) && (!parentData[field] || parentData[field] === "")) {
-          initialErrors[field] = true;
-        } else {
-          initialErrors[field] = false;
-        }
+        initialErrors[field] = isFieldRequired(field) && 
+          (!parentData[field] || parentData[field] === "");
       });
       setErrors(initialErrors);
     }
   }, [parentData]);
 
-  // Function to determine if a field is required
+  // Field requirement check
   const isFieldRequired = (field) => {
     const requiredFields = [
       "epfNumber", "nameWithInitials", "title", "fullName", 
@@ -153,62 +123,63 @@ const [errorMessages, setErrorMessages] = useState({
     return requiredFields.includes(field);
   };
 
-  
+  // Comprehensive EPF Number Validation
+  const validateEPFNumber = useCallback(async (value) => {
+    // Reset previous errors
+    setErrors(prev => ({...prev, epfNumber: false}));
+    setErrorMessages(prev => ({...prev, epfNumber: ""}));
+    setShowErrors(prev => ({...prev, epfNumber: false}));
 
-// In PersonalDetailsForm.jsx (and other similar components)
-useEffect(() => {
-  // Reset internal form state when parent data changes to an empty object
-  if (parentData && Object.keys(parentData).length === 0) {
-    setFormData({
-      epfNumber: "",
-      nameWithInitials: "",
-      title: "",
-      fullName: "",
-      gender: "",
-      maritalStatus: "",
-      bloodGroup: "",
-      dateOfBirth: "",
-      nicNumber: "",
-      drivingLicense: "",
-      passportNumber: "",
-      religion: "",
-      race: "",
-      numberOfDependents: "",
-    });
-    
-    // Reset errors and showErrors states as well
-    setErrors({
-      epfNumber: false,
-      nameWithInitials: false,
-      title: false,
-      fullName: false,
-      nicNumber: false,
-      dateOfBirth: false,
-      maritalStatus: false,
-      bloodGroup: false,
-      religion: false,
-      race: false,
-      numberOfDependents: false,
-    });
-    
-    setShowErrors({
-      epfNumber: false,
-      nameWithInitials: false,
-      title: false,
-      fullName: false,
-      nicNumber: false,
-      dateOfBirth: false,
-      maritalStatus: false,
-      bloodGroup: false,
-      religion: false,
-      race: false,
-      numberOfDependents: false,
-    });
-  }
-}, [parentData]);
+    // Check if empty
+    if (!value || value.trim() === "") {
+      setErrors(prev => ({...prev, epfNumber: true}));
+      setErrorMessages(prev => ({...prev, epfNumber: "EPF Number is required"}));
+      setShowErrors(prev => ({...prev, epfNumber: true}));
+      return false;
+    }
 
+    // Check numeric
+    if (!/^\d*$/.test(value)) {
+      setErrors(prev => ({...prev, epfNumber: true}));
+      setErrorMessages(prev => ({...prev, epfNumber: "EPF Number must contain only numbers"}));
+      setShowErrors(prev => ({...prev, epfNumber: true}));
+      return false;
+    }
 
+    // Check length
+    if (value.length > 7) {
+      setErrors(prev => ({...prev, epfNumber: true}));
+      setErrorMessages(prev => ({...prev, epfNumber: "EPF Number cannot exceed 7 digits"}));
+      setShowErrors(prev => ({...prev, epfNumber: true}));
+      return false;
+    }
 
+    // Check existence
+    try {
+      const exists = await checkEPFExistence(value);
+      
+      if (exists) {
+        setErrors(prev => ({...prev, epfNumber: true}));
+        setErrorMessages(prev => ({
+          ...prev, 
+          epfNumber: "EPF Number already exists in the system"
+        }));
+        setShowErrors(prev => ({...prev, epfNumber: true}));
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error("EPF Existence Check Error:", error);
+      setErrors(prev => ({...prev, epfNumber: true}));
+      setErrorMessages(prev => ({
+        ...prev, 
+        epfNumber: "Error checking EPF Number. Please try again."
+      }));
+      setShowErrors(prev => ({...prev, epfNumber: true}));
+      return false;
+    }
+  }, [checkEPFExistence]);
 
   // Function to validate a field
   const validateField = (name, value) => {
@@ -325,77 +296,6 @@ useEffect(() => {
     validateField(name, formData[name]);
   };
 
-  // Get the next field in the tab order
-  const getNextFieldId = (currentField) => {
-    const currentIndex = fieldOrder.indexOf(currentField);
-    if (currentIndex < fieldOrder.length - 1) {
-      return fieldOrder[currentIndex + 1];
-    }
-    return null;
-  };
-
-  // Function to handle Enter key navigation
-  const handleKeyDown = (e, fieldName) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      
-      // Validate current field
-      const isValid = validateField(fieldName, formData[fieldName]);
-      
-      // Only show error for this field if Enter is pressed
-      setShowErrors(prev => ({
-        ...prev,
-        [fieldName]: true
-      }));
-      
-      // If valid, move to next field
-      if (isValid) {
-        const nextFieldId = getNextFieldId(fieldName);
-        if (nextFieldId && fieldRefs.current[nextFieldId]) {
-          fieldRefs.current[nextFieldId].focus();
-        }
-      }
-    }
-  };
-
-  // Function to extract birthday and gender from NIC number
-  const extractNICDetails = (nic) => {
-    let birthYear, dayOfYear;
-    
-    // Clean the NIC (handle capital/lowercase V/X)
-    const cleanNic = nic.toUpperCase();
-    
-    if (/^\d{9}[VX]$/.test(cleanNic)) {
-      // Old NIC format: 921532345V
-      birthYear = `19${cleanNic.substring(0, 2)}`;
-      dayOfYear = parseInt(cleanNic.substring(2, 5), 10);
-    } else if (/^\d{12}$/.test(cleanNic)) {
-      // New NIC format: 200212345678
-      birthYear = cleanNic.substring(0, 4);
-      dayOfYear = parseInt(cleanNic.substring(4, 7), 10);
-    } else {
-      // Invalid format - don't extract details
-      return { dateOfBirth: "", gender: "" };
-    }
-
-    // Determine gender
-    let gender = "Male";
-    if (dayOfYear > 500) {
-      dayOfYear -= 500;
-      gender = "Female";
-    }
-    
-    if (((birthYear % 4) === 0) || (dayOfYear <= 59 ) ) {  // Corrected condition syntax
-        const dob = new Date(birthYear, 0, dayOfYear + 1); 
-        var dateOfBirth = dob.toISOString().split("T")[0]; // Declare with var/let to use outside if block
-    } else {
-        // Convert dayOfYear to actual date
-        const dob = new Date(birthYear, 0, dayOfYear);
-        var dateOfBirth = dob.toISOString().split("T")[0]; // Declare with var/let
-    }
-   
-    return { dateOfBirth, gender };
-  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -500,15 +400,85 @@ if (name === "numberOfDependents") {
     });
   };
 
-  // Function to get error helper text
+
+   
+
+  // Handle key down for field navigation and validation
+  const handleKeyDown = async (e, fieldName) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+
+      // Special handling for EPF Number
+      if (fieldName === "epfNumber") {
+        const isValid = await validateEPFNumber(formData[fieldName]);
+        
+        if (isValid) {
+          // Move to next field
+          const nextFieldIndex = fieldOrder.indexOf(fieldName) + 1;
+          if (nextFieldIndex < fieldOrder.length) {
+            const nextField = fieldOrder[nextFieldIndex];
+            if (fieldRefs.current[nextField]) {
+              fieldRefs.current[nextField].focus();
+            }
+          }
+        }
+      } else {
+        // Validate other fields
+        const isValid = validateField(fieldName, formData[fieldName]);
+        
+        if (isValid) {
+          // Move to next field
+          const nextFieldIndex = fieldOrder.indexOf(fieldName) + 1;
+          if (nextFieldIndex < fieldOrder.length) {
+            const nextField = fieldOrder[nextFieldIndex];
+            if (fieldRefs.current[nextField]) {
+              fieldRefs.current[nextField].focus();
+            }
+          }
+        }
+      }
+    }
+  };
+
+  // NIC Details Extraction (existing method)
+  const extractNICDetails = (nic) => {
+    let birthYear, dayOfYear;
+    
+    const cleanNic = nic.toUpperCase();
+    
+    if (/^\d{9}[VX]$/.test(cleanNic)) {
+      birthYear = `19${cleanNic.substring(0, 2)}`;
+      dayOfYear = parseInt(cleanNic.substring(2, 5), 10);
+    } else if (/^\d{12}$/.test(cleanNic)) {
+      birthYear = cleanNic.substring(0, 4);
+      dayOfYear = parseInt(cleanNic.substring(4, 7), 10);
+    } else {
+      return { dateOfBirth: "", gender: "" };
+    }
+
+    let gender = "Male";
+    if (dayOfYear > 500) {
+      dayOfYear -= 500;
+      gender = "Female";
+    }
+    
+    const dob = ((birthYear % 4) === 0 || dayOfYear <= 59) 
+      ? new Date(birthYear, 0, dayOfYear + 1)
+      : new Date(birthYear, 0, dayOfYear);
+    
+    const dateOfBirth = dob.toISOString().split("T")[0];
+   
+    return { dateOfBirth, gender };
+  };
+
+  // Helper text and error state determination
   const getHelperText = (fieldName) => {
     if (errors[fieldName] && showErrors[fieldName]) {
-      return errorMessages[fieldName] || `${fieldName.charAt(0).toUpperCase() + fieldName.slice(1).replace(/([A-Z])/g, ' $1')} is required`;
+      return errorMessages[fieldName] || `${fieldName} is required`;
     }
     return "";
   };
 
-  // Function to determine if field should show error state
   const shouldShowError = (fieldName) => {
     return errors[fieldName] && showErrors[fieldName];
   };
@@ -559,23 +529,22 @@ if (name === "numberOfDependents") {
           </Grid>
         </Grid>
         <Grid item xs={12} sx={{ mt: 1}} >
-          <TextField 
-            label="EPF Number" 
-            name="epfNumber" 
-            fullWidth 
-            variant="outlined" 
-            value={formData.epfNumber} 
-            onChange={handleChange} 
-            onBlur={handleBlur}
-            onKeyDown={(e) => handleKeyDown(e, "epfNumber")}
-            inputRef={(el) => fieldRefs.current["epfNumber"] = el}
-            required 
-            error={shouldShowError("epfNumber")}
-            helperText={getHelperText("epfNumber")}
-            placeholder="Enter 7-digit EPF number"
-            inputProps={{ maxLength: 7 }}           
-          />
-        </Grid>
+            <TextField 
+              label="EPF Number" 
+              name="epfNumber" 
+              fullWidth 
+              variant="outlined" 
+              value={formData.epfNumber} 
+              onChange={handleChange} 
+              onKeyDown={(e) => handleKeyDown(e, "epfNumber")}
+              inputRef={(el) => fieldRefs.current["epfNumber"] = el}
+              required 
+              error={shouldShowError("epfNumber")}
+              helperText={getHelperText("epfNumber")}
+              placeholder="Enter 7-digit EPF number"
+              inputProps={{ maxLength: 7 }}           
+            />
+          </Grid>
 
         <Grid item xs={12} sm={1.5}>
           <TextField 
@@ -830,3 +799,7 @@ if (name === "numberOfDependents") {
 };
 
 export default PersonalDetailsForm;
+
+
+
+

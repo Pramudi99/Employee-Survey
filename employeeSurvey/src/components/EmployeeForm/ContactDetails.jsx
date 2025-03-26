@@ -221,7 +221,75 @@ const ContactDetails = ({ setContactDetails, parentData }) => {
 
     setFormData(updatedFormData);
   };
+   // Function to generate auto-suggest options for temporary address
+   const generateTemporaryAddressSuggestions = () => {
+    // If permanent address is empty, return empty array
+    if (!formData.permanentAddress) return [];
 
+    // Create suggestions based on permanent address
+    const suggestions = [
+      {
+        label: formData.permanentAddress,
+        postalCode: formData.permanentPostalCode,
+        district: formData.permanentDistrict,
+        province: formData.permanentProvince,
+        distance: formData.distantBetWorkPlaceAndPermanentAddress
+      },
+      {
+        label: `c/o ${formData.permanentAddress}`,
+        postalCode: formData.permanentPostalCode,
+        district: formData.permanentDistrict,
+        province: formData.permanentProvince,
+        distance: formData.distantBetWorkPlaceAndPermanentAddress
+      }
+    ];
+
+    return suggestions;
+  };
+
+  // Handle address suggestion selection
+  const handleAddressSuggestionSelect = (event, newValue) => {
+    // Create a copy of current form data
+    const updatedFormData = { ...formData };
+
+    if (newValue && typeof newValue === 'object') {
+      // Direct update of fields
+      updatedFormData.temporaryAddress = newValue.label || "";
+      updatedFormData.temporaryPostalCode = newValue.postalCode || "";
+      updatedFormData.distantBetWorkPlaceAndTemporyAddress = newValue.distance || "";
+
+      // Find district information from addressData
+      const districtInfo = addressData.find((item) => 
+        item.District_Name === newValue.district
+      );
+
+      // Update district and province
+      if (districtInfo) {
+        updatedFormData.temporaryDistrict = districtInfo.District_Name || "";
+        updatedFormData.temporaryProvince = districtInfo.Province_Name || "";
+      } else {
+        // Fallback to original values if no match found
+        updatedFormData.temporaryDistrict = newValue.district || "";
+        updatedFormData.temporaryProvince = newValue.province || "";
+      }
+
+      // Set the updated form data
+      setFormData(updatedFormData);
+
+      // Set flag to indicate user update
+      formUpdatedByUser.current = true;
+    } else {
+      // If it's a free-form input, just update the address
+      const syntheticEvent = {
+        target: {
+          name: "temporaryAddress",
+          value: newValue || ""
+        }
+      };
+      handleChange(syntheticEvent);
+    }
+  };
+  
   // Handle key press events
   const handleKeyPress = (e) => {
     const { name, value } = e.target;
@@ -277,100 +345,7 @@ const ContactDetails = ({ setContactDetails, parentData }) => {
         </Typography>
       </Grid>
      </Grid>
-      {/* Temporary Address Section */}
-      <Grid container spacing={1}>
-        <Typography variant="h6" sx={{ mt: 3, ml: 2 }} style={{ fontStyle: "italic", fontSize: "18px", color: "rgb(41, 40, 40)" }}>
-          Temporary Address Details
-        </Typography>
-        <Grid item xs={10}>
-          <TextField 
-            label="Temporary Address" 
-            name="temporaryAddress" 
-            fullWidth 
-            variant="outlined" 
-            value={formData.temporaryAddress} 
-            onChange={handleChange}
-            onKeyPress={handleKeyPress}
-            error={!!errors.temporaryAddress}
-            helperText={errors.temporaryAddress || ''}
-            inputRef={el => inputRefs.current.temporaryAddress = el}
-            required 
-          />
-        </Grid>
-        <Grid item xs={12} sm={2}>
-          <TextField 
-            label="Postal Code" 
-            name="temporaryPostalCode" 
-            fullWidth 
-            variant="outlined" 
-            value={formData.temporaryPostalCode} 
-            onChange={handleChange}
-            onKeyPress={handleKeyPress}
-            error={!!errors.temporaryPostalCode}
-            helperText={errors.temporaryPostalCode || ''}
-            inputRef={el => inputRefs.current.temporaryPostalCode = el}
-            required 
-          />
-        </Grid>
-        
-        <Grid item xs={12} sm={4}>
-          <Autocomplete
-            options={sriLankanDistricts}
-            value={formData.temporaryDistrict}
-            onChange={(event, newValue) => {
-              // Create a synthetic event object to work with your existing handleChange function
-              const syntheticEvent = {
-                target: {
-                  name: "temporaryDistrict",
-                  value: newValue || ""
-                }
-              };
-              handleChange(syntheticEvent);
-            }}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label="District"
-                name="temporaryDistrict"
-                fullWidth
-                variant="outlined"
-                error={!!errors.temporaryDistrict}
-                helperText={errors.temporaryDistrict || ''}
-                inputRef={el => inputRefs.current.temporaryDistrict = el}
-                required
-                onKeyPress={handleKeyPress}
-              />
-            )}
-          />
-        </Grid>
-        <Grid item xs={12} sm={4}>
-          <TextField 
-            label="Province" 
-            name="temporaryProvince" 
-            fullWidth 
-            variant="outlined" 
-            value={formData.temporaryProvince} 
-            InputProps={{ readOnly: true }} 
-          />
-        </Grid>
-        <Grid item xs={12} sm={3}>
-          <TextField 
-            label="Distance to Workplace (km)" 
-            name="distantBetWorkPlaceAndTemporyAddress" 
-            type="number" 
-            fullWidth 
-            variant="outlined" 
-            value={formData.distantBetWorkPlaceAndTemporyAddress} 
-            onChange={handleChange}
-            onKeyPress={handleKeyPress}
-            error={!!errors.distantBetWorkPlaceAndTemporyAddress}
-            helperText={errors.distantBetWorkPlaceAndTemporyAddress || ''}
-            inputRef={el => inputRefs.current.distantBetWorkPlaceAndTemporyAddress = el}
-            required 
-          />
-        </Grid>
-      </Grid>
-
+   
       {/* Permanent Address Section */}
       <Typography variant="h6" sx={{ mt: 5, ml: 0, mb: 2 }} style={{ fontStyle: "italic", fontSize: "18px", color: "rgb(41, 40, 40)" }}>
         Permanent Address Details
@@ -504,6 +479,109 @@ const ContactDetails = ({ setContactDetails, parentData }) => {
             error={!!errors.telephoneNumber}
             helperText={errors.telephoneNumber || ''}
             inputRef={el => inputRefs.current.telephoneNumber = el}
+            required 
+          />
+        </Grid>
+      </Grid>
+
+        {/* Temporary Address Section */}
+        <Grid container spacing={1}>
+          <Typography variant="h6" sx={{ mt: 3, ml: 2 }} style={{ fontStyle: "italic", fontSize: "18px", color: "rgb(41, 40, 40)" }}>
+            Temporary Address Details
+          </Typography>
+          <Grid item xs={10}>
+          <Autocomplete
+        freeSolo
+        options={generateTemporaryAddressSuggestions()}
+        getOptionLabel={(option) => 
+          typeof option === 'object' ? option.label : option
+        }
+        onChange={handleAddressSuggestionSelect}
+        renderInput={(params) => (
+          <TextField 
+            {...params}
+            label="Temporary Address" 
+            name="temporaryAddress" 
+            fullWidth 
+            variant="outlined" 
+            error={!!errors.temporaryAddress}
+            helperText={errors.temporaryAddress || ''}
+            inputRef={el => inputRefs.current.temporaryAddress = el}
+            required 
+            onKeyPress={handleKeyPress}
+          />
+        )}
+      />
+          </Grid>
+        <Grid item xs={12} sm={2}>
+          <TextField 
+            label="Postal Code" 
+            name="temporaryPostalCode" 
+            fullWidth 
+            variant="outlined" 
+            value={formData.temporaryPostalCode} 
+            onChange={handleChange}
+            onKeyPress={handleKeyPress}
+            error={!!errors.temporaryPostalCode}
+            helperText={errors.temporaryPostalCode || ''}
+            inputRef={el => inputRefs.current.temporaryPostalCode = el}
+            required 
+          />
+        </Grid>
+        
+        <Grid item xs={12} sm={4}>
+          <Autocomplete
+            options={sriLankanDistricts}
+            value={formData.temporaryDistrict}
+            onChange={(event, newValue) => {
+              // Create a synthetic event object to work with your existing handleChange function
+              const syntheticEvent = {
+                target: {
+                  name: "temporaryDistrict",
+                  value: newValue || ""
+                }
+              };
+              handleChange(syntheticEvent);
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="District"
+                name="temporaryDistrict"
+                fullWidth
+                variant="outlined"
+                error={!!errors.temporaryDistrict}
+                helperText={errors.temporaryDistrict || ''}
+                inputRef={el => inputRefs.current.temporaryDistrict = el}
+                required
+                onKeyPress={handleKeyPress}
+              />
+            )}
+          />
+        </Grid>
+        <Grid item xs={12} sm={4}>
+          <TextField 
+            label="Province" 
+            name="temporaryProvince" 
+            fullWidth 
+            variant="outlined" 
+            value={formData.temporaryProvince} 
+            InputProps={{ readOnly: true }} 
+          />
+        </Grid>
+        <Grid item xs={12} sm={3}>
+          <TextField 
+            label="Distance to Workplace (km)" 
+            name="distantBetWorkPlaceAndTemporyAddress" 
+            type="number" 
+            fullWidth 
+            variant="outlined" 
+            value={formData.distantBetWorkPlaceAndTemporyAddress} 
+            onChange={handleChange}
+            onKeyPress={handleKeyPress}
+            error={!!errors.distantBetWorkPlaceAndTemporyAddress}
+            helperText={errors.distantBetWorkPlaceAndTemporyAddress || ''}
+            inputRef={el => inputRefs.current.distantBetWorkPlaceAndTemporyAddress = el}
             required 
           />
         </Grid>
