@@ -1,3 +1,5 @@
+
+
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { TextField, Grid, MenuItem, Typography } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
@@ -54,7 +56,7 @@ const PersonalDetailsForm = ({ setPersonalDetails, parentData, checkEPFExistence
     nicNumber: false,
     dateOfBirth: false,
     maritalStatus: false,
-    bloodGroup: false,
+    // bloodGroup: false,
     religion: false,
     race: false,
     numberOfDependents: false,
@@ -68,7 +70,7 @@ const PersonalDetailsForm = ({ setPersonalDetails, parentData, checkEPFExistence
     nicNumber: "",
     dateOfBirth: "",
     maritalStatus: "",
-    bloodGroup: "",
+    // bloodGroup: "",
     religion: "",
     race: "",
     numberOfDependents: "",
@@ -82,18 +84,37 @@ const PersonalDetailsForm = ({ setPersonalDetails, parentData, checkEPFExistence
     nicNumber: false,
     dateOfBirth: false,
     maritalStatus: false,
-    bloodGroup: false,
+    // bloodGroup: false,
     religion: false,
     race: false,
     numberOfDependents: false,
   });
 
+
+
+   // Define the order and dependencies of fields
+   const fieldDependencies = {
+    title: ["epfNumber"],
+    nameWithInitials: ["epfNumber", "title"],
+    fullName: ["epfNumber", "title", "nameWithInitials"],
+    nicNumber: ["epfNumber", "title", "nameWithInitials", "fullName"],
+    dateOfBirth: ["epfNumber", "title", "nameWithInitials", "fullName", "nicNumber"],
+    drivingLicense: ["epfNumber", "title", "nameWithInitials", "fullName", "nicNumber", "dateOfBirth"],
+    passportNumber: ["epfNumber", "title", "nameWithInitials", "fullName", "nicNumber", "dateOfBirth"],
+    maritalStatus: ["epfNumber", "title", "nameWithInitials", "fullName", "nicNumber", "dateOfBirth"],
+    religion: ["epfNumber", "title", "nameWithInitials", "fullName", "nicNumber", "dateOfBirth", "maritalStatus"],
+    race: ["epfNumber", "title", "nameWithInitials", "fullName", "nicNumber", "dateOfBirth", "maritalStatus", "religion"],
+    bloodGroup: ["epfNumber", "title", "nameWithInitials", "fullName", "nicNumber", "dateOfBirth", "maritalStatus", "religion", "race"],
+    numberOfDependents: ["epfNumber", "title", "nameWithInitials", "fullName", "nicNumber", "dateOfBirth", "maritalStatus", "religion", "race", ]
+  };
+
   const fieldRefs = useRef({});
 
   const fieldOrder = [
     "epfNumber", "title", "nameWithInitials", "fullName", "nicNumber",
-    "dateOfBirth", "maritalStatus", "religion", "race", "bloodGroup", 
-    "numberOfDependents", "drivingLicense", "passportNumber"
+    "dateOfBirth",  
+     "drivingLicense", "passportNumber",
+    "maritalStatus", "religion", "race", "bloodGroup","numberOfDependents"
   ];
 
   // Reset form when parent data changes
@@ -117,69 +138,78 @@ const PersonalDetailsForm = ({ setPersonalDetails, parentData, checkEPFExistence
   const isFieldRequired = (field) => {
     const requiredFields = [
       "epfNumber", "nameWithInitials", "title", "fullName", 
-      "nicNumber", "dateOfBirth", "maritalStatus", "bloodGroup", 
+      "nicNumber", "dateOfBirth", "maritalStatus",
+      //  "bloodGroup", 
       "religion", "race", "numberOfDependents"
     ];
     return requiredFields.includes(field);
   };
 
-  // Comprehensive EPF Number Validation
-  const validateEPFNumber = useCallback(async (value) => {
-    // Reset previous errors
-    setErrors(prev => ({...prev, epfNumber: false}));
-    setErrorMessages(prev => ({...prev, epfNumber: ""}));
-    setShowErrors(prev => ({...prev, epfNumber: false}));
 
-    // Check if empty
-    if (!value || value.trim() === "") {
-      setErrors(prev => ({...prev, epfNumber: true}));
-      setErrorMessages(prev => ({...prev, epfNumber: "EPF Number is required"}));
-      setShowErrors(prev => ({...prev, epfNumber: true}));
-      return false;
-    }
+// Enhanced EPF Number Validation Function
+const validateEPFNumber = useCallback(async (value) => {
+  // Reset previous errors specific to EPF number
+  setErrors(prev => ({...prev, epfNumber: false}));
+  setErrorMessages(prev => ({...prev, epfNumber: ""}));
+  
+  // Check if empty
+  if (!value || value.trim() === "") {
+    setErrors(prev => ({...prev, epfNumber: true}));
+    setErrorMessages(prev => ({...prev, epfNumber: "EPF Number is required"}));
+    setShowErrors(prev => ({...prev, epfNumber: true}));
+    return false;
+  }
 
-    // Check numeric
-    if (!/^\d*$/.test(value)) {
-      setErrors(prev => ({...prev, epfNumber: true}));
-      setErrorMessages(prev => ({...prev, epfNumber: "EPF Number must contain only numbers"}));
-      setShowErrors(prev => ({...prev, epfNumber: true}));
-      return false;
-    }
+  // Check if contains only numbers
+  if (!/^\d*$/.test(value)) {
+    setErrors(prev => ({...prev, epfNumber: true}));
+    setErrorMessages(prev => ({...prev, epfNumber: "EPF Number must contain only numbers"}));
+    setShowErrors(prev => ({...prev, epfNumber: true}));
+    return false;
+  }
 
-    // Check length
-    if (value.length > 7) {
-      setErrors(prev => ({...prev, epfNumber: true}));
-      setErrorMessages(prev => ({...prev, epfNumber: "EPF Number cannot exceed 7 digits"}));
-      setShowErrors(prev => ({...prev, epfNumber: true}));
-      return false;
-    }
+  // Check length constraints
+  if (value.length < 4) {
+    setErrors(prev => ({...prev, epfNumber: true}));
+    setErrorMessages(prev => ({...prev, epfNumber: "EPF Number must be at least 4 digits"}));
+    setShowErrors(prev => ({...prev, epfNumber: true}));
+    return false;
+  }
 
-    // Check existence
-    try {
-      const exists = await checkEPFExistence(value);
-      
-      if (exists) {
-        setErrors(prev => ({...prev, epfNumber: true}));
-        setErrorMessages(prev => ({
-          ...prev, 
-          epfNumber: "EPF Number already exists in the system"
-        }));
-        setShowErrors(prev => ({...prev, epfNumber: true}));
-        return false;
-      }
+  if (value.length > 7) {
+    setErrors(prev => ({...prev, epfNumber: true}));
+    setErrorMessages(prev => ({...prev, epfNumber: "EPF Number cannot exceed 7 digits"}));
+    setShowErrors(prev => ({...prev, epfNumber: true}));
+    return false;
+  }
 
-      return true;
-    } catch (error) {
-      console.error("EPF Existence Check Error:", error);
+  // Check existence in the system
+  try {
+    const exists = await checkEPFExistence(value);
+    
+    if (exists) {
       setErrors(prev => ({...prev, epfNumber: true}));
       setErrorMessages(prev => ({
         ...prev, 
-        epfNumber: "Error checking EPF Number. Please try again."
+        epfNumber: "EPF Number already exists in the system"
       }));
       setShowErrors(prev => ({...prev, epfNumber: true}));
       return false;
     }
-  }, [checkEPFExistence]);
+
+    // If all validations pass
+    return true;
+  } catch (error) {
+    console.error("EPF Existence Check Error:", error);
+    setErrors(prev => ({...prev, epfNumber: true}));
+    setErrorMessages(prev => ({
+      ...prev, 
+      epfNumber: "Error checking EPF Number. Please try again."
+    }));
+    setShowErrors(prev => ({...prev, epfNumber: true}));
+    return false;
+  }
+}, [checkEPFExistence]);
 
   // Function to validate a field
   const validateField = (name, value) => {
@@ -288,118 +318,173 @@ const PersonalDetailsForm = ({ setPersonalDetails, parentData, checkEPFExistence
   };
 
 
-  // Handle field blur (when user leaves a field)
-  const handleBlur = (e) => {
-    const { name } = e.target;
+
+  
+
+   // Modify handleBlur to include comprehensive EPF validation
+   const handleBlur = async (e) => {
+    const { name, value } = e.target;
     
-    // Only validate the field, but don't show error
-    validateField(name, formData[name]);
+    // Special handling for EPF Number
+    if (name === "epfNumber") {
+      await validateEPFNumber(value);
+    } else {
+      // Validate other fields, potentially showing EPF error if it exists
+      validateField(name, value);
+      
+      // If EPF Number is invalid, we want to keep showing its error
+      if (errors.epfNumber) {
+        setShowErrors(prev => ({...prev, epfNumber: true}));
+      }
+    }
   };
 
+  // Check if a field is filled
+  const isFieldFilled = (fieldName) => {
+    return formData[fieldName] && formData[fieldName].toString().trim() !== "";
+  };
 
-  const handleChange = (e) => {
+  // Validate field dependencies before allowing focus
+  const validateFieldDependencies = (fieldName) => {
+    const dependencies = fieldDependencies[fieldName] || [];
+    
+    for (let depField of dependencies) {
+      if (!isFieldFilled(depField)) {
+        // Set error for the missing dependency
+        setErrors(prev => ({...prev, [depField]: true}));
+        setErrorMessages(prev => ({
+          ...prev, 
+          [depField]: `Please fill ${depField.replace(/([A-Z])/g, ' $1').toLowerCase()} first`
+        }));
+        setShowErrors(prev => ({...prev, [depField]: true}));
+        return false;
+      }
+    }
+    return true;
+  };
+
+  // Modify handleFocus to check dependencies
+  const handleFocus = (e) => {
+    const { name } = e.target;
+    
+    // First validate dependencies
+    const dependenciesValid = validateFieldDependencies(name);
+    
+    // If dependencies are not valid, prevent focus
+    if (!dependenciesValid) {
+      e.preventDefault();
+      
+      // Find the first unfilled dependency and focus on it
+      const dependencies = fieldDependencies[name] || [];
+      for (let depField of dependencies) {
+        if (!isFieldFilled(depField) && fieldRefs.current[depField]) {
+          fieldRefs.current[depField].focus();
+          break;
+        }
+      }
+    }
+  };
+
+  const handleChange = async (e) => {
     const { name, value } = e.target;
-
-
-
+  
+    // Special handling for EPF number
+    if (name === "epfNumber") {
+      // Only allow numeric input
+      if (!/^\d*$/.test(value)) {
+        return;
+      }
+  
+      // Validate EPF number as user types
+      await validateEPFNumber(value);
+    }
+  
+    // Special handling for NIC number
+    if (name === "nicNumber") {
+      // First 9 characters must be digits
+      if (value.length <= 9) {
+        if (!/^\d*$/.test(value)) {
+          validateField(name, value);
+          setShowErrors(prev => ({...prev, [name]: true}));
+          return; // Prevent update with invalid character
+        }
+      } 
+      // 10th character can be V, X, or a digit
+      else if (value.length === 10) {
+        if (!/^\d{9}([VvXx]|\d)$/.test(value)) {
+          validateField(name, value);
+          setShowErrors(prev => ({...prev, [name]: true}));
+          return;
+        }
+      } 
+      // If 10th character was V or X, no more characters allowed
+      else if (value.length > 10 && /^\d{9}[VvXx]/.test(value)) {
+        validateField(name, value);
+        setShowErrors(prev => ({...prev, [name]: true}));
+        return;
+      } 
+      // If continuing with digits, only allow up to 12 total
+      else if (value.length > 10 && value.length <= 12) {
+        if (!/^\d+$/.test(value)) {
+          validateField(name, value);
+          setShowErrors(prev => ({...prev, [name]: true}));
+          return;
+        }
+      } 
+      // Never allow more than 12 characters
+      else if (value.length > 12) {
+        validateField(name, value);
+        setShowErrors(prev => ({...prev, [name]: true}));
+        return;
+      }
+      
+      // Run validation anyway to update error state
+      validateField(name, value);
+    }
+  
     // Special handling for numberOfDependents
-if (name === "numberOfDependents") {
-  const numValue = parseInt(value, 10);
+    if (name === "numberOfDependents") {
+      const numValue = parseInt(value, 10);
+      
+      // Allow empty string (for user to clear input) but validate it
+      if (value === "") {
+        validateField(name, value);
+        setShowErrors(prev => ({...prev, [name]: true}));
+      }
+      // Validate number range and show error if needed
+      else if (!isNaN(numValue) && (numValue < 0 || numValue > 15)) {
+        validateField(name, value);
+        setShowErrors(prev => ({...prev, [name]: true}));
+      }
+    }
   
-  // Allow empty string (for user to clear input) but validate it
-  if (value === "") {
-    validateField(name, value);
-    setShowErrors(prev => ({...prev, [name]: true}));
-  }
-  // Validate number range and show error if needed
-  else if (!isNaN(numValue) && (numValue < 0 || numValue > 15)) {
-    validateField(name, value);
-    setShowErrors(prev => ({...prev, [name]: true}));
-  }
-}
-
-     // Special handling for EPF number
-  if (name === "epfNumber") {
-    // Allow input to be processed even with symbols so we can show the error
-    // But immediately validate to show errors
-    validateField(name, value);
-    
-    // Only allow valid numeric input for state update
-    if (!/^\d*$/.test(value)) {
-      // Update formData but don't allow symbols in the actual value
-      setFormData(prev => ({...prev})); // Keep previous state
-      return;
-    }
-    // If exceeding max length, also show error but allow update
-    if (value.length > 7) {
-      setShowErrors(prev => ({...prev, [name]: true}));
-    }
-    }
- // Special handling for NIC number
- if (name === "nicNumber") {
-  // Validate as user types
-  
-  // First 9 characters must be digits
-  if (value.length <= 9) {
-    if (!/^\d*$/.test(value)) {
-      validateField(name, value);
-      setShowErrors(prev => ({...prev, [name]: true}));
-      return; // Prevent update with invalid character
-    }
-  } 
-  // 10th character can be V, X, or a digit
-  else if (value.length === 10) {
-    if (!/^\d{9}([VvXx]|\d)$/.test(value)) {
-      validateField(name, value);
-      setShowErrors(prev => ({...prev, [name]: true}));
-      return;
-    }
-  } 
-  // If 10th character was V or X, no more characters allowed
-  else if (value.length > 10 && /^\d{9}[VvXx]/.test(value)) {
-    validateField(name, value);
-    setShowErrors(prev => ({...prev, [name]: true}));
-    return;
-  } 
-  // If continuing with digits, only allow up to 12 total
-  else if (value.length > 10 && value.length <= 12) {
-    if (!/^\d+$/.test(value)) {
-      validateField(name, value);
-      setShowErrors(prev => ({...prev, [name]: true}));
-      return;
-    }
-  } 
-  // Never allow more than 12 characters
-  else if (value.length > 12) {
-    validateField(name, value);
-    setShowErrors(prev => ({...prev, [name]: true}));
-    return;
-  }
-    
-    // Run validation anyway to update error state
-    validateField(name, value);
-  }
-
-
+    // Update form data
     setFormData((prevFormData) => {
       let updatedFormData = { ...prevFormData, [name]: value };
-
+  
+      // Special handling for NIC number to extract details
       if (name === "nicNumber") {
         const { dateOfBirth, gender } = extractNICDetails(value);
-         // Only update date of birth and gender if a valid NIC was provided
-         if (dateOfBirth) {
-          updatedFormData = { ...updatedFormData, dateOfBirth, gender };
+        
+        // Only update date of birth and gender if a valid NIC was provided
+        if (dateOfBirth) {
+          updatedFormData = { 
+            ...updatedFormData, 
+            dateOfBirth, 
+            gender 
+          };
           
           // Also validate the date of birth field since it was auto-filled
           validateField("dateOfBirth", dateOfBirth);
         }
       }
-         
-      setPersonalDetails(updatedFormData);  // Pass updated data to parent
-      return updatedFormData; // Ensures React gets the correct state update
+      
+      // Update parent component with personal details
+      setPersonalDetails(updatedFormData);
+      
+      return updatedFormData;
     });
   };
-
 
    
 
@@ -529,26 +614,40 @@ if (name === "numberOfDependents") {
           </Grid>
         </Grid>
         <Grid item xs={12} sx={{ mt: 1}} >
-            <TextField 
-              label="EPF Number" 
-              name="epfNumber" 
-              fullWidth 
-              variant="outlined" 
-              value={formData.epfNumber} 
-              onChange={handleChange} 
-              onKeyDown={(e) => handleKeyDown(e, "epfNumber")}
-              inputRef={(el) => fieldRefs.current["epfNumber"] = el}
-              required 
-              error={shouldShowError("epfNumber")}
-              helperText={getHelperText("epfNumber")}
-              placeholder="Enter 7-digit EPF number"
-              inputProps={{ maxLength: 7 }}           
-            />
+             {/* <TextField 
+        label="EPF Number" 
+        name="epfNumber" 
+        fullWidth 
+        variant="outlined" 
+        value={formData.epfNumber} 
+        onChange={handleChange} 
+        onBlur={handleBlur}
+        required 
+        error={shouldShowError("epfNumber")}
+        helperText={getHelperText("epfNumber")}
+        placeholder="Enter 7-digit EPF number"
+        inputProps={{ maxLength: 7 }}           
+      /> */}
+
+      <TextField 
+            label="EPF Number" 
+            name="epfNumber" 
+            fullWidth 
+            variant="outlined" 
+            value={formData.epfNumber} 
+            onChange={handleChange} 
+            onBlur={handleBlur}
+            required 
+            error={shouldShowError("epfNumber")}
+            helperText={getHelperText("epfNumber")}
+            placeholder="Enter 7-digit EPF number"
+            inputProps={{ maxLength: 7 }}           
+          />
           </Grid>
 
-        <Grid item xs={12} sm={1.5}>
+          <Grid item xs={12} sm={1.5}>
           <TextField 
-            select 
+            select
             label="Title" 
             name="title" 
             fullWidth 
@@ -556,6 +655,7 @@ if (name === "numberOfDependents") {
             value={formData.title || ""} 
             onChange={handleChange} 
             onBlur={handleBlur}
+            onFocus={handleFocus}
             onKeyDown={(e) => handleKeyDown(e, "title")}
             inputRef={(el) => fieldRefs.current["title"] = el}
             required
@@ -575,6 +675,7 @@ if (name === "numberOfDependents") {
             variant="outlined" 
             value={formData.nameWithInitials} 
             onChange={handleChange} 
+            onFocus={handleFocus}
             onBlur={handleBlur}
             onKeyDown={(e) => handleKeyDown(e, "nameWithInitials")}
             inputRef={(el) => fieldRefs.current["nameWithInitials"] = el}
@@ -591,6 +692,7 @@ if (name === "numberOfDependents") {
             variant="outlined" 
             value={formData.fullName} 
             onChange={handleChange} 
+            onFocus={handleFocus}
             onBlur={handleBlur}
             onKeyDown={(e) => handleKeyDown(e, "fullName")}
             inputRef={(el) => fieldRefs.current["fullName"] = el}
@@ -607,6 +709,7 @@ if (name === "numberOfDependents") {
             variant="outlined" 
             value={formData.nicNumber} 
             onChange={handleChange} 
+            onFocus={handleFocus}
             onBlur={handleBlur}
             onKeyDown={(e) => handleKeyDown(e, "nicNumber")}
             inputRef={(el) => fieldRefs.current["nicNumber"] = el}
@@ -627,6 +730,7 @@ if (name === "numberOfDependents") {
             InputLabelProps={{ shrink: true }} 
             value={formData.dateOfBirth} 
             onChange={handleChange} 
+            onFocus={handleFocus}
             onBlur={handleBlur}
             onKeyDown={(e) => handleKeyDown(e, "dateOfBirth")}
             inputRef={(el) => fieldRefs.current["dateOfBirth"] = el}
@@ -647,6 +751,34 @@ if (name === "numberOfDependents") {
             inputRef={(el) => fieldRefs.current["gender"] = el}
           />
         </Grid>
+        <Grid item xs={12} sm={6}>
+          <TextField 
+            label="Driving License" 
+            name="drivingLicense" 
+            fullWidth 
+            variant="outlined" 
+            value={formData.drivingLicense} 
+            onChange={handleChange} 
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            onKeyDown={(e) => handleKeyDown(e, "drivingLicense")}
+            inputRef={(el) => fieldRefs.current["drivingLicense"] = el}
+          />
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <TextField 
+            label="Passport Number" 
+            name="passportNumber" 
+            fullWidth 
+            variant="outlined" 
+            value={formData.passportNumber} 
+            onChange={handleChange} 
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            onKeyDown={(e) => handleKeyDown(e, "passportNumber")}
+            inputRef={(el) => fieldRefs.current["passportNumber"] = el}
+          />
+        </Grid>
         <Grid item xs={12} sm={3}>
           <TextField 
             select 
@@ -656,6 +788,7 @@ if (name === "numberOfDependents") {
             variant="outlined" 
             value={formData.maritalStatus} 
             onChange={handleChange} 
+            onFocus={handleFocus}
             onBlur={handleBlur}
             onKeyDown={(e) => handleKeyDown(e, "maritalStatus")}
             inputRef={(el) => fieldRefs.current["maritalStatus"] = el}
@@ -682,6 +815,7 @@ if (name === "numberOfDependents") {
                 variant="outlined" 
                 value={formData.religion} 
                 onChange={handleChange} 
+                onFocus={handleFocus}
                 onBlur={handleBlur}
                 onKeyDown={(e) => handleKeyDown(e, "religion")}
                 inputRef={(el) => fieldRefs.current["religion"] = el}
@@ -704,6 +838,7 @@ if (name === "numberOfDependents") {
                 variant="outlined" 
                 value={formData.race} 
                 onChange={handleChange} 
+                onFocus={handleFocus}
                 onBlur={handleBlur}
                 onKeyDown={(e) => handleKeyDown(e, "race")}
                 inputRef={(el) => fieldRefs.current["race"] = el}
@@ -728,11 +863,12 @@ if (name === "numberOfDependents") {
             variant="outlined" 
             value={formData.bloodGroup} 
             onChange={handleChange} 
+            // onFocus={handleFocus}
             onBlur={handleBlur}
             onKeyDown={(e) => handleKeyDown(e, "bloodGroup")}
             inputRef={(el) => fieldRefs.current["bloodGroup"] = el}
-            required
-            error={shouldShowError("bloodGroup")}
+            // required
+            // error={shouldShowError("bloodGroup")}
             helperText={getHelperText("bloodGroup")}
           >
             <MenuItem value="O+">O+</MenuItem>
@@ -747,7 +883,7 @@ if (name === "numberOfDependents") {
         </Grid>
 
             <Grid item xs={2}>
-              <TextField 
+              {/* <TextField 
                 label="Number of Dependents" 
                 name="numberOfDependents" 
                 // type="number"
@@ -762,35 +898,43 @@ if (name === "numberOfDependents") {
                 error={shouldShowError("numberOfDependents")}
                 helperText={getHelperText("numberOfDependents")}
                 inputProps={{ min: 0, max: 15 }}
-              />
+              /> */}
+
+                  <TextField 
+                    label="Number of Dependents" 
+                    name="numberOfDependents" 
+                    type="number"
+                    fullWidth 
+                    variant="outlined" 
+                    value={formData.numberOfDependents } 
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value, 10);
+                      setFormData((prevFormData) => {
+                        const updatedFormData = { 
+                          ...prevFormData, 
+                          numberOfDependents: isNaN(value) ? 0 : value 
+                        };
+                        setPersonalDetails(updatedFormData);
+                        return updatedFormData;
+                      });
+                    }}
+                    onFocus={handleFocus}
+                    onBlur={handleBlur}
+                    onKeyDown={(e) => handleKeyDown(e, "numberOfDependents")}
+                    inputRef={(el) => fieldRefs.current["numberOfDependents"] = el}
+                    required
+                    error={shouldShowError("numberOfDependents")}
+                    helperText={getHelperText("numberOfDependents")}
+                    inputProps={{ 
+                      min: 0, 
+                      max: 15,
+                      inputMode: 'numeric',
+                      pattern: '[0-9]*'
+                    }}
+                  />
             </Grid>
 
-        <Grid item xs={12} sm={6}>
-          <TextField 
-            label="Driving License" 
-            name="drivingLicense" 
-            fullWidth 
-            variant="outlined" 
-            value={formData.drivingLicense} 
-            onChange={handleChange} 
-            onBlur={handleBlur}
-            onKeyDown={(e) => handleKeyDown(e, "drivingLicense")}
-            inputRef={(el) => fieldRefs.current["drivingLicense"] = el}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6}>
-          <TextField 
-            label="Passport Number" 
-            name="passportNumber" 
-            fullWidth 
-            variant="outlined" 
-            value={formData.passportNumber} 
-            onChange={handleChange} 
-            onBlur={handleBlur}
-            onKeyDown={(e) => handleKeyDown(e, "passportNumber")}
-            inputRef={(el) => fieldRefs.current["passportNumber"] = el}
-          />
-        </Grid>
+      
        
       </Grid>
     </Grid>
@@ -799,6 +943,20 @@ if (name === "numberOfDependents") {
 };
 
 export default PersonalDetailsForm;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

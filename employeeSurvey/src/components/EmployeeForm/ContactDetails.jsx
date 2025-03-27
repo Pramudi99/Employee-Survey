@@ -72,16 +72,17 @@ const ContactDetails = ({ setContactDetails, parentData }) => {
 
   // Define field order for navigation
   const fieldOrder = [
-    "temporaryAddress",
-    "temporaryPostalCode",
-    "temporaryDistrict",
-    "distantBetWorkPlaceAndTemporyAddress",
     "permanentAddress",
     "permanentPostalCode",
     "permanentGramaDivision",
     "policeDivision",
     "distantBetWorkPlaceAndPermanentAddress",
-    "telephoneNumber"
+    "telephoneNumber",
+    "temporaryAddress",
+    "temporaryPostalCode",
+    "temporaryDistrict",
+    "distantBetWorkPlaceAndTemporyAddress"
+  
   ];
 
   const sriLankanDistricts = [
@@ -165,6 +166,83 @@ const ContactDetails = ({ setContactDetails, parentData }) => {
     
     return '';
   };
+
+  const fieldDependencies = {
+    permanentAddress: [],
+    permanentPostalCode: ['permanentAddress'],
+    permanentGramaDivision: ['permanentAddress', 'permanentPostalCode'],
+    policeDivision: ['permanentAddress', 'permanentPostalCode', 'permanentGramaDivision'],
+    distantBetWorkPlaceAndPermanentAddress: [
+      'permanentAddress', 
+      'permanentPostalCode', 
+      'permanentGramaDivision', 
+      'policeDivision'
+    ],
+    telephoneNumber: [
+      'permanentAddress', 
+      'permanentPostalCode', 
+      'permanentGramaDivision', 
+      'policeDivision', 
+      'distantBetWorkPlaceAndPermanentAddress'
+    ],
+    temporaryAddress: [],
+    temporaryPostalCode: ['temporaryAddress'],
+    temporaryDistrict: ['temporaryAddress', 'temporaryPostalCode'],
+    distantBetWorkPlaceAndTemporyAddress: [
+      'temporaryAddress', 
+      'temporaryPostalCode', 
+      'temporaryDistrict'
+    ]
+  };
+
+  // Method to validate field dependencies
+  const validateFieldDependencies = (fieldName) => {
+    // Get the dependencies for this field
+    const dependencies = fieldDependencies[fieldName] || [];
+    
+    // Check if all dependencies are filled
+    const missingDependencies = dependencies.filter(dep => {
+      const value = formData[dep];
+      return !value || value.trim() === '';
+    });
+
+    return missingDependencies;
+  };
+
+  // Handle focus with dependency check
+  const handleFocus = (e) => {
+    const { name } = e.target;
+    
+    // Check for missing dependencies
+    const missingDependencies = validateFieldDependencies(name);
+    
+    if (missingDependencies.length > 0) {
+      // Find the first missing dependency
+      const firstMissingField = missingDependencies[0];
+      
+      // Set errors for missing dependencies
+      const newErrors = missingDependencies.reduce((acc, dep) => ({
+        ...acc,
+        [dep]: `Please fill out ${dep.replace(/([A-Z])/g, ' $1').toLowerCase()} first`
+      }), {});
+      
+      // Update errors state
+      setErrors(prevErrors => ({
+        ...prevErrors,
+        ...newErrors
+      }));
+      
+      // Move focus to the first missing dependency
+      if (inputRefs.current[firstMissingField]) {
+        inputRefs.current[firstMissingField].focus();
+      }
+      
+      // Prevent focus on the current field
+      e.preventDefault();
+    }
+  };
+
+
 
   // Function to move to the next field
   const moveToNextField = (currentField) => {
@@ -359,6 +437,7 @@ const ContactDetails = ({ setContactDetails, parentData }) => {
             variant="outlined" 
             value={formData.permanentAddress} 
             onChange={handleChange}
+            onFocus={handleFocus}
             onKeyPress={handleKeyPress}
             error={!!errors.permanentAddress}
             helperText={errors.permanentAddress || ''}
@@ -374,6 +453,7 @@ const ContactDetails = ({ setContactDetails, parentData }) => {
             variant="outlined" 
             value={formData.permanentPostalCode} 
             onChange={handleChange}
+            onFocus={handleFocus}
             onKeyPress={handleKeyPress}
             error={!!errors.permanentPostalCode}
             helperText={errors.permanentPostalCode || ''}
@@ -389,6 +469,7 @@ const ContactDetails = ({ setContactDetails, parentData }) => {
             variant="outlined" 
             value={formData.permanentGramaDivision} 
             onChange={handleChange}
+            onFocus={handleFocus}
             onKeyPress={handleKeyPress}
             error={!!errors.permanentGramaDivision}
             helperText={errors.permanentGramaDivision || ''}
@@ -424,6 +505,7 @@ const ContactDetails = ({ setContactDetails, parentData }) => {
             variant="outlined" 
             value={formData.policeDivision} 
             onChange={handleChange}
+            onFocus={handleFocus}
             onKeyPress={handleKeyPress}
             error={!!errors.policeDivision}
             helperText={errors.policeDivision || ''}
@@ -460,6 +542,7 @@ const ContactDetails = ({ setContactDetails, parentData }) => {
             variant="outlined" 
             value={formData.distantBetWorkPlaceAndPermanentAddress} 
             onChange={handleChange}
+            onFocus={handleFocus}
             onKeyPress={handleKeyPress}
             error={!!errors.distantBetWorkPlaceAndPermanentAddress}
             helperText={errors.distantBetWorkPlaceAndPermanentAddress || ''}
@@ -475,6 +558,7 @@ const ContactDetails = ({ setContactDetails, parentData }) => {
             variant="outlined" 
             value={formData.telephoneNumber} 
             onChange={handleChange}
+            onFocus={handleFocus}
             onKeyPress={handleKeyPress}
             error={!!errors.telephoneNumber}
             helperText={errors.telephoneNumber || ''}
@@ -497,18 +581,20 @@ const ContactDetails = ({ setContactDetails, parentData }) => {
           typeof option === 'object' ? option.label : option
         }
         onChange={handleAddressSuggestionSelect}
+        
         renderInput={(params) => (
           <TextField 
             {...params}
             label="Temporary Address" 
             name="temporaryAddress" 
             fullWidth 
-            variant="outlined" 
+            variant="outlined"   
             error={!!errors.temporaryAddress}
             helperText={errors.temporaryAddress || ''}
             inputRef={el => inputRefs.current.temporaryAddress = el}
             required 
             onKeyPress={handleKeyPress}
+            
           />
         )}
       />
@@ -521,6 +607,7 @@ const ContactDetails = ({ setContactDetails, parentData }) => {
             variant="outlined" 
             value={formData.temporaryPostalCode} 
             onChange={handleChange}
+             onFocus={handleFocus}
             onKeyPress={handleKeyPress}
             error={!!errors.temporaryPostalCode}
             helperText={errors.temporaryPostalCode || ''}
@@ -543,6 +630,7 @@ const ContactDetails = ({ setContactDetails, parentData }) => {
               };
               handleChange(syntheticEvent);
             }}
+            onFocus={handleFocus}
             renderInput={(params) => (
               <TextField
                 {...params}
@@ -578,6 +666,7 @@ const ContactDetails = ({ setContactDetails, parentData }) => {
             variant="outlined" 
             value={formData.distantBetWorkPlaceAndTemporyAddress} 
             onChange={handleChange}
+            onFocus={handleFocus}
             onKeyPress={handleKeyPress}
             error={!!errors.distantBetWorkPlaceAndTemporyAddress}
             helperText={errors.distantBetWorkPlaceAndTemporyAddress || ''}
