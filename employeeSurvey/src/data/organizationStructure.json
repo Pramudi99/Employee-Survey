@@ -1,0 +1,117 @@
+{
+    "Head Office": {
+        "Legal Function": [],
+        "Commercial Function": [],
+        "Shipping Function": [],
+        "Engineering Function": [],
+        "Finance Function": ["Refinery", "Head Office"],
+        "IT Function": [],
+        "Investigation Function": [],
+        "Internal Audit Function": [
+            "Internal Audit (HO)",
+            "Internal Audit (Refinery)"
+        ],
+        "Secretariat Function": [
+            "Secretariat",
+            "Holiday Bunglow"
+        ],
+        "HRM Function": [
+            "HRM",
+            "Medical"
+        ],
+        "Procurement & Stores": [
+            "Procurement",
+            "Stores"
+        ],
+        "Lubricant Special Products Function": [
+            "Lubricant Office",
+            "Lubricant Warehouse"
+        ],
+        "Marketing Function": [
+            "Marketing Office",
+            "CC & CC Unit",
+            "SSC Workshop",
+            "Regional Office North Central",
+            "Regional Office Uva",
+            "Regional Office Eastern",
+            "Regional Office Southern",
+            "Regional Office Northern",
+            "Regional Office Central",
+            "Regional Office Western",
+            "Regional Office North Western",
+            "Regional Office Sabaragamuwa"
+        ],
+        "Agro Chemical Function": [
+            "Agro Chemical",
+            "Agro Sale Center (Kandy)"
+        ],
+        "Technical Service & Corporate Affairs Function": [
+            "TS & CA",
+            "HSE Unit"
+        ],
+        "LNG Function": [],
+        "Security Function": [
+            "Security Office",
+            "Security H/O",
+            "Security R/O North Central",
+            "Security R/O Uva",
+            "Security R/O Eastern",
+            "Security R/O Southern",
+            "Security R/O Northern",
+            "Security R/O Central",
+            "Security R/O Western",
+            "Security R/O North Western",
+            "Security R/O Sabaragamuwa",
+            "Security Muthurajawela",
+            "Security Rathmalana",
+            "Security Mattala",
+            "Security Katunayaka",
+            "Security Ministry",
+            "Security SPBM",
+            "Security Agro Sales Center (Kandy)",
+            "Security Refinery",
+            "Security Orugodawatta",
+            "Security Sapugaskanda"
+        ],
+        "Aviation Function": [
+            "Katunayaka",
+            "Mattala",
+            "Rathmalana"
+        ]
+    },
+    "Refinery": {
+        "Manufacturing and Operations": [
+            "Operation",
+            "Fire and Safety",
+            "Economics & Scheduling"
+        ],
+        "Maintenance & Projects": [
+            "Civil Engineering",
+            "Projects",
+            "Mechanical Maintenance"
+        ],
+        "Electrical & Instrumental": [
+            "Electrical",
+            "Instrument",
+            "Material"
+        ],
+        "Technical Services": [
+            "Technology",
+            "Inspection",
+            "Laboratory"
+        ],
+        "HR": [
+            "Personal Services",
+            "Administration",
+            "Transport",
+            "Medical Center (Refinery)"
+        ],
+        "Training": [],
+        "Sapugaskanda Terminal": [
+            "Operation",
+            "Maintenance",
+            "Distribution",
+            "Administration"
+        ]
+    }
+}

@@ -574,7 +574,7 @@ const ContactDetails = ({ setContactDetails, parentData }) => {
             Temporary Address Details
           </Typography>
           <Grid item xs={10}>
-          <Autocomplete
+          {/* <Autocomplete
         freeSolo
         options={generateTemporaryAddressSuggestions()}
         getOptionLabel={(option) => 
@@ -596,8 +596,41 @@ const ContactDetails = ({ setContactDetails, parentData }) => {
             onKeyPress={handleKeyPress}
             
           />
-        )}
-      />
+        )} */}
+        <Autocomplete
+              freeSolo
+              options={generateTemporaryAddressSuggestions()}
+              value={formData.temporaryAddress} // Add this line
+              getOptionLabel={(option) => 
+                typeof option === 'object' ? option.label : option
+              }
+              onChange={handleAddressSuggestionSelect}
+              renderInput={(params) => (
+                <TextField 
+                  {...params}
+                  label="Temporary Address" 
+                  name="temporaryAddress" 
+                  fullWidth 
+                  variant="outlined"   
+                  value={formData.temporaryAddress} // Ensure value is explicitly set
+                  onChange={(e) => {
+                    // Add this handler to ensure value updates even without suggestion
+                    handleChange({
+                      target: {
+                        name: 'temporaryAddress',
+                        value: e.target.value
+                      }
+                    });
+                  }}
+                  error={!!errors.temporaryAddress}
+                  helperText={errors.temporaryAddress || ''}
+                  inputRef={el => inputRefs.current.temporaryAddress = el}
+                  required 
+                  onKeyPress={handleKeyPress}
+                />
+              )}
+            />
+      
           </Grid>
         <Grid item xs={12} sm={2}>
           <TextField 
