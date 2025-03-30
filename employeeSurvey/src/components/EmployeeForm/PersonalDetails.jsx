@@ -1,8 +1,26 @@
-
-
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { TextField, Grid, MenuItem, Typography } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
+
+// Religion mapping between UI strings and DB numbers
+const religionMapping = {
+  // String to number (for DB storage)
+  stringToNumber: {
+    "Buddhism": 1,
+    "Hindu": 2,
+    "Islam": 3,
+    "Christianity": 4,
+    "Other": 5
+  },
+  // Number to string (for UI display)
+  numberToString: {
+    1: "Buddhism",
+    2: "Hindu",
+    3: "Islam",
+    4: "Christianity",
+    5: "Other"
+  }
+};
 
 const textFieldTheme = createTheme({
   components: {
@@ -43,7 +61,8 @@ const PersonalDetailsForm = ({ setPersonalDetails, parentData, checkEPFExistence
     nicNumber: "",
     drivingLicense: "",
     passportNumber: "",
-    religion: "",
+    religion: "",  // Will store numeric value
+    religionDisplay: "", // For internal use to handle the UI display
     race: "",
     numberOfDependents: "",
   });
@@ -56,7 +75,6 @@ const PersonalDetailsForm = ({ setPersonalDetails, parentData, checkEPFExistence
     nicNumber: false,
     dateOfBirth: false,
     maritalStatus: false,
-    // bloodGroup: false,
     religion: false,
     race: false,
     numberOfDependents: false,
@@ -70,7 +88,6 @@ const PersonalDetailsForm = ({ setPersonalDetails, parentData, checkEPFExistence
     nicNumber: "",
     dateOfBirth: "",
     maritalStatus: "",
-    // bloodGroup: "",
     religion: "",
     race: "",
     numberOfDependents: "",
@@ -84,16 +101,13 @@ const PersonalDetailsForm = ({ setPersonalDetails, parentData, checkEPFExistence
     nicNumber: false,
     dateOfBirth: false,
     maritalStatus: false,
-    // bloodGroup: false,
     religion: false,
     race: false,
     numberOfDependents: false,
   });
 
-
-
-   // Define the order and dependencies of fields
-   const fieldDependencies = {
+  // Define the order and dependencies of fields
+  const fieldDependencies = {
     title: ["epfNumber"],
     nameWithInitials: ["epfNumber", "title"],
     fullName: ["epfNumber", "title", "nameWithInitials"],
@@ -105,24 +119,31 @@ const PersonalDetailsForm = ({ setPersonalDetails, parentData, checkEPFExistence
     religion: ["epfNumber", "title", "nameWithInitials", "fullName", "nicNumber", "dateOfBirth", "maritalStatus"],
     race: ["epfNumber", "title", "nameWithInitials", "fullName", "nicNumber", "dateOfBirth", "maritalStatus", "religion"],
     bloodGroup: ["epfNumber", "title", "nameWithInitials", "fullName", "nicNumber", "dateOfBirth", "maritalStatus", "religion", "race"],
-    numberOfDependents: ["epfNumber", "title", "nameWithInitials", "fullName", "nicNumber", "dateOfBirth", "maritalStatus", "religion", "race", ]
+    numberOfDependents: ["epfNumber", "title", "nameWithInitials", "fullName", "nicNumber", "dateOfBirth", "maritalStatus", "religion", "race"]
   };
 
   const fieldRefs = useRef({});
 
   const fieldOrder = [
     "epfNumber", "title", "nameWithInitials", "fullName", "nicNumber",
-    "dateOfBirth",  
-     "drivingLicense", "passportNumber",
-    "maritalStatus", "religion", "race", "bloodGroup","numberOfDependents"
+    "dateOfBirth", "drivingLicense", "passportNumber",
+    "maritalStatus", "religion", "race", "bloodGroup", "numberOfDependents"
   ];
 
   // Reset form when parent data changes
   useEffect(() => {
     if (parentData) {
+      // Convert numeric religion to display string if present
+      const processedData = { ...parentData };
+      
+      if (processedData.religion && typeof processedData.religion === 'number') {
+        // Store the display string in religionDisplay
+        processedData.religionDisplay = religionMapping.numberToString[processedData.religion] || "";
+      }
+      
       setFormData((prevData) => ({
         ...prevData,
-        ...parentData,
+        ...processedData,
       }));
 
       const initialErrors = {};
@@ -139,77 +160,75 @@ const PersonalDetailsForm = ({ setPersonalDetails, parentData, checkEPFExistence
     const requiredFields = [
       "epfNumber", "nameWithInitials", "title", "fullName", 
       "nicNumber", "dateOfBirth", "maritalStatus",
-      //  "bloodGroup", 
       "religion", "race", "numberOfDependents"
     ];
     return requiredFields.includes(field);
   };
 
-
-// Enhanced EPF Number Validation Function
-const validateEPFNumber = useCallback(async (value) => {
-  // Reset previous errors specific to EPF number
-  setErrors(prev => ({...prev, epfNumber: false}));
-  setErrorMessages(prev => ({...prev, epfNumber: ""}));
-  
-  // Check if empty
-  if (!value || value.trim() === "") {
-    setErrors(prev => ({...prev, epfNumber: true}));
-    setErrorMessages(prev => ({...prev, epfNumber: "EPF Number is required"}));
-    setShowErrors(prev => ({...prev, epfNumber: true}));
-    return false;
-  }
-
-  // Check if contains only numbers
-  if (!/^\d*$/.test(value)) {
-    setErrors(prev => ({...prev, epfNumber: true}));
-    setErrorMessages(prev => ({...prev, epfNumber: "EPF Number must contain only numbers"}));
-    setShowErrors(prev => ({...prev, epfNumber: true}));
-    return false;
-  }
-
-  // Check length constraints
-  if (value.length < 4) {
-    setErrors(prev => ({...prev, epfNumber: true}));
-    setErrorMessages(prev => ({...prev, epfNumber: "EPF Number must be at least 4 digits"}));
-    setShowErrors(prev => ({...prev, epfNumber: true}));
-    return false;
-  }
-
-  if (value.length > 7) {
-    setErrors(prev => ({...prev, epfNumber: true}));
-    setErrorMessages(prev => ({...prev, epfNumber: "EPF Number cannot exceed 7 digits"}));
-    setShowErrors(prev => ({...prev, epfNumber: true}));
-    return false;
-  }
-
-  // Check existence in the system
-  try {
-    const exists = await checkEPFExistence(value);
+  // Enhanced EPF Number Validation Function
+  const validateEPFNumber = useCallback(async (value) => {
+    // Reset previous errors specific to EPF number
+    setErrors(prev => ({...prev, epfNumber: false}));
+    setErrorMessages(prev => ({...prev, epfNumber: ""}));
     
-    if (exists) {
+    // Check if empty
+    if (!value || value.trim() === "") {
       setErrors(prev => ({...prev, epfNumber: true}));
-      setErrorMessages(prev => ({
-        ...prev, 
-        epfNumber: "EPF Number already exists in the system"
-      }));
+      setErrorMessages(prev => ({...prev, epfNumber: "EPF Number is required"}));
       setShowErrors(prev => ({...prev, epfNumber: true}));
       return false;
     }
 
-    // If all validations pass
-    return true;
-  } catch (error) {
-    console.error("EPF Existence Check Error:", error);
-    setErrors(prev => ({...prev, epfNumber: true}));
-    setErrorMessages(prev => ({
-      ...prev, 
-      epfNumber: "Error checking EPF Number. Please try again."
-    }));
-    setShowErrors(prev => ({...prev, epfNumber: true}));
-    return false;
-  }
-}, [checkEPFExistence]);
+    // Check if contains only numbers
+    if (!/^\d*$/.test(value)) {
+      setErrors(prev => ({...prev, epfNumber: true}));
+      setErrorMessages(prev => ({...prev, epfNumber: "EPF Number must contain only numbers"}));
+      setShowErrors(prev => ({...prev, epfNumber: true}));
+      return false;
+    }
+
+    // Check length constraints
+    if (value.length < 4) {
+      setErrors(prev => ({...prev, epfNumber: true}));
+      setErrorMessages(prev => ({...prev, epfNumber: "EPF Number must be at least 4 digits"}));
+      setShowErrors(prev => ({...prev, epfNumber: true}));
+      return false;
+    }
+
+    if (value.length > 7) {
+      setErrors(prev => ({...prev, epfNumber: true}));
+      setErrorMessages(prev => ({...prev, epfNumber: "EPF Number cannot exceed 7 digits"}));
+      setShowErrors(prev => ({...prev, epfNumber: true}));
+      return false;
+    }
+
+    // Check existence in the system
+    try {
+      const exists = await checkEPFExistence(value);
+      
+      if (exists) {
+        setErrors(prev => ({...prev, epfNumber: true}));
+        setErrorMessages(prev => ({
+          ...prev, 
+          epfNumber: "EPF Number already exists in the system"
+        }));
+        setShowErrors(prev => ({...prev, epfNumber: true}));
+        return false;
+      }
+
+      // If all validations pass
+      return true;
+    } catch (error) {
+      console.error("EPF Existence Check Error:", error);
+      setErrors(prev => ({...prev, epfNumber: true}));
+      setErrorMessages(prev => ({
+        ...prev, 
+        epfNumber: "Error checking EPF Number. Please try again."
+      }));
+      setShowErrors(prev => ({...prev, epfNumber: true}));
+      return false;
+    }
+  }, [checkEPFExistence]);
 
   // Function to validate a field
   const validateField = (name, value) => {
@@ -229,7 +248,6 @@ const validateEPFNumber = useCallback(async (value) => {
       else if (!/^\d*$/.test(value)) {
         isValid = false;
         message = "EPF Number must contain only numbers";
-
         setShowErrors(prev => ({...prev, [name]: true}));
       } 
       // Check if it's 7 digits maximum
@@ -240,35 +258,31 @@ const validateEPFNumber = useCallback(async (value) => {
       }
     }
     
-    
-    
     else if (name === "nicNumber") {
       // Check if it's empty
       if (!value || value.toString().trim() === "") {
         isValid = false;
         message = "NIC Number is required";
       } 
-    else if (!/^\d{9}[VvXx]$/.test(value) && !/^\d{12}$/.test(value)) {
-      isValid = false;
-      
-      // More specific error messages based on format problems
-      if (/^\d{9}[^VvXx]/.test(value)) {
-        message = "10th character must be V or X";
-      } else if (/^\d{9}[VvXx].+/.test(value)) {
-        message = "No characters allowed after V/X";
-      } else if (/^\d{10,11}$/.test(value)) {
-        message = "NIC must be exactly 12 digits";
-      } else if (/\D/.test(value.substring(0, 9))) {
-        message = "First 9 characters must be digits";
-      } else {
-        message = "Invalid NIC format. Use 9 digits + V/X or 12 digits";
+      else if (!/^\d{9}[VvXx]$/.test(value) && !/^\d{12}$/.test(value)) {
+        isValid = false;
+        
+        // More specific error messages based on format problems
+        if (/^\d{9}[^VvXx]/.test(value)) {
+          message = "10th character must be V or X";
+        } else if (/^\d{9}[VvXx].+/.test(value)) {
+          message = "No characters allowed after V/X";
+        } else if (/^\d{10,11}$/.test(value)) {
+          message = "NIC must be exactly 12 digits";
+        } else if (/\D/.test(value.substring(0, 9))) {
+          message = "First 9 characters must be digits";
+        } else {
+          message = "Invalid NIC format. Use 9 digits + V/X or 12 digits";
+        }
+        
+        setShowErrors(prev => ({...prev, [name]: true}));
       }
-      
-      setShowErrors(prev => ({...prev, [name]: true}));
-    
-    }
     } 
-
 
     else if (name === "numberOfDependents") {
       // Check if it's empty
@@ -317,12 +331,8 @@ const validateEPFNumber = useCallback(async (value) => {
     return isValid;
   };
 
-
-
-  
-
-   // Modify handleBlur to include comprehensive EPF validation
-   const handleBlur = async (e) => {
+  // Modify handleBlur to include comprehensive EPF validation
+  const handleBlur = async (e) => {
     const { name, value } = e.target;
     
     // Special handling for EPF Number
@@ -387,6 +397,30 @@ const validateEPFNumber = useCallback(async (value) => {
 
   const handleChange = async (e) => {
     const { name, value } = e.target;
+  
+    // Special handling for religion field
+    if (name === "religion") {
+      // Get numeric value for database storage
+      const numericValue = religionMapping.stringToNumber[value];
+      
+      // Update form data
+      setFormData((prevFormData) => {
+        const updatedFormData = { 
+          ...prevFormData, 
+          religion: numericValue, // Store numeric value
+          religionDisplay: value  // Keep display value for UI
+        };
+        
+        // Update parent component with personal details
+        setPersonalDetails(updatedFormData);
+        
+        return updatedFormData;
+      });
+      
+      // Validate the field
+      validateField(name, numericValue);
+      return;
+    }
   
     // Special handling for EPF number
     if (name === "epfNumber") {
@@ -486,8 +520,6 @@ const validateEPFNumber = useCallback(async (value) => {
     });
   };
 
-   
-
   // Handle key down for field navigation and validation
   const handleKeyDown = async (e, fieldName) => {
     if (e.key === 'Enter') {
@@ -567,6 +599,21 @@ const validateEPFNumber = useCallback(async (value) => {
   const shouldShowError = (fieldName) => {
     return errors[fieldName] && showErrors[fieldName];
   };
+
+  // Get the display value for religion dropdown
+  const getReligionDisplayValue = () => {
+    // If we have a numeric religion value, convert it to string for display
+    if (formData.religion && typeof formData.religion === 'number') {
+      return religionMapping.numberToString[formData.religion] || "";
+    }
+    // If we have a display value saved, use that
+    if (formData.religionDisplay) {
+      return formData.religionDisplay;
+    }
+    // Default to empty string
+    return "";
+  };
+
 
   return (
     <ThemeProvider theme={textFieldTheme}>
@@ -806,29 +853,34 @@ const validateEPFNumber = useCallback(async (value) => {
         </Grid>
         
 
-            <Grid item xs={12} sm={3}>
-              <TextField 
-                select 
-                label="Religion" 
-                name="religion" 
-                fullWidth 
-                variant="outlined" 
-                value={formData.religion} 
-                onChange={handleChange} 
-                onFocus={handleFocus}
-                onBlur={handleBlur}
-                onKeyDown={(e) => handleKeyDown(e, "religion")}
-                inputRef={(el) => fieldRefs.current["religion"] = el}
-                required
-                error={shouldShowError("religion")}
-                helperText={getHelperText("religion")}
-              >
-                <MenuItem value="Buddhism">Buddhism</MenuItem>
-                <MenuItem value="Hindu">Hindu</MenuItem>
-                <MenuItem value="Islam">Islam</MenuItem>
-                <MenuItem value="Christianity">Christianity</MenuItem>
-              </TextField>
-            </Grid>
+        <Grid item xs={12} sm={3}>
+  <TextField 
+    select 
+    label="Religion" 
+    name="religion" 
+    fullWidth 
+    variant="outlined" 
+    // Convert numeric value to display string if it exists
+    value={formData.religion ? 
+           religionMapping.numberToString[formData.religion] || "" : 
+           ""}
+    onChange={handleChange} 
+    onFocus={handleFocus}
+    onBlur={handleBlur}
+    onKeyDown={(e) => handleKeyDown(e, "religion")}
+    inputRef={(el) => fieldRefs.current["religion"] = el}
+    required
+    error={shouldShowError("religion")}
+    helperText={getHelperText("religion")}
+  >
+    <MenuItem value="Buddhism">Buddhism</MenuItem>
+    <MenuItem value="Hindu">Hindu</MenuItem>
+    <MenuItem value="Islam">Islam</MenuItem>
+    <MenuItem value="Christianity">Christianity</MenuItem>
+    <MenuItem value="Other">Other</MenuItem>
+  </TextField>
+</Grid>
+
             <Grid item xs={12} sm={2.5}>
               <TextField 
                 select 
@@ -943,7 +995,6 @@ const validateEPFNumber = useCallback(async (value) => {
 };
 
 export default PersonalDetailsForm;
-
 
 
 
