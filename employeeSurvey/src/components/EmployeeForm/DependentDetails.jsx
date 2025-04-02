@@ -323,22 +323,16 @@
 
 
 
-
-
-
 import React, { useState, useEffect } from 'react';
 import { 
     TextField, 
     Grid, 
-    Typography, 
-    Button, 
     Table, 
     TableBody, 
     TableCell, 
     TableContainer, 
     TableHead, 
     TableRow, 
-    Paper, 
     MenuItem, 
     FormHelperText 
 } from "@mui/material";
@@ -376,7 +370,7 @@ const DependentDetailsTable = ({ setDependentDetails, parentData, numberOfDepend
     });
 
     const [errors, setErrors] = useState([]);
-    const [activeDependents, setActiveDependents] = useState([]);
+    const [touched, setTouched] = useState([]);
 
     // Effect to create dependent sections based on numberOfDependents
     useEffect(() => {
@@ -393,13 +387,31 @@ const DependentDetailsTable = ({ setDependentDetails, parentData, numberOfDepend
 
             setLocalDependentDetails({ dependents: newDependents });
             
-            // Initialize errors and active arrays
+            // Initialize errors and touched arrays
             setErrors(Array(numberOfDependents).fill({}));
-            setActiveDependents(Array(numberOfDependents).fill(false));
+            setTouched(Array(numberOfDependents).fill({
+                fullName: false,
+                gender: false,
+                dateOfBirth: false,
+                occupation: false,
+                occupationAddress: false
+            }));
+        } else {
+            // Reset state when numberOfDependents is 0 or undefined
+            setLocalDependentDetails({ dependents: [] });
+            setErrors([]);
+            setTouched([]);
         }
     }, [numberOfDependents, parentData]);
 
     useEffect(() => {
+        // Validate all fields when dependents change
+        if (dependentDetails.dependents.length > 0) {
+            dependentDetails.dependents.forEach((dependent, index) => {
+                validateDependent(dependent, index);
+            });
+        }
+        
         // Only update parent if there are no validation errors
         if (!hasValidationErrors()) {
             setDependentDetails((prev) => {
@@ -409,43 +421,46 @@ const DependentDetailsTable = ({ setDependentDetails, parentData, numberOfDepend
                 return prev;
             });
         }
-    }, [dependentDetails, setDependentDetails]);
+    }, [dependentDetails]);
+
+    // Mark a field as touched
+    const handleBlur = (index, field) => {
+        const newTouched = [...touched];
+        if (!newTouched[index]) {
+            newTouched[index] = {};
+        }
+        newTouched[index][field] = true;
+        setTouched(newTouched);
+        
+        // Validate on blur
+        validateDependent(dependentDetails.dependents[index], index);
+    };
 
     // Validate a single dependent
     const validateDependent = (dependent, index) => {
         const dependentErrors = {};
         
-        // Check if this dependent has any value filled
-        const hasAnyValue = Object.values(dependent).some(val => val && val.trim() !== "");
+        // All fields are required
+        if (!dependent.fullName || dependent.fullName.trim() === "") {
+            dependentErrors.fullName = "Full name is required";
+        }
         
-        // Update active status
-        const newActiveDependents = [...activeDependents];
-        newActiveDependents[index] = hasAnyValue;
-        setActiveDependents(newActiveDependents);
+        if (!dependent.gender || dependent.gender.trim() === "") {
+            dependentErrors.gender = "Gender is required";
+        }
         
-        // If this dependent is active, validate all required fields
-        if (hasAnyValue) {
-            if (!dependent.fullName || dependent.fullName.trim() === "") {
-                dependentErrors.fullName = "Full name is required";
-            }
-            
-            if (!dependent.gender || dependent.gender.trim() === "") {
-                dependentErrors.gender = "Gender is required";
-            }
-            
-            if (!dependent.dateOfBirth || dependent.dateOfBirth.trim() === "") {
-                dependentErrors.dateOfBirth = "Date of birth is required";
-            }
-            
-            if (!dependent.occupation || dependent.occupation.trim() === "") {
-                dependentErrors.occupation = "Occupation is required";
-            }
-            
-            // Occupation address is required if occupation is "Employed"
-            if (dependent.occupation === "Employed" && 
-                (!dependent.occupationAddress || dependent.occupationAddress.trim() === "")) {
-                dependentErrors.occupationAddress = "Occupation address is required";
-            }
+        if (!dependent.dateOfBirth || dependent.dateOfBirth.trim() === "") {
+            dependentErrors.dateOfBirth = "Date of birth is required";
+        }
+        
+        if (!dependent.occupation || dependent.occupation.trim() === "") {
+            dependentErrors.occupation = "Occupation is required";
+        }
+        
+        // Occupation address is required if occupation is "Employed"
+        if (dependent.occupation === "Employed" && 
+            (!dependent.occupationAddress || dependent.occupationAddress.trim() === "")) {
+            dependentErrors.occupationAddress = "Occupation address is required";
         }
         
         // Update errors for this dependent
@@ -469,11 +484,29 @@ const DependentDetailsTable = ({ setDependentDetails, parentData, numberOfDepend
         // Update local state
         setLocalDependentDetails({ dependents: updatedDependents });
         
-        // Immediately validate this dependent
+        // Mark field as touched
+        const newTouched = [...touched];
+        if (!newTouched[index]) {
+            newTouched[index] = {};
+        }
+        newTouched[index][field] = true;
+        setTouched(newTouched);
+        
+        // Validate immediately
         setTimeout(() => {
             validateDependent(updatedDependents[index], index);
         }, 0);
     };
+
+    // Should display error for a field?
+    const shouldShowError = (index, field) => {
+        return touched[index]?.[field] && !!errors[index]?.[field];
+    };
+
+    // Only render table if there are dependents to show
+    if (!numberOfDependents || numberOfDependents <= 0 || dependentDetails.dependents.length === 0) {
+        return null;
+    }
 
     return (
         <ThemeProvider theme={textFieldTheme}>
@@ -483,94 +516,95 @@ const DependentDetailsTable = ({ setDependentDetails, parentData, numberOfDepend
                         <TableHead>
                             <TableRow>
                                 <TableCell>Dependent</TableCell>
-                                <TableCell>Full Name</TableCell>
-                                <TableCell>Gender</TableCell>
-                                <TableCell>Date of Birth</TableCell>
-                                <TableCell>Occupation</TableCell>
-                                <TableCell>Occupation Address</TableCell>
+                                <TableCell>Full Name*</TableCell>
+                                <TableCell>Gender*</TableCell>
+                                <TableCell>Date of Birth*</TableCell>
+                                <TableCell>Occupation*</TableCell>
+                                <TableCell>Occupation Address*</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {dependentDetails.dependents.map((dependent, index) => {
-                                // Use the tracked active state
-                                const isActive = activeDependents[index];
-                                
-                                return (
-                                    <TableRow key={index}>
-                                        <TableCell>{index + 1}</TableCell>
-                                        <TableCell>
-                                            <TextField 
-                                                fullWidth 
-                                                label="Full Name" 
-                                                value={dependent.fullName} 
-                                                onChange={(e) => handleDependentChange(index, "fullName", e.target.value)}
-                                                error={isActive && !!errors[index]?.fullName}
-                                                helperText={isActive && errors[index]?.fullName}
-                                                required={isActive}
-                                            />
-                                        </TableCell>
-                                        <TableCell>
-                                            <TextField 
-                                                fullWidth 
-                                                select 
-                                                label="Gender" 
-                                                value={dependent.gender} 
-                                                onChange={(e) => handleDependentChange(index, "gender", e.target.value)}
-                                                error={isActive && !!errors[index]?.gender}
-                                                required={isActive}
-                                            >
-                                                <MenuItem value="Male">Male</MenuItem>
-                                                <MenuItem value="Female">Female</MenuItem>
-                                            </TextField>
-                                            {isActive && errors[index]?.gender && (
-                                                <FormHelperText error>{errors[index].gender}</FormHelperText>
-                                            )}
-                                        </TableCell>
-                                        <TableCell>
-                                            <TextField 
-                                                fullWidth 
-                                                label="Date of Birth" 
-                                                type="date" 
-                                                InputLabelProps={{ shrink: true }} 
-                                                value={dependent.dateOfBirth} 
-                                                onChange={(e) => handleDependentChange(index, "dateOfBirth", e.target.value)}
-                                                error={isActive && !!errors[index]?.dateOfBirth}
-                                                helperText={isActive && errors[index]?.dateOfBirth}
-                                                required={isActive}
-                                            />
-                                        </TableCell>
-                                        <TableCell>
-                                            <TextField 
-                                                fullWidth 
-                                                select 
-                                                label="Occupation" 
-                                                value={dependent.occupation} 
-                                                onChange={(e) => handleDependentChange(index, "occupation", e.target.value)}
-                                                error={isActive && !!errors[index]?.occupation}
-                                                required={isActive}
-                                            >
-                                                <MenuItem value="Employed">Employed</MenuItem>
-                                                <MenuItem value="Studies">Studies</MenuItem>
-                                                <MenuItem value="None">None</MenuItem>
-                                            </TextField>
-                                            {isActive && errors[index]?.occupation && (
-                                                <FormHelperText error>{errors[index].occupation}</FormHelperText>
-                                            )}
-                                        </TableCell>
-                                        <TableCell>
-                                            <TextField 
-                                                fullWidth 
-                                                label="Occupation Address" 
-                                                value={dependent.occupationAddress} 
-                                                onChange={(e) => handleDependentChange(index, "occupationAddress", e.target.value)}
-                                                error={isActive && !!errors[index]?.occupationAddress}
-                                                helperText={isActive && errors[index]?.occupationAddress}
-                                                required={isActive && dependent.occupation === "Employed"}
-                                            />
-                                        </TableCell>
-                                    </TableRow>
-                                );
-                            })}
+                            {dependentDetails.dependents.map((dependent, index) => (
+                                <TableRow key={index}>
+                                    <TableCell>{index + 1}</TableCell>
+                                    <TableCell>
+                                        <TextField 
+                                            fullWidth 
+                                            label="Full Name" 
+                                            value={dependent.fullName} 
+                                            onChange={(e) => handleDependentChange(index, "fullName", e.target.value)}
+                                            onBlur={() => handleBlur(index, "fullName")}
+                                            error={shouldShowError(index, "fullName")}
+                                            helperText={shouldShowError(index, "fullName") ? errors[index].fullName : ""}
+                                            required
+                                        />
+                                    </TableCell>
+                                    <TableCell>
+                                        <TextField 
+                                            fullWidth 
+                                            select 
+                                            label="Gender" 
+                                            value={dependent.gender} 
+                                            onChange={(e) => handleDependentChange(index, "gender", e.target.value)}
+                                            onBlur={() => handleBlur(index, "gender")}
+                                            error={shouldShowError(index, "gender")}
+                                            required
+                                        >
+                                            <MenuItem value="Male">Male</MenuItem>
+                                            <MenuItem value="Female">Female</MenuItem>
+                                        </TextField>
+                                        {shouldShowError(index, "gender") && (
+                                            <FormHelperText error>{errors[index].gender}</FormHelperText>
+                                        )}
+                                    </TableCell>
+                                    <TableCell>
+                                        <TextField 
+                                            fullWidth 
+                                            label="Date of Birth" 
+                                            type="date" 
+                                            InputLabelProps={{ shrink: true }} 
+                                            value={dependent.dateOfBirth} 
+                                            onChange={(e) => handleDependentChange(index, "dateOfBirth", e.target.value)}
+                                            onBlur={() => handleBlur(index, "dateOfBirth")}
+                                            error={shouldShowError(index, "dateOfBirth")}
+                                            helperText={shouldShowError(index, "dateOfBirth") ? errors[index].dateOfBirth : ""}
+                                            required
+                                        />
+                                    </TableCell>
+                                    <TableCell>
+                                        <TextField 
+                                            fullWidth 
+                                            select 
+                                            label="Occupation" 
+                                            value={dependent.occupation} 
+                                            onChange={(e) => handleDependentChange(index, "occupation", e.target.value)}
+                                            onBlur={() => handleBlur(index, "occupation")}
+                                            error={shouldShowError(index, "occupation")}
+                                            required
+                                        >
+                                            <MenuItem value="Employed">Employed</MenuItem>
+                                            <MenuItem value="Studies">Studies</MenuItem>
+                                            <MenuItem value="None">None</MenuItem>
+                                        </TextField>
+                                        {shouldShowError(index, "occupation") && (
+                                            <FormHelperText error>{errors[index].occupation}</FormHelperText>
+                                        )}
+                                    </TableCell>
+                                    <TableCell>
+                                        <TextField 
+                                            fullWidth 
+                                            label="Occupation Address" 
+                                            value={dependent.occupationAddress} 
+                                            onChange={(e) => handleDependentChange(index, "occupationAddress", e.target.value)}
+                                            onBlur={() => handleBlur(index, "occupationAddress")}
+                                            error={shouldShowError(index, "occupationAddress")}
+                                            helperText={shouldShowError(index, "occupationAddress") ? errors[index].occupationAddress : ""}
+                                            required={dependent.occupation === "Employed"}
+                                            disabled={dependent.occupation !== "Employed"}
+                                        />
+                                    </TableCell>
+                                </TableRow>
+                            ))}
                         </TableBody>
                     </Table>
                 </TableContainer>

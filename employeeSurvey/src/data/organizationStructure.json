@@ -1,21 +1,21 @@
 {
     "Head Office": {
-        "Legal Function": [],
-        "Commercial Function": [],
-        "Shipping Function": [],
-        "Engineering Function": [],
-        "Finance Function": ["Refinery", "Head Office"],
-        "IT Function": [],
-        "Investigation Function": [],
-        "Internal Audit Function": [
+        "Legal": [],
+        "Commercial": [],
+        "Shipping": [],
+        "Engineering": [],
+        "Finance": ["Refinery", "Head Office"],
+        "IT": [],
+        "Investigation": [],
+        "Internal Audit": [
             "Internal Audit (HO)",
             "Internal Audit (Refinery)"
         ],
-        "Secretariat Function": [
+        "Secretariat": [
             "Secretariat",
             "Holiday Bunglow"
         ],
-        "HRM Function": [
+        "HRM": [
             "HRM",
             "Medical"
         ],
@@ -23,11 +23,11 @@
             "Procurement",
             "Stores"
         ],
-        "Lubricant Special Products Function": [
+        "Lubricant Special Products": [
             "Lubricant Office",
             "Lubricant Warehouse"
         ],
-        "Marketing Function": [
+        "Marketing": [
             "Marketing Office",
             "CC & CC Unit",
             "SSC Workshop",
@@ -41,16 +41,16 @@
             "Regional Office North Western",
             "Regional Office Sabaragamuwa"
         ],
-        "Agro Chemical Function": [
+        "Agro Chemical": [
             "Agro Chemical",
             "Agro Sale Center (Kandy)"
         ],
-        "Technical Service & Corporate Affairs Function": [
+        "Technical Service & Corporate Affairs": [
             "TS & CA",
             "HSE Unit"
         ],
-        "LNG Function": [],
-        "Security Function": [
+        "LNG": [],
+        "Security": [
             "Security Office",
             "Security H/O",
             "Security R/O North Central",
@@ -73,7 +73,7 @@
             "Security Orugodawatta",
             "Security Sapugaskanda"
         ],
-        "Aviation Function": [
+        "Aviation": [
             "Katunayaka",
             "Mattala",
             "Rathmalana"

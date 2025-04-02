@@ -199,6 +199,7 @@ const EmployeeForm = () => {
       setContactDetails({});
       // Properly reset employment details with null values instead of empty strings
       setEmploymentDetails({
+        presentJobType: null,
         presentJobCategory: null,
         presentDesignation: null,
         presentGrade: null,

@@ -262,6 +262,14 @@ const ContactDetails = ({ setContactDetails, parentData }) => {
     // Set flag to indicate this is a user-initiated update
     formUpdatedByUser.current = true;
 
+      // If the field is related to postal code (both permanent and temporary), ensure it only allows integers
+      if (name === 'permanentPostalCode' || name === 'temporaryPostalCode') {
+        // If the value is not a number, return without updating the state
+        if (!/^\d*$/.test(value)) {
+          return; // Ignore the change if it's not a valid integer
+        }
+      }
+
     // Start with a copy of current form data
     const updatedFormData = { ...formData };
     
@@ -313,13 +321,6 @@ const ContactDetails = ({ setContactDetails, parentData }) => {
         province: formData.permanentProvince,
         distance: formData.distantBetWorkPlaceAndPermanentAddress
       },
-      {
-        label: `c/o ${formData.permanentAddress}`,
-        postalCode: formData.permanentPostalCode,
-        district: formData.permanentDistrict,
-        province: formData.permanentProvince,
-        distance: formData.distantBetWorkPlaceAndPermanentAddress
-      }
     ];
 
     return suggestions;

@@ -23,11 +23,22 @@ import organizationStructure from "../../data/organizationStructure.json";
 
 // Location suggestions list
 const LOCATION_SUGGESTIONS = [
-  "HEAD OFFICE",
-  "REFINERY",
+  "Head Office",
+  "Refinery",
   
 ];
 
+
+const jobTypeMapping = {
+  1: "Permanent",
+  2: "Contract"
+};
+
+// Reverse mapping to convert string value to integer for the backend
+const jobTypeReverseMapping = {
+  "Permanent": 1,
+  "Contract": 2
+};
 
 
 const textFieldTheme = createTheme({
@@ -59,6 +70,7 @@ const textFieldTheme = createTheme({
 const EmploymentDetailsForm = ({ setEmploymentDetails, parentData }) => {
   const [employmentDetails, setLocalEmploymentDetails] = useState({
     epfNumber: "",
+    presentJobType: "",
     presentJobCategory: "",
     presentDesignation: "",
     presentGrade: "",
@@ -189,7 +201,6 @@ useEffect(() => {
   
  // Update the useEffect that updates the parent component
 useEffect(() => {
-  // Skip initial render
   if (isInitialRender.current) {
     isInitialRender.current = false;
     return;
@@ -272,22 +283,44 @@ const [promotionErrors, setPromotionErrors] = useState([]);
   const handleChange = (e) => {
     const { name, value } = e.target;
     
-    // Clear error when user types
-    setErrors(prev => ({
+    // Special handling for presentJobType
+    if (name === "presentJobType") {
+      // Check if the value exists in jobTypeReverseMapping
+      const intValue = jobTypeReverseMapping[value];
+      
+      if (intValue !== undefined) {
+        // If it's a valid value, store the corresponding integer in the state
+        setLocalEmploymentDetails((prevDetails) => ({
+          ...prevDetails,
+          [name]: intValue, // Store the integer value for presentJobType
+        }));
+      } else {
+        // Handle invalid value case
+        console.error(`Invalid value selected for presentJobType: ${value}`);
+      }
+    } else {
+      // For other fields, update the state normally
+      setLocalEmploymentDetails((prevDetails) => ({
+        ...prevDetails,
+        [name]: value,
+        // If the 'joinedAs' field is updated, also update the 'joinedDetails' structure accordingly
+        ...(name === "joinedAs" && {
+          joinedDetails: value === "Permanent"
+            ? { joinedType: "Permanent", epfNumber: "", designation: "", grade: "", date: "" }
+            : { joinedType: "Contract", epfNumber: "", designation: "", grade: "", date: "" },
+        }),
+      }));
+    }
+  
+    // Clear any errors for the changed field
+    setErrors((prev) => ({
       ...prev,
-      [name]: ""
-    }));
-    
-    setLocalEmploymentDetails((prevDetails) => ({
-      ...prevDetails,
-      [name]: value,
-      ...(name === "joinedAs" && {
-        joinedDetails: value === "Permanent"
-          ? { joinedType: "Permanent", epfNumber: "", designation: "", grade: "", date: "" }
-          : { joinedType: "Contract", epfNumber: "", designation: "", grade: "", date: "" },
-      }),
+      [name]: "",
     }));
   };
+  
+  
+
 
   const handleJoinedDetailsChange = (field, value) => {
     // Clear error when user types
@@ -380,8 +413,7 @@ const [promotionErrors, setPromotionErrors] = useState([]);
 
 
 
-  // Modify the handlePromotionChange function to show errors immediately when fields are touched
- // Modified handlePromotionChange to use Autocomplete
+
   // Modify the promotion-related changes similarly
   const handlePromotionChange = (index, field, value) => {
     setLocalEmploymentDetails((prevDetails) => {
@@ -602,8 +634,34 @@ const removePromotion = (index) => {
   ))}
 </Grid>
 
+      
+
 
       <Grid item xs={11.7} container spacing={1} sx={{ ml: 0 }}>
+      <Grid item xs={12} sm={3}>
+      <TextField
+          select
+          label="Present Job Type"
+          name="presentJobType"
+          fullWidth
+          variant="outlined"
+          value={employmentDetails.presentJobType ? jobTypeMapping[employmentDetails.presentJobType] : "Permanent"}
+          onChange={handleChange}
+          required
+          error={!!errors.presentJobType}
+          helperText={errors.presentJobType}
+          inputRef={(el) => registerFieldRef("presentJobType", el)}
+        >
+          <MenuItem value="Permanent">Permanent</MenuItem>
+          <MenuItem value="Contract">Contract</MenuItem>
+        </TextField>
+
+              </Grid>
+
+
+
+
+
         <Grid item xs={12} sm={3}>
           <TextField
             select
@@ -624,20 +682,33 @@ const removePromotion = (index) => {
           </TextField>
         </Grid>
         <Grid item xs={12} sm={3}>
-          <TextField
-            fullWidth
-            label="Present Designation"
-            name="presentDesignation"
-            value={employmentDetails.presentDesignation}
-            onChange={handleChange}
-            required
-            error={!!errors.presentDesignation}
-            helperText={errors.presentDesignation}
-            onKeyDown={(e) => handleKeyDown(e, "presentDesignation", "presentGrade")}
-            inputRef={(el) => registerFieldRef("presentDesignation", el)}
-          />
-           
-        </Grid>
+  <Autocomplete
+    freeSolo
+    options={DESIGNATION_SUGGESTIONS}
+    value={employmentDetails.presentDesignation || ""}  // Set the value of presentDesignation
+    onChange={(_, newValue) => handleChange({
+      target: { name: "presentDesignation", value: newValue || "" }
+    })}
+    renderInput={(params) => (
+      <TextField
+        {...params}
+        fullWidth
+        label="Present Designation"
+        required
+        error={!!errors.presentDesignation}
+        helperText={errors.presentDesignation || ""}
+        onKeyDown={(e) => handleKeyDown(e, "presentDesignation", "presentGrade")}
+        inputRef={(el) => registerFieldRef("presentDesignation", el)}
+      />
+    )}
+    filterOptions={(options, { inputValue }) => {
+      return options.filter(option => 
+        option.toLowerCase().includes(inputValue.toLowerCase())
+      );
+    }}
+  />
+</Grid>
+
         <Grid item xs={12} sm={3}>
           <TextField
             fullWidth
@@ -651,10 +722,16 @@ const removePromotion = (index) => {
             onKeyDown={(e) => handleKeyDown(e, "presentGrade", "joinedAs")}
             inputRef={(el) => registerFieldRef("presentGrade", el)}
           >
-             <MenuItem value="A1">A1</MenuItem> <MenuItem value="A2"></MenuItem>A2<MenuItem value="A3">A3</MenuItem>
-            <MenuItem value="A4">A4</MenuItem> <MenuItem value="A5"></MenuItem>A5<MenuItem value="A6">A6</MenuItem>
+            <MenuItem value="A1">A1</MenuItem>
+            <MenuItem value="A2">A2</MenuItem>
+            <MenuItem value="A3">A3</MenuItem>
+            <MenuItem value="A4">A4</MenuItem>
+            <MenuItem value="A5">A5</MenuItem>
+            <MenuItem value="A6">A6</MenuItem>
             <MenuItem value="A7">A7</MenuItem>
-            <MenuItem value="B1">B1</MenuItem><MenuItem value="B2">B2</MenuItem><MenuItem value="B3">B3</MenuItem>
+            <MenuItem value="B1">B1</MenuItem>
+            <MenuItem value="B2">B2</MenuItem>
+            <MenuItem value="B3">B3</MenuItem>
             <MenuItem value="C1">C1</MenuItem>
             <MenuItem value="C2">C2</MenuItem>
             <MenuItem value="C3">C3</MenuItem>
@@ -770,14 +847,20 @@ const removePromotion = (index) => {
               onKeyDown={(e) => handleKeyDown(e, "joinedDetails.grade", "joinedDetails.date")}
               inputRef={(el) => registerFieldRef("joinedDetails.grade", el)}
               >
-              <MenuItem value="A1">A1</MenuItem> <MenuItem value="A2"></MenuItem>A2<MenuItem value="A3">A3</MenuItem>
-             <MenuItem value="A4">A4</MenuItem> <MenuItem value="A5"></MenuItem>A5<MenuItem value="A6">A6</MenuItem>
-             <MenuItem value="A7">A7</MenuItem>
-             <MenuItem value="B1">B1</MenuItem><MenuItem value="B2">B2</MenuItem><MenuItem value="B3">B3</MenuItem>
-             <MenuItem value="C1">C1</MenuItem>
-             <MenuItem value="C2">C2</MenuItem>
-             <MenuItem value="C3">C3</MenuItem>
-             <MenuItem value="C4">C4</MenuItem>
+             <MenuItem value="A1">A1</MenuItem>
+              <MenuItem value="A2">A2</MenuItem>
+              <MenuItem value="A3">A3</MenuItem>
+              <MenuItem value="A4">A4</MenuItem>
+              <MenuItem value="A5">A5</MenuItem>
+              <MenuItem value="A6">A6</MenuItem>
+              <MenuItem value="A7">A7</MenuItem>
+              <MenuItem value="B1">B1</MenuItem>
+              <MenuItem value="B2">B2</MenuItem>
+              <MenuItem value="B3">B3</MenuItem>
+              <MenuItem value="C1">C1</MenuItem>
+              <MenuItem value="C2">C2</MenuItem>
+              <MenuItem value="C3">C3</MenuItem>
+              <MenuItem value="C4">C4</MenuItem>
              </TextField>
           </Grid>
           <Grid item xs={12} sm={5.5}>
@@ -859,22 +942,20 @@ const removePromotion = (index) => {
               onKeyDown={(e) => handleKeyDown(e, "joinedDetails.grade", "joinedDetails.date")}
               inputRef={(el) => registerFieldRef("joinedDetails.grade", el)}
               >
-              <MenuItem value="A1">A1</MenuItem>
-              <MenuItem value="A2">A1</MenuItem>
+             <MenuItem value="A1">A1</MenuItem>
+              <MenuItem value="A2">A2</MenuItem>
               <MenuItem value="A3">A3</MenuItem>
-             <MenuItem value="A4">A4</MenuItem>
-             <MenuItem value="A5">A5</MenuItem>
-             <MenuItem value="A6">A6</MenuItem>
-             <MenuItem value="A7">A7</MenuItem>
-
-             <MenuItem value="B1">B1</MenuItem>
-             <MenuItem value="B2">B2</MenuItem>
-             <MenuItem value="B3">B3</MenuItem>
-             
-             <MenuItem value="C1">C1</MenuItem>
-             <MenuItem value="C2">C2</MenuItem>
-             <MenuItem value="C3">C3</MenuItem>
-             <MenuItem value="C4">C4</MenuItem>
+              <MenuItem value="A4">A4</MenuItem>
+              <MenuItem value="A5">A5</MenuItem>
+              <MenuItem value="A6">A6</MenuItem>
+              <MenuItem value="A7">A7</MenuItem>
+              <MenuItem value="B1">B1</MenuItem>
+              <MenuItem value="B2">B2</MenuItem>
+              <MenuItem value="B3">B3</MenuItem>
+              <MenuItem value="C1">C1</MenuItem>
+              <MenuItem value="C2">C2</MenuItem>
+              <MenuItem value="C3">C3</MenuItem>
+              <MenuItem value="C4">C4</MenuItem>
              </TextField>
           </Grid>
           <Grid item xs={12} sm={5.5}>
@@ -944,7 +1025,7 @@ const removePromotion = (index) => {
        <Grid item xs={12} sm={3}>
           <TextField
             fullWidth
-            label="Grade"
+            select label="Grade"
             value={promotion.grade}
             onChange={(e) => handlePromotionChange(index, "grade", e.target.value)}
             error={!!(promotionErrors[index] && promotionErrors[index].grade)}
@@ -959,7 +1040,22 @@ const removePromotion = (index) => {
             inputRef={(el) => registerFieldRef(`promotion-${index}-grade`, el)}
             name={`promotion-${index}-grade`}
             required={Object.values(promotion).some(val => val !== "")}
-          />
+          >
+          <MenuItem value="A1">A1</MenuItem>
+          <MenuItem value="A2">A2</MenuItem>
+          <MenuItem value="A3">A3</MenuItem>
+          <MenuItem value="A4">A4</MenuItem>
+          <MenuItem value="A5">A5</MenuItem>
+          <MenuItem value="A6">A6</MenuItem>
+          <MenuItem value="A7">A7</MenuItem>
+          <MenuItem value="B1">B1</MenuItem>
+          <MenuItem value="B2">B2</MenuItem>
+          <MenuItem value="B3">B3</MenuItem>
+          <MenuItem value="C1">C1</MenuItem>
+          <MenuItem value="C2">C2</MenuItem>
+          <MenuItem value="C3">C3</MenuItem>
+          <MenuItem value="C4">C4</MenuItem>
+          </TextField> 
           </Grid>
 
           {/* <Grid item xs={12} sm={3}>
@@ -1066,32 +1162,32 @@ const removePromotion = (index) => {
           </Grid>
 
           <Grid item xs={12} sm={4}>
-  <Autocomplete
-    freeSolo
-    options={LOCATION_SUGGESTIONS}
-    value={promotion.location}
-    onChange={(_, newValue) => handlePromotionChange(index, "location", newValue || "")}
-    renderInput={(params) => (
-      <TextField
-        {...params}
-        fullWidth
-        label="Location"
-        error={!!(promotionErrors[index] && promotionErrors[index].location)}
-        helperText={promotionErrors[index]?.location || ""}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            e.preventDefault();
-            const functionField = document.querySelector(`input[name="promotion-${index}-function"]`);
-            if (functionField) functionField.focus();
-          }
-        }}
-        inputRef={(el) => registerFieldRef(`promotion-${index}-location`, el)}
-        name={`promotion-${index}-location`}
-        required={Object.values(promotion).some(val => val !== "")}
-      />
-    )}
-  />
-</Grid>
+            <Autocomplete
+              freeSolo
+              options={LOCATION_SUGGESTIONS}
+              value={promotion.location}
+              onChange={(_, newValue) => handlePromotionChange(index, "location", newValue || "")}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  fullWidth
+                  label="Location"
+                  error={!!(promotionErrors[index] && promotionErrors[index].location)}
+                  helperText={promotionErrors[index]?.location || ""}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      const functionField = document.querySelector(`input[name="promotion-${index}-function"]`);
+                      if (functionField) functionField.focus();
+                    }
+                  }}
+                  inputRef={(el) => registerFieldRef(`promotion-${index}-location`, el)}
+                  name={`promotion-${index}-location`}
+                  required={Object.values(promotion).some(val => val !== "")}
+                />
+              )}
+            />
+          </Grid>
 
               <Grid item xs={12} sm={3}>
         <TextField
@@ -1176,9 +1272,6 @@ const removePromotion = (index) => {
 };
 
 export default EmploymentDetailsForm;
-
-
-
 
 
 

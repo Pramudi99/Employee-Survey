@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { TextField, Grid, MenuItem, Typography } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
+import CameraAltIcon from '@mui/icons-material/CameraAlt';
+import { Button, IconButton } from "@mui/material";
 
 // Religion mapping between UI strings and DB numbers
 const religionMapping = {
@@ -50,6 +52,8 @@ const textFieldTheme = createTheme({
 
 const PersonalDetailsForm = ({ setPersonalDetails, parentData, checkEPFExistence }) => {
   const [formData, setFormData] = useState({
+    profileImage: null,
+    imageContentType: "",
     epfNumber: "",
     nameWithInitials: "",
     title: "",
@@ -122,6 +126,9 @@ const PersonalDetailsForm = ({ setPersonalDetails, parentData, checkEPFExistence
     numberOfDependents: ["epfNumber", "title", "nameWithInitials", "fullName", "nicNumber", "dateOfBirth", "maritalStatus", "religion", "race"]
   };
 
+  // Add this new state for the image preview
+  const [imagePreview, setImagePreview] = useState(null);
+
   const fieldRefs = useRef({});
 
   const fieldOrder = [
@@ -135,6 +142,10 @@ const PersonalDetailsForm = ({ setPersonalDetails, parentData, checkEPFExistence
     if (parentData) {
       // Convert numeric religion to display string if present
       const processedData = { ...parentData };
+
+      if (parentData.profileImage && parentData.imageContentType) {
+        setImagePreview(`data:${parentData.imageContentType};base64,${parentData.profileImage}`);
+      }
       
       if (processedData.religion && typeof processedData.religion === 'number') {
         // Store the display string in religionDisplay
@@ -229,6 +240,37 @@ const PersonalDetailsForm = ({ setPersonalDetails, parentData, checkEPFExistence
       return false;
     }
   }, [checkEPFExistence]);
+
+ 
+ 
+  const handleImageChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        // For image preview (full data URL)
+        setImagePreview(reader.result);
+        
+        // Strip the data URI prefix for storage
+        const base64String = reader.result.split(',')[1];
+        
+        // Update local form data with proper types
+        setFormData(prevData => ({
+          ...prevData,
+          profileImage: base64String, // Ensure this is a string
+          imageContentType: file.type
+        }));
+        
+        // Update parent component data with proper types
+        setPersonalDetails(prev => ({
+          ...prev,
+          profileImage: base64String, // Ensure this is a string
+          imageContentType: file.type
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   // Function to validate a field
   const validateField = (name, value) => {
@@ -397,6 +439,21 @@ const PersonalDetailsForm = ({ setPersonalDetails, parentData, checkEPFExistence
 
   const handleChange = async (e) => {
     const { name, value } = e.target;
+
+   // Special handling for drivingLicense and passportNumber fields to prevent symbols
+  if (name === "drivingLicense" || name === "passportNumber") {
+    // Regular expression to allow only alphanumeric characters (letters and digits)
+    const cleanedValue = value.replace(/[^a-zA-Z0-9]/g, "");
+    setFormData((prevFormData) => {
+      const updatedFormData = { 
+        ...prevFormData, 
+        [name]: cleanedValue 
+      };
+      setPersonalDetails(updatedFormData);
+      return updatedFormData;
+    });
+    return;
+  }
   
     // Special handling for religion field
     if (name === "religion") {
@@ -617,6 +674,53 @@ const PersonalDetailsForm = ({ setPersonalDetails, parentData, checkEPFExistence
 
   return (
     <ThemeProvider theme={textFieldTheme}>
+       <Grid item xs={12} container justifyContent="center" alignItems="center" sx={{ mt: 2, mb: 2 }}>
+    <Grid item xs={12} sm={3} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <div 
+        style={{ 
+          width: '150px', 
+          height: '150px', 
+          border: '1px dashed #ccc', 
+          borderRadius: '50%', 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center',
+          overflow: 'hidden',
+          position: 'relative'
+        }}
+      >
+        {imagePreview ? (
+          <img 
+            src={imagePreview} 
+            alt="Profile Preview" 
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+        ) : (
+          <CameraAltIcon style={{ fontSize: 40, color: '#aaa' }} />
+        )}
+      </div>
+      
+      <input
+        accept="image/*"
+        style={{ display: 'none' }}
+        id="profile-image-upload"
+        type="file"
+        onChange={handleImageChange}
+      />
+      
+      <label htmlFor="profile-image-upload">
+        <Button 
+          variant="outlined" 
+          component="span"
+          size="small"
+          sx={{ mt: 1 }}
+        >
+          {imagePreview ? 'Change Photo' : 'Upload Photo'}
+        </Button>
+      </label>
+    </Grid>
+  </Grid>
+
     <Grid container spacing={2}>
       <Typography 
         sx={{ ml: 3, mt: 4 }} 
@@ -934,57 +1038,72 @@ const PersonalDetailsForm = ({ setPersonalDetails, parentData, checkEPFExistence
           </TextField>
         </Grid>
 
-            <Grid item xs={2}>
-              {/* <TextField 
-                label="Number of Dependents" 
-                name="numberOfDependents" 
-                // type="number"
-                fullWidth 
-                variant="outlined" 
-                value={formData.numberOfDependents} 
-                onChange={handleChange} 
-                onBlur={handleBlur}
-                onKeyDown={(e) => handleKeyDown(e, "numberOfDependents")}
-                inputRef={(el) => fieldRefs.current["numberOfDependents"] = el}
-                required
-                error={shouldShowError("numberOfDependents")}
-                helperText={getHelperText("numberOfDependents")}
-                inputProps={{ min: 0, max: 15 }}
-              /> */}
+                <Grid item xs={2}>
+          <TextField 
+            label="Number of Dependents" 
+            name="numberOfDependents" 
+            type="number"
+            fullWidth 
+            variant="outlined" 
+            value={formData.numberOfDependents} 
+            onChange={(e) => {
+              const value = parseInt(e.target.value, 10);
 
-                  <TextField 
-                    label="Number of Dependents" 
-                    name="numberOfDependents" 
-                    type="number"
-                    fullWidth 
-                    variant="outlined" 
-                    value={formData.numberOfDependents } 
-                    onChange={(e) => {
-                      const value = parseInt(e.target.value, 10);
-                      setFormData((prevFormData) => {
-                        const updatedFormData = { 
-                          ...prevFormData, 
-                          numberOfDependents: isNaN(value) ? 0 : value 
-                        };
-                        setPersonalDetails(updatedFormData);
-                        return updatedFormData;
-                      });
-                    }}
-                    onFocus={handleFocus}
-                    onBlur={handleBlur}
-                    onKeyDown={(e) => handleKeyDown(e, "numberOfDependents")}
-                    inputRef={(el) => fieldRefs.current["numberOfDependents"] = el}
-                    required
-                    error={shouldShowError("numberOfDependents")}
-                    helperText={getHelperText("numberOfDependents")}
-                    inputProps={{ 
-                      min: 0, 
-                      max: 15,
-                      inputMode: 'numeric',
-                      pattern: '[0-9]*'
-                    }}
-                  />
-            </Grid>
+              // Only allow integers between 0 and 15
+              if (!isNaN(value) && value >= 0 && value <= 15) {
+                setFormData((prevFormData) => {
+                  const updatedFormData = { 
+                    ...prevFormData, 
+                    numberOfDependents: value 
+                  };
+                  setPersonalDetails(updatedFormData);
+                  return updatedFormData;
+                });
+                setErrors((prevErrors) => ({
+                  ...prevErrors,
+                  numberOfDependents: false,
+                }));
+                setErrorMessages((prevErrorMessages) => ({
+                  ...prevErrorMessages,
+                  numberOfDependents: "",
+                }));
+              } else {
+                // If the value is out of range, reset to previous value or 0
+                setFormData((prevFormData) => {
+                  const updatedFormData = { 
+                    ...prevFormData, 
+                    numberOfDependents: value < 0 ? 0 : 15 
+                  };
+                  setPersonalDetails(updatedFormData);
+                  return updatedFormData;
+                });
+                
+                // Show an error if invalid input
+                setErrors((prevErrors) => ({
+                  ...prevErrors,
+                  numberOfDependents: true,
+                }));
+                setErrorMessages((prevErrorMessages) => ({
+                  ...prevErrorMessages,
+                  numberOfDependents: "Number of Dependents must be between 0 and 15",
+                }));
+              }
+            }}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            onKeyDown={(e) => handleKeyDown(e, "numberOfDependents")}
+            inputRef={(el) => fieldRefs.current["numberOfDependents"] = el}
+            required
+            error={shouldShowError("numberOfDependents")}
+            helperText={getHelperText("numberOfDependents")}
+            inputProps={{ 
+              min: 0, 
+              max: 15,
+              inputMode: 'numeric',
+              pattern: '[0-9]*'
+            }}
+          />
+        </Grid>
 
       
        
