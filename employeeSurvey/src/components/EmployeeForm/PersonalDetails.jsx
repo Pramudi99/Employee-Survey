@@ -129,6 +129,8 @@ const PersonalDetailsForm = ({ setPersonalDetails, parentData, checkEPFExistence
   // Add this new state for the image preview
   const [imagePreview, setImagePreview] = useState(null);
 
+  const [isNicValidated, setIsNicValidated] = useState(false);
+
   const fieldRefs = useRef({});
 
   const fieldOrder = [
@@ -174,6 +176,19 @@ const PersonalDetailsForm = ({ setPersonalDetails, parentData, checkEPFExistence
       "religion", "race", "numberOfDependents"
     ];
     return requiredFields.includes(field);
+  };
+
+
+   // NIC validation logic
+   const validateNIC = (nic) => {
+    // Check NIC format (either 9 digits + V/X or 12 digits)
+    const isValid = /^\d{9}[VvXx]$/.test(nic) || /^\d{12}$/.test(nic);
+    if (isValid) {
+      setIsNicValidated(true); // Lock the NIC field after validation
+      return true;
+    }
+    setIsNicValidated(false); // Reset validation status if NIC is invalid
+    return false;
   };
 
   // Enhanced EPF Number Validation Function
@@ -376,6 +391,20 @@ const PersonalDetailsForm = ({ setPersonalDetails, parentData, checkEPFExistence
   // Modify handleBlur to include comprehensive EPF validation
   const handleBlur = async (e) => {
     const { name, value } = e.target;
+
+    if (name === "nicNumber" && !isNicValidated) {
+      const isValid = validateNIC(value);
+      if (!isValid) {
+        setShowErrors((prev) => ({
+          ...prev,
+          nicNumber: true,
+        }));
+        setErrorMessages((prev) => ({
+          ...prev,
+          nicNumber: "Invalid NIC number",
+        }));
+      }
+    }
     
     // Special handling for EPF Number
     if (name === "epfNumber") {
@@ -439,6 +468,14 @@ const PersonalDetailsForm = ({ setPersonalDetails, parentData, checkEPFExistence
 
   const handleChange = async (e) => {
     const { name, value } = e.target;
+
+
+    // If NIC number is changed, validate it
+    if (name === "nicNumber" && !isNicValidated) {
+      validateNIC(value);
+    }
+
+
 
    // Special handling for drivingLicense and passportNumber fields to prevent symbols
   if (name === "drivingLicense" || name === "passportNumber") {
@@ -869,6 +906,9 @@ const PersonalDetailsForm = ({ setPersonalDetails, parentData, checkEPFExistence
             helperText={getHelperText("nicNumber")}
             inputProps={{ maxLength: 12 }}
             placeholder="9 digits + V/X or 12 digits"
+            InputProps={{
+              readOnly: isNicValidated, // Lock the NIC field once validated
+            }}
           />
         </Grid>
         <Grid item xs={12} sm={4}>

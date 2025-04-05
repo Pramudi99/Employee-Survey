@@ -255,30 +255,31 @@ const ContactDetails = ({ setContactDetails, parentData }) => {
     }
   };
 
-  // Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
+  
+    // Format the value to have the first letter in uppercase and the rest lowercase
+    const formattedValue = formatText(value);
+  
     // Set flag to indicate this is a user-initiated update
     formUpdatedByUser.current = true;
-
-      // If the field is related to postal code (both permanent and temporary), ensure it only allows integers
-      if (name === 'permanentPostalCode' || name === 'temporaryPostalCode') {
-        // If the value is not a number, return without updating the state
-        if (!/^\d*$/.test(value)) {
-          return; // Ignore the change if it's not a valid integer
-        }
+  
+    // If the field is related to postal code (both permanent and temporary), ensure it only allows integers
+    if (name === 'permanentPostalCode' || name === 'temporaryPostalCode') {
+      if (!/^\d*$/.test(value)) {
+        return; // Ignore the change if it's not a valid integer
       }
-
+    }
+  
     // Start with a copy of current form data
     const updatedFormData = { ...formData };
-    
+  
     // Set the changed field (always ensure it's at least an empty string)
-    updatedFormData[name] = value || "";
-
+    updatedFormData[name] = formattedValue || "";
+  
     // Handle dependent fields for permanentGramaDivision
     if (name === "permanentGramaDivision") {
-      const addressInfo = addressData.find((item) => item.GND_Name === value);
+      const addressInfo = addressData.find((item) => item.GND_Name === formattedValue);
       if (addressInfo) {
         updatedFormData.permanentProvince = addressInfo.Province_Name || "";
         updatedFormData.permanentDistrict = addressInfo.District_Name || "";
@@ -291,22 +292,34 @@ const ContactDetails = ({ setContactDetails, parentData }) => {
         updatedFormData.permanentAGADivision = "";
       }
     }
-
+  
     // Handle dependent fields for temporaryDistrict
     if (name === "temporaryDistrict") {
-      const addressInfo = addressData.find((item) => item.District_Name === value);
+      const addressInfo = addressData.find((item) => item.District_Name === formattedValue);
       updatedFormData.temporaryProvince = addressInfo ? (addressInfo.Province_Name || "") : "";
     }
-
+  
     // Clear error for this field if value is valid
-    const error = validateField(name, value);
+    const error = validateField(name, formattedValue);
     setErrors(prevErrors => ({
       ...prevErrors,
       [name]: error
     }));
-
+  
+    // Update the form data with the new formatted value
     setFormData(updatedFormData);
   };
+  
+  // Helper function to format text to first letter uppercase and the rest lowercase
+  const formatText = (text) => {
+    if (!text) return text; // Return if text is empty or undefined
+  
+    // Capitalize the first letter and make the rest lowercase
+    return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
+  };
+  
+
+  
    // Function to generate auto-suggest options for temporary address
    const generateTemporaryAddressSuggestions = () => {
     // If permanent address is empty, return empty array

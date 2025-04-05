@@ -201,6 +201,9 @@
 
 
 
+
+
+
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { fetchEmployeeData } from '../services/Api';
@@ -273,14 +276,29 @@ export const downloadEmployeeDataAsPDF = async (epfNumber) => {
         pdf.text('EMPLOYEE SURVEY CPC - 2025', margin.left, currentY);
         currentY += lineHeight * 1.5;
         
-        // Employee ID bar
         pdf.setFillColor(240, 240, 240);
-        pdf.rect(margin.left, currentY - 5, 173, 8, 'F');
+        pdf.rect(margin.left, currentY - 5, 40, 8, 'F'); // Background rectangle for EPF number section
         pdf.setFontSize(styles.normal.fontSize);
         pdf.setFont(undefined, 'bold');
         pdf.text(`EPF Number: ${employeeData.epfNumber || 'N/A'}`, margin.left + 2, currentY);
-        currentY += lineHeight * 1.5;
         
+        // Profile Image on the right side of the EPF number
+        if (employeeData.profileImage) {
+          const imageData = `data:image/png;base64,${employeeData.profileImage}`; // Base64 image string
+          const imageWidth = 30; // Width of the image
+          const imageHeight = 30; // Height of the image
+        
+          // Position the image on the right side (adjust the X and Y position accordingly)
+          const imageX = margin.left + 140; // Positioning it to the right of the EPF number
+          
+          // Move the image upwards by 10 units from the current Y position
+          const imageY = currentY - 17; // Adjust this value to move the image upwards
+          
+          pdf.addImage(imageData, 'PNG', imageX, imageY, imageWidth, imageHeight);
+        }
+        
+        currentY += lineHeight * 1.5; // Move down after the EPF number and image
+
         // 1. PERSONAL DETAILS SECTION
         addSectionHeader('1. PERSONAL DETAILS');
         pdf.setFont(undefined, styles.normal.fontStyle);
@@ -335,11 +353,33 @@ export const downloadEmployeeDataAsPDF = async (epfNumber) => {
             pdf.text(String(employeeData.nicNumber || 'N/A'), col1 + labelWidth, currentY);
             currentY += lineHeight;
 
+            // pdf.setFont(undefined, 'bold');
+            // pdf.text('Religion:', col1, currentY);
+            // pdf.setFont(undefined, 'normal');
+            // pdf.text(String(employeeData.religion || 'N/A'), col1 + labelWidth, currentY);
+            // currentY += lineHeight;
+
+            const numberToString = {
+              1: "Buddhism",
+              2: "Hindu",
+              3: "Islam",
+              4: "Christianity",
+              5: "Other"
+            };
+            
+            // Helper function to get the religion name from a number
+            const getReligionString = (religionNumber) => {
+              return numberToString[religionNumber] || 'N/A'; // Default to 'N/A' if not found
+            };
+            
+            // Use it when printing religion
             pdf.setFont(undefined, 'bold');
             pdf.text('Religion:', col1, currentY);
             pdf.setFont(undefined, 'normal');
-            pdf.text(String(employeeData.religion || 'N/A'), col1 + labelWidth, currentY);
+            pdf.text(getReligionString(employeeData.religion), col1 + labelWidth, currentY);
             currentY += lineHeight;
+            
+
 
             pdf.setFont(undefined, 'bold');
             pdf.text('Race:', col1, currentY);
@@ -711,86 +751,83 @@ if (employment.promotions && employment.promotions.length > 0) {
       addField('Employment Information', 'No employment details available');
     }
     
-    // 4. SPOUSE DETAILS SECTION - Only if available
-if (employeeData.spouseDetails && Object.keys(employeeData.spouseDetails).length > 0) {
-   // Force a new page for spouse details
-   pdf.addPage();
-   currentY = margin.top; 
-  addSectionHeader('4. SPOUSE DETAILS');
-  
-  const spouse = employeeData.spouseDetails;
-  const labelWidth = 65;
 
-  pdf.setFont(undefined, 'bold');
-  pdf.text('Name with Initials:', col1, currentY);
-  pdf.setFont(undefined, 'normal');
-  pdf.text(`${spouse.title || ''} ${spouse.nameWithInitials || 'N/A'}`.trim(), col1 + labelWidth, currentY);
-  currentY += lineHeight;
-  
-  // pdf.setFont(undefined, 'bold');
-  // pdf.text('Title:', margin.left, currentY);
-  // pdf.setFont(undefined, 'normal');
-  // pdf.text(String(spouse.title || 'N/A'), margin.left + labelWidth, currentY);
-  // currentY += lineHeight;
-  
-  // pdf.setFont(undefined, 'bold');
-  // pdf.text('Name with Initials:', margin.left, currentY);
-  // pdf.setFont(undefined, 'normal');
-  // pdf.text(String(spouse.nameWithInitials || 'N/A'), margin.left + labelWidth, currentY);
-  // currentY += lineHeight;
-  
-  // pdf.setFont(undefined, 'bold');
-  // pdf.text('Full Name:', margin.left, currentY);
-  // pdf.setFont(undefined, 'normal');
-  // pdf.text(String(spouse.fullName || 'N/A'), margin.left + labelWidth, currentY);
-  // currentY += lineHeight;
-  
-  pdf.setFont(undefined, 'bold');
-  pdf.text('Date of Birth:', margin.left, currentY);
-  pdf.setFont(undefined, 'normal');
-  pdf.text(String(formatDate(spouse.dateOfBirth) || 'N/A'), margin.left + labelWidth, currentY);
-  currentY += lineHeight;
-  
-  pdf.setFont(undefined, 'bold');
-  pdf.text('NIC Number:', margin.left, currentY);
-  pdf.setFont(undefined, 'normal');
-  pdf.text(String(spouse.nicNumber || 'N/A'), margin.left + labelWidth, currentY);
-  currentY += lineHeight;
-  
-  pdf.setFont(undefined, 'bold');
-  pdf.text('Address:', margin.left, currentY);
-  pdf.setFont(undefined, 'normal');
-  pdf.text(String(spouse.address || 'N/A'), margin.left + labelWidth, currentY);
-  currentY += lineHeight;
-  
-  pdf.setFont(undefined, 'bold');
-  pdf.text('Postal Code:', margin.left, currentY);
-  pdf.setFont(undefined, 'normal');
-  pdf.text(String(spouse.postalCode || 'N/A'), margin.left + labelWidth, currentY);
-  currentY += lineHeight;
-  
-  pdf.setFont(undefined, 'bold');
-  pdf.text('Contact Number:', margin.left, currentY);
-  pdf.setFont(undefined, 'normal');
-  pdf.text(String(spouse.contactNumber || 'N/A'), margin.left + labelWidth, currentY);
-  currentY += lineHeight;
-  
-  pdf.setFont(undefined, 'bold');
-  pdf.text('Work Place Address:', margin.left, currentY);
-  pdf.setFont(undefined, 'normal');
-  pdf.text(String(spouse.workPlaceAddress || 'N/A'), margin.left + labelWidth, currentY);
-  currentY += lineHeight;
-  
-  pdf.setFont(undefined, 'bold');
-  pdf.text('Work Place Telephone:', margin.left, currentY);
-  pdf.setFont(undefined, 'normal');
-  pdf.text(String(spouse.workPlaceTeleNumber || 'N/A'), margin.left + labelWidth, currentY);
-  currentY += lineHeight;
+
+   // 4. SPOUSE DETAILS SECTION - Only if available and marital status is married
+// Check both spouse details exist AND marital status is married
+if (employeeData.spouseDetails && 
+  Object.keys(employeeData.spouseDetails).length > 0 && 
+  employeeData.maritalStatus && 
+  employeeData.maritalStatus.toLowerCase() === 'married') {
+ 
+ // Force a new page for spouse details
+ pdf.addPage();
+ currentY = margin.top; 
+ addSectionHeader('4. SPOUSE DETAILS');
+
+ const spouse = employeeData.spouseDetails;
+ const labelWidth = 65;
+
+ pdf.setFont(undefined, 'bold');
+ pdf.text('Name with Initials:', col1, currentY);
+ pdf.setFont(undefined, 'normal');
+ pdf.text(`${spouse.title || ''} ${spouse.nameWithInitials || 'N/A'}`.trim(), col1 + labelWidth, currentY);
+ currentY += lineHeight;
+
+ pdf.setFont(undefined, 'bold');
+ pdf.text('Date of Birth:', margin.left, currentY);
+ pdf.setFont(undefined, 'normal');
+ pdf.text(String(formatDate(spouse.dateOfBirth) || 'N/A'), margin.left + labelWidth, currentY);
+ currentY += lineHeight;
+
+ pdf.setFont(undefined, 'bold');
+ pdf.text('NIC Number:', margin.left, currentY);
+ pdf.setFont(undefined, 'normal');
+ pdf.text(String(spouse.nicNumber || 'N/A'), margin.left + labelWidth, currentY);
+ currentY += lineHeight;
+
+ pdf.setFont(undefined, 'bold');
+ pdf.text('Address:', margin.left, currentY);
+ pdf.setFont(undefined, 'normal');
+ pdf.text(String(spouse.address || 'N/A'), margin.left + labelWidth, currentY);
+ currentY += lineHeight;
+
+ pdf.setFont(undefined, 'bold');
+ pdf.text('Postal Code:', margin.left, currentY);
+ pdf.setFont(undefined, 'normal');
+ pdf.text(String(spouse.postalCode || 'N/A'), margin.left + labelWidth, currentY);
+ currentY += lineHeight;
+
+ pdf.setFont(undefined, 'bold');
+ pdf.text('Contact Number:', margin.left, currentY);
+ pdf.setFont(undefined, 'normal');
+ pdf.text(String(spouse.contactNumber || 'N/A'), margin.left + labelWidth, currentY);
+ currentY += lineHeight;
+
+ pdf.setFont(undefined, 'bold');
+ pdf.text('Work Place Address:', margin.left, currentY);
+ pdf.setFont(undefined, 'normal');
+ pdf.text(String(spouse.workPlaceAddress || 'N/A'), margin.left + labelWidth, currentY);
+ currentY += lineHeight;
+
+ pdf.setFont(undefined, 'bold');
+ pdf.text('Work Place Telephone:', margin.left, currentY);
+ pdf.setFont(undefined, 'normal');
+ pdf.text(String(spouse.workPlaceTeleNumber || 'N/A'), margin.left + labelWidth, currentY);
+ currentY += lineHeight;
 }
 
-// 5/6. ACADEMIC DETAILS SECTION (number depends on whether spouse details exist)
+// Update section numbers based on whether spouse details exist AND marital status is married
+const isMarriedWithSpouseDetails = 
+  employeeData.spouseDetails && 
+  Object.keys(employeeData.spouseDetails).length > 0 && 
+  employeeData.maritalStatus && 
+  employeeData.maritalStatus.toLowerCase() === 'married';
+
+  pdf.addPage();
+ currentY = margin.top; 
+const academicSectionNumber = isMarriedWithSpouseDetails ? '5' : '4';
 checkPageSpace();
-const academicSectionNumber = employeeData.spouseDetails && Object.keys(employeeData.spouseDetails).length > 0 ? '5' : '4';
 addSectionHeader(`${academicSectionNumber}. ACADEMIC DETAILS`);
 
 if (employeeData.academicDetails) {

@@ -29,16 +29,19 @@ const LOCATION_SUGGESTIONS = [
 ];
 
 
-const jobTypeMapping = {
-  1: "Permanent",
-  2: "Contract"
+const presentJobTypeMapping = {
+  // String to number (for DB storage)
+  stringToNumber: {
+    "Permanent": 1,
+    "Contract": 2,
+  },
+  // Number to string (for UI display)
+  numberToString: {
+    1: "Permanent",
+    2: "Contract",
+  }
 };
 
-// Reverse mapping to convert string value to integer for the backend
-const jobTypeReverseMapping = {
-  "Permanent": 1,
-  "Contract": 2
-};
 
 
 const textFieldTheme = createTheme({
@@ -71,6 +74,7 @@ const EmploymentDetailsForm = ({ setEmploymentDetails, parentData }) => {
   const [employmentDetails, setLocalEmploymentDetails] = useState({
     epfNumber: "",
     presentJobType: "",
+    presentJobTypeDisplay: "", // For displaying the string value
     presentJobCategory: "",
     presentDesignation: "",
     presentGrade: "",
@@ -91,20 +95,30 @@ const EmploymentDetailsForm = ({ setEmploymentDetails, parentData }) => {
     }],
   });
 
+
+  const fieldDependencies = {
+    presentJobType: ["employmentAddresses"],
+    presentJobCategory: ["presentJobType"],
+    presentDesignation: ["presentJobCategory"],
+    presentGrade: ["presentDesignation"],
+    joinedAs: ["presentGrade"],
+    "joinedDetails.designation": ["joinedAs"],
+    "joinedDetails.grade": ["joinedDetails.designation"],
+    "joinedDetails.date": ["joinedDetails.grade"]
+    
+  };
   
- // Create a sorted array of unique designations for suggestions
- const DESIGNATION_SUGGESTIONS = useMemo(() => {
-  // Remove duplicates and sort alphabetically
-  return [...new Set(designations.map(d => d.designation))]
-    .sort((a, b) => a.localeCompare(b));
-}, []);
+  
+  const DESIGNATION_SUGGESTIONS = useMemo(() => {
+    return [...new Set(designations.map(d => d.designation))].sort((a, b) => a.localeCompare(b));
+  }, []);
 
 
   
 
-  
-  // State to track validation errors
-  const [errors, setErrors] = useState({});
+const [touched, setTouched] = useState({});
+const [errors, setErrors] = useState({});
+
 
   
 
@@ -117,12 +131,6 @@ const EmploymentDetailsForm = ({ setEmploymentDetails, parentData }) => {
   // Create refs for all required fields to enable focus navigation
   const fieldRefs = useRef({});
 
-  // Function to register input field refs for navigation
-  const registerFieldRef = (fieldName, element) => {
-    if (element) {
-      fieldRefs.current[fieldName] = element;
-    }
-  };
 
 
 
@@ -199,6 +207,9 @@ useEffect(() => {
 
 
   
+
+
+
  // Update the useEffect that updates the parent component
 useEffect(() => {
   if (isInitialRender.current) {
@@ -212,6 +223,13 @@ useEffect(() => {
     return;
   }
   
+
+  const hasError = validateForm();
+
+  if (!hasError) {
+    setEmploymentDetails(employmentDetails);
+    prevEmploymentDetails.current = employmentDetails;
+  }
   // Validate all promotions
   const hasPromotionErrors = validateAllPromotions();
   
@@ -221,6 +239,120 @@ useEffect(() => {
     prevEmploymentDetails.current = employmentDetails;
   }
 }, [employmentDetails, setEmploymentDetails]);
+
+
+const validateField = (field, value) => {
+  let error = "";
+  if (!value) error = "This field is required";
+  setErrors(prev => ({ ...prev, [field]: error }));
+  return error;
+};
+
+
+
+// const validateField = (fieldName, value) => {
+//   let errorMessage = "";
+
+//   switch (fieldName) {
+//     case "presentJobType":
+//       if (!value) {
+//         errorMessage = "Job Type is required";
+//       }
+//       break;
+//     case "presentJobCategory":
+//       if (!value) {
+//         errorMessage = "Job Category is required";
+//       }
+//       break;
+//     case "presentDesignation":
+//       if (!value) {
+//         errorMessage = "Designation is required";
+//       }
+//       break;
+//     case "presentGrade":
+//       if (!value) {
+//         errorMessage = "Grade is required";
+//       }
+//       break;
+//     case "joinedAs":
+//       if (!value) {
+//         errorMessage = "Joined As is required";
+//       }
+//       break;
+//     case "joinedDetails":
+//       if (!value.joinedType) {
+//         errorMessage = "Joined Type is required";
+//       }
+//       break;
+//     case "employmentAddresses":
+//       if (!value || value.location === "") {
+//         errorMessage = "Location is required";
+//       }
+//       break;
+//     case "promotions":
+//       if (!value.grade) {
+//         errorMessage = "Promotion Grade is required";
+//       }
+//       break;
+//     default:
+//       break;
+//   }
+
+//   return errorMessage;
+// };
+
+
+
+
+
+const validateForm = () => {
+  let newErrors = {};
+  let hasError = false;
+
+  Object.keys(fieldDependencies).forEach((field) => {
+    const dependenciesMet = fieldDependencies[field].every(dep => {
+      if (dep.includes("joinedDetails.")) {
+        const subField = dep.split(".")[1];
+        return !!employmentDetails.joinedDetails[subField];
+      }
+      return !!employmentDetails[dep];
+    });
+
+    const value = field.includes("joinedDetails.")
+      ? employmentDetails.joinedDetails[field.split(".")[1]]
+      : employmentDetails[field];
+
+    if (dependenciesMet && !value) {
+      newErrors[field] = "This field is required.";
+      hasError = true;
+    }
+  });
+
+  setErrors(newErrors);
+  return hasError;
+};
+
+
+const isFieldEnabled = (field) => {
+  return fieldDependencies[field]?.every(dep => {
+    if (dep === "employmentAddresses") {
+      return employmentDetails.employmentAddresses[0]?.location && employmentDetails.employmentAddresses[0]?.function;
+    }
+    if (dep.startsWith("joinedDetails.")) {
+      const sub = dep.split(".")[1];
+      return !!employmentDetails.joinedDetails[sub];
+    }
+    return !!employmentDetails[dep];
+  }) ?? true;
+};
+
+
+const getFunctionOptions = (location) => {
+  const locData = organizationStructure[location];
+  return locData && typeof locData === 'object' ? Object.keys(locData) : [];
+};
+
+
   // Add this function to validate all promotions
 const validateAllPromotions = () => {
   let hasErrors = false;
@@ -257,53 +389,58 @@ const [promotionErrors, setPromotionErrors] = useState([]);
 
 
 
-  // Function to handle key down event
-  const handleKeyDown = (e, fieldName, nextFieldName) => {
-    // If Enter key is pressed
-    if (e.key === "Enter") {
-      e.preventDefault();
-      
-      // Get the current field value
-      const value = e.target.value;
-      const error = validateField(fieldName, value);
-      
-      // Update errors state
-      setErrors(prev => ({
-        ...prev,
-        [fieldName]: error
-      }));
-      
-      // If field is valid and nextFieldName exists, focus on next field
-      if (!error && nextFieldName && fieldRefs.current[nextFieldName]) {
-        fieldRefs.current[nextFieldName].focus();
-      }
-    }
-  };
+// const handleKeyDown = (e, fieldName, nextFieldName) => {
+//   if (e.key === "Enter") {
+//     e.preventDefault();
+//     const error = validateField(fieldName, employmentDetails[fieldName]);
+//     if (!error && nextFieldName && fieldRefs.current[nextFieldName]) {
+//       fieldRefs.current[nextFieldName].focus();
+//     }
+//   }
+// };
 
+const handleKeyDown = (e, fieldName, nextFieldName) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    const value = fieldName.startsWith("joinedDetails.")
+      ? employmentDetails.joinedDetails[fieldName.split(".")[1]]
+      : employmentDetails[fieldName];
+    const error = validateField(fieldName, value);
+    if (!error && nextFieldName && fieldRefs.current[nextFieldName]) {
+      fieldRefs.current[nextFieldName].focus();
+    }
+  }
+};
+
+
+  
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
-    // Special handling for presentJobType
+
+    setLocalEmploymentDetails(prev => ({ ...prev, [name]: value }));
+    if (touched[name]) validateField(name, value);
+
     if (name === "presentJobType") {
-      // Check if the value exists in jobTypeReverseMapping
-      const intValue = jobTypeReverseMapping[value];
+      // Convert string to number for storage
+      const numericValue = presentJobTypeMapping.stringToNumber[value];
+  
+      setLocalEmploymentDetails((prevFormData) => ({
+        ...prevFormData,
+        presentJobType: numericValue,  // Store numeric value
+        presentJobTypeDisplay: value,  // Store string for display
+      }));
+  
+      setEmploymentDetails((prevDetails) => ({
+        ...prevDetails,
+        presentJobType: numericValue,  // Update parent component with numeric value
+        presentJobTypeDisplay: value,  // Update parent component with string value
+      }));
       
-      if (intValue !== undefined) {
-        // If it's a valid value, store the corresponding integer in the state
-        setLocalEmploymentDetails((prevDetails) => ({
-          ...prevDetails,
-          [name]: intValue, // Store the integer value for presentJobType
-        }));
-      } else {
-        // Handle invalid value case
-        console.error(`Invalid value selected for presentJobType: ${value}`);
-      }
     } else {
       // For other fields, update the state normally
       setLocalEmploymentDetails((prevDetails) => ({
         ...prevDetails,
         [name]: value,
-        // If the 'joinedAs' field is updated, also update the 'joinedDetails' structure accordingly
         ...(name === "joinedAs" && {
           joinedDetails: value === "Permanent"
             ? { joinedType: "Permanent", epfNumber: "", designation: "", grade: "", date: "" }
@@ -320,21 +457,50 @@ const [promotionErrors, setPromotionErrors] = useState([]);
   };
   
   
+  // const handleBlur = (field) => {
+  //   setTouched(prev => ({ ...prev, [field]: true }));
+  //   validateField(field, employmentDetails[field]);
+  // };
 
-
-  const handleJoinedDetailsChange = (field, value) => {
-    // Clear error when user types
-    setErrors(prev => ({
-      ...prev,
-      [`joinedDetails.${field}`]: ""
-    }));
-    
-    setLocalEmploymentDetails((prevDetails) => ({
-      ...prevDetails,
-      joinedDetails: { ...prevDetails.joinedDetails, [field]: value },
-    }));
+  const handleBlur = (field) => {
+    setTouched(prev => ({ ...prev, [field]: true }));
+    const value = field.startsWith("joinedDetails.")
+      ? employmentDetails.joinedDetails[field.split(".")[1]]
+      : employmentDetails[field];
+    validateField(field, value);
   };
 
+
+
+  const registerFieldRef = (field, element) => {
+    if (element) fieldRefs.current[field] = element;
+  };
+
+
+  // const handleJoinedDetailsChange = (field, value) => {
+  //   // Clear error when user types
+  //   setErrors(prev => ({
+  //     ...prev,
+  //     [`joinedDetails.${field}`]: ""
+  //   }));
+    
+  //   setLocalEmploymentDetails((prevDetails) => ({
+  //     ...prevDetails,
+  //     joinedDetails: { ...prevDetails.joinedDetails, [field]: value },
+  //   }));
+  // };
+
+
+  const handleJoinedDetailChange = (field, value) => {
+    setLocalEmploymentDetails(prev => ({
+      ...prev,
+      joinedDetails: {
+        ...prev.joinedDetails,
+        [field]: value
+      }
+    }));
+    if (touched[`joinedDetails.${field}`]) validateField(`joinedDetails.${field}`, value);
+  };
 
    // New function to get function suggestions based on location
   const getFunctionSuggestions = (location) => {
@@ -355,31 +521,26 @@ const [promotionErrors, setPromotionErrors] = useState([]);
   };
 
 
- // New function to get sub-function suggestions based on location and function
- const getSubFunctionSuggestions = (location, functionValue) => {
-  // Convert location and function to uppercase for case-insensitive matching
+
+const getSubFunctionSuggestions = (location, functionValue) => {
   const normalizedLocation = location.toUpperCase();
   const normalizedFunction = functionValue.toUpperCase();
-  
-  // Check if the location exists in the organization structure
   const matchingLocation = Object.keys(organizationStructure).find(
     key => key.toUpperCase() === normalizedLocation
   );
-
   if (matchingLocation) {
-    // Find the matching function
     const matchingFunction = Object.keys(organizationStructure[matchingLocation]).find(
       func => func.toUpperCase() === normalizedFunction
     );
-
     if (matchingFunction) {
-      // Return the sub-functions for the matching function
       return organizationStructure[matchingLocation][matchingFunction];
     }
   }
-
   return [];
 };
+
+
+
 
      // Modify handleEmploymentAddressChange to incorporate new suggestions
   const handleEmploymentAddressChange = (index, field, value) => {
@@ -547,7 +708,12 @@ const removePromotion = (index) => {
           freeSolo
           options={LOCATION_SUGGESTIONS}
           value={address.location}
-          onChange={(_, newValue) => handleEmploymentAddressChange(index, "location", newValue || "")}
+          onChange={(_, newValue) => {
+            const updated = [...employmentDetails.employmentAddresses];
+            updated[index].location = newValue || "";
+            updated[index].function = "";
+            setLocalEmploymentDetails(prev => ({ ...prev, employmentAddresses: updated }));
+          }}
           renderInput={(params) => (
             <TextField
               {...params}
@@ -574,7 +740,12 @@ const removePromotion = (index) => {
           fullWidth
           label="Function"
           value={address.function}
-          onChange={(e) => handleEmploymentAddressChange(index, "function", e.target.value)}
+          onChange={(e) => {
+            const updated = [...employmentDetails.employmentAddresses];
+            updated[index].function = e.target.value;
+            updated[index].subFunction = "";
+            setLocalEmploymentDetails(prev => ({ ...prev, employmentAddresses: updated }));
+          }}
           disabled={!address.location} // Disable if no location is selected
           onKeyDown={(e) => {
             if (e.key === "Enter") {
@@ -601,7 +772,11 @@ const removePromotion = (index) => {
           fullWidth
           label="Sub Function"
           value={address.subFunction}
-          onChange={(e) => handleEmploymentAddressChange(index, "subFunction", e.target.value)}
+          onChange={(e) => {
+            const updated = [...employmentDetails.employmentAddresses];
+            updated[index].subFunction = e.target.value;
+            setLocalEmploymentDetails(prev => ({ ...prev, employmentAddresses: updated }));
+          }}
           disabled={!address.function} // Disable if no function is selected
           onKeyDown={(e) => {
             if (e.key === "Enter") {
@@ -645,21 +820,19 @@ const removePromotion = (index) => {
           name="presentJobType"
           fullWidth
           variant="outlined"
-          value={employmentDetails.presentJobType ? jobTypeMapping[employmentDetails.presentJobType] : "Permanent"}
+          value={employmentDetails.presentJobTypeDisplay || ""}
           onChange={handleChange}
-          required
-          error={!!errors.presentJobType}
-          helperText={errors.presentJobType}
-          inputRef={(el) => registerFieldRef("presentJobType", el)}
+          onBlur={() => handleBlur("presentJobType")}
+            onKeyDown={(e) => handleKeyDown(e, "presentJobType", "presentJobCategory")}
+            inputRef={(el) => registerFieldRef("presentJobType", el)}
+            disabled={!isFieldEnabled("presentJobType")}
+            error={!!errors.presentJobTypeDisplay}
+            helperText={errors.presentJobTypeDisplay}
         >
           <MenuItem value="Permanent">Permanent</MenuItem>
           <MenuItem value="Contract">Contract</MenuItem>
         </TextField>
-
-              </Grid>
-
-
-
+      </Grid>
 
 
         <Grid item xs={12} sm={3}>
@@ -670,74 +843,68 @@ const removePromotion = (index) => {
             fullWidth
             variant="outlined"
             value={employmentDetails.presentJobCategory}
-            onChange={handleChange}
-            required
-            error={!!errors.presentJobCategory}
-            helperText={errors.presentJobCategory}
+            onBlur={() => handleBlur("presentJobCategory")}
             onKeyDown={(e) => handleKeyDown(e, "presentJobCategory", "presentDesignation")}
             inputRef={(el) => registerFieldRef("presentJobCategory", el)}
+            disabled={!isFieldEnabled("presentJobCategory")}
+            error={!!errors.presentJobCategory}
+            helperText={errors.presentJobCategory}
           >
             <MenuItem value="Executive">Executive</MenuItem>
             <MenuItem value="Non Executive">Non Executive</MenuItem>
           </TextField>
         </Grid>
+
+
         <Grid item xs={12} sm={3}>
-  <Autocomplete
-    freeSolo
-    options={DESIGNATION_SUGGESTIONS}
-    value={employmentDetails.presentDesignation || ""}  // Set the value of presentDesignation
-    onChange={(_, newValue) => handleChange({
-      target: { name: "presentDesignation", value: newValue || "" }
-    })}
-    renderInput={(params) => (
-      <TextField
-        {...params}
-        fullWidth
-        label="Present Designation"
-        required
-        error={!!errors.presentDesignation}
-        helperText={errors.presentDesignation || ""}
-        onKeyDown={(e) => handleKeyDown(e, "presentDesignation", "presentGrade")}
-        inputRef={(el) => registerFieldRef("presentDesignation", el)}
-      />
-    )}
-    filterOptions={(options, { inputValue }) => {
-      return options.filter(option => 
-        option.toLowerCase().includes(inputValue.toLowerCase())
-      );
-    }}
-  />
-</Grid>
+          <Autocomplete
+            freeSolo
+            options={DESIGNATION_SUGGESTIONS}
+            value={employmentDetails.presentDesignation || ""}  // Set the value of presentDesignation
+            onChange={(_, newVal) => handleChange({ target: { name: "presentDesignation", value: newVal || "" } })}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Present Designation"
+                fullWidth
+                onBlur={() => handleBlur("presentDesignation")}
+                onKeyDown={(e) => handleKeyDown(e, "presentDesignation", "presentGrade")}
+                inputRef={(el) => registerFieldRef("presentDesignation", el)}
+                disabled={!isFieldEnabled("presentDesignation")}
+                error={!!errors.presentDesignation}
+                helperText={errors.presentDesignation}
+              />
+            )}
+            filterOptions={(options, { inputValue }) => {
+              return options.filter(option => 
+                option.toLowerCase().includes(inputValue.toLowerCase())
+              );
+            }}
+          />
+        </Grid>
 
         <Grid item xs={12} sm={3}>
           <TextField
-            fullWidth
-            select label="Present Grade"
+            select
+            label="Present Grade"
             name="presentGrade"
             value={employmentDetails.presentGrade}
             onChange={handleChange}
-            required
-            error={!!errors.presentGrade}
-            helperText={errors.presentGrade}
+            onBlur={() => handleBlur("presentGrade")}
             onKeyDown={(e) => handleKeyDown(e, "presentGrade", "joinedAs")}
             inputRef={(el) => registerFieldRef("presentGrade", el)}
+            disabled={!isFieldEnabled("presentGrade")}
+            fullWidth
+            error={!!errors.presentGrade}
+            helperText={errors.presentGrade}
           >
-            <MenuItem value="A1">A1</MenuItem>
-            <MenuItem value="A2">A2</MenuItem>
-            <MenuItem value="A3">A3</MenuItem>
-            <MenuItem value="A4">A4</MenuItem>
-            <MenuItem value="A5">A5</MenuItem>
-            <MenuItem value="A6">A6</MenuItem>
-            <MenuItem value="A7">A7</MenuItem>
-            <MenuItem value="B1">B1</MenuItem>
-            <MenuItem value="B2">B2</MenuItem>
-            <MenuItem value="B3">B3</MenuItem>
-            <MenuItem value="C1">C1</MenuItem>
-            <MenuItem value="C2">C2</MenuItem>
-            <MenuItem value="C3">C3</MenuItem>
-            <MenuItem value="C4">C4</MenuItem>
-            </TextField>
+            {["A1", "A2", "A3", "A4", "A5", "A6", "A7", "B1", "B2", "B3", "C1", "C2", "C3", "C4"].map(g => (
+              <MenuItem key={g} value={g}>{g}</MenuItem>
+            ))}
+          </TextField>
         </Grid>
+
+
         <Grid item xs={12} sm={3}>
           <TextField
             select
@@ -745,21 +912,23 @@ const removePromotion = (index) => {
             name="joinedAs"
             value={employmentDetails.joinedAs}
             onChange={handleChange}
+            onBlur={() => handleBlur("joinedAs")}
             fullWidth
-            required
+            disabled={!isFieldEnabled("joinedAs")}
             error={!!errors.joinedAs}
             helperText={errors.joinedAs}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                // Focus on the first field of the joinedDetails section based on selection
-                if (employmentDetails.joinedAs) {
-                  if (fieldRefs.current["joinedDetails.epfNumber"]) {
-                    fieldRefs.current["joinedDetails.epfNumber"].focus();
-                  }
-                }
-              }
-            }}
+            onKeyDown={(e) => handleKeyDown(e, "joinedAs", "joinedDetails.designation")}
+            // onKeyDown={(e) => {
+            //   if (e.key === "Enter") {
+            //     e.preventDefault();
+            //     // Focus on the first field of the joinedDetails section based on selection
+            //     if (employmentDetails.joinedAs) {
+            //       if (fieldRefs.current["joinedDetails.epfNumber"]) {
+            //         fieldRefs.current["joinedDetails.epfNumber"].focus();
+            //       }
+            //     }
+            //   }
+            // }}
             inputRef={(el) => registerFieldRef("joinedAs", el)}
           >
             <MenuItem value="Permanent">Permanent</MenuItem>
@@ -805,7 +974,7 @@ const removePromotion = (index) => {
               required
               error={!!errors["joinedDetails.epfNumber"]}
               helperText={errors["joinedDetails.epfNumber"]}
-              onKeyDown={(e) => handleKeyDown(e, "joinedDetails.epfNumber", "joinedDetails.designation")}
+              // onKeyDown={(e) => handleKeyDown(e, "joinedDetails.epfNumber", "joinedDetails.designation")}
               inputRef={(el) => registerFieldRef("joinedDetails.epfNumber", el)}
             />
           </Grid>
@@ -815,18 +984,19 @@ const removePromotion = (index) => {
           freeSolo
           options={DESIGNATION_SUGGESTIONS}
           value={employmentDetails.joinedDetails.designation || ""}
-          onChange={(_, newValue) => handleJoinedDetailsChange("designation", newValue || "")}
+          onChange={(_, newVal) => handleJoinedDetailChange("designation", newVal || "")}
           renderInput={(params) => (
             <TextField
-              {...params}
-              fullWidth
-              label="Designation"
-              required
-              error={!!errors["joinedDetails.designation"]}
-              helperText={errors["joinedDetails.designation"]}
-              onKeyDown={(e) => handleKeyDown(e, "joinedDetails.designation", "joinedDetails.grade")}
-              inputRef={(el) => registerFieldRef("joinedDetails.designation", el)}
-            />
+            {...params}
+            label="Joined Designation"
+            fullWidth
+            onBlur={() => handleBlur("joinedDetails.designation")}
+            onKeyDown={(e) => handleKeyDown(e, "joinedDetails.designation", "joinedDetails.grade")}
+            inputRef={(el) => registerFieldRef("joinedDetails.designation", el)}
+            disabled={!isFieldEnabled("joinedDetails.designation")}
+            error={!!errors["joinedDetails.designation"]}
+            helperText={errors["joinedDetails.designation"]}
+          />
           )}
           filterOptions={(options, { inputValue }) => {
             return options.filter(option => 
@@ -836,33 +1006,25 @@ const removePromotion = (index) => {
         />
       </Grid>
           <Grid item xs={12} sm={5.5}>
-            <TextField
-              fullWidth
-              select label="Grade"
-              value={employmentDetails.joinedDetails.grade || ""}
-              onChange={(e) => handleJoinedDetailsChange("grade", e.target.value)}
-              required
-              error={!!errors["joinedDetails.grade"]}
-              helperText={errors["joinedDetails.grade"]}
-              onKeyDown={(e) => handleKeyDown(e, "joinedDetails.grade", "joinedDetails.date")}
-              inputRef={(el) => registerFieldRef("joinedDetails.grade", el)}
+          <TextField
+                select
+                label="Joined Grade"
+                value={employmentDetails.joinedDetails.grade}
+                onChange={(e) => handleJoinedDetailChange("grade", e.target.value)}
+                onBlur={() => handleBlur("joinedDetails.grade")}
+                onKeyDown={(e) => handleKeyDown(e, "joinedDetails.grade", "joinedDetails.date")}
+                inputRef={(el) => registerFieldRef("joinedDetails.grade", el)}
+                disabled={!isFieldEnabled("joinedDetails.grade")}
+                fullWidth
+                error={!!errors["joinedDetails.grade"]}
+                helperText={errors["joinedDetails.grade"]}
               >
-             <MenuItem value="A1">A1</MenuItem>
-              <MenuItem value="A2">A2</MenuItem>
-              <MenuItem value="A3">A3</MenuItem>
-              <MenuItem value="A4">A4</MenuItem>
-              <MenuItem value="A5">A5</MenuItem>
-              <MenuItem value="A6">A6</MenuItem>
-              <MenuItem value="A7">A7</MenuItem>
-              <MenuItem value="B1">B1</MenuItem>
-              <MenuItem value="B2">B2</MenuItem>
-              <MenuItem value="B3">B3</MenuItem>
-              <MenuItem value="C1">C1</MenuItem>
-              <MenuItem value="C2">C2</MenuItem>
-              <MenuItem value="C3">C3</MenuItem>
-              <MenuItem value="C4">C4</MenuItem>
-             </TextField>
+                {["A1", "A2", "A3", "A4", "A5", "A6", "A7", "B1", "B2", "B3", "C1", "C2", "C3", "C4"].map(g => (
+                  <MenuItem key={g} value={g}>{g}</MenuItem>
+                ))}
+              </TextField>
           </Grid>
+
           <Grid item xs={12} sm={5.5}>
             <TextField
               fullWidth
@@ -870,8 +1032,10 @@ const removePromotion = (index) => {
               type="date"
               InputLabelProps={{ shrink: true }}
               value={employmentDetails.joinedDetails.date || ""}
-              onChange={(e) => handleJoinedDetailsChange("date", e.target.value)}
+              onChange={(e) => handleJoinedDetailChange("date", e.target.value)}
               required
+              onBlur={() => handleBlur("joinedDetails.date")}
+              disabled={!isFieldEnabled("joinedDetails.date")}
               error={!!errors["joinedDetails.date"]}
               helperText={errors["joinedDetails.date"]}
               onKeyDown={(e) => {
@@ -918,45 +1082,44 @@ const removePromotion = (index) => {
             />
           </Grid>
           <Grid item xs={12} sm={5.5}>
-            <TextField
-              fullWidth
-              label="Designation"
-              value={employmentDetails.joinedDetails.designation || ""}
-              onChange={(e) => handleJoinedDetailsChange("designation", e.target.value)}
-              required
-              error={!!errors["joinedDetails.designation"]}
-              helperText={errors["joinedDetails.designation"]}
-              onKeyDown={(e) => handleKeyDown(e, "joinedDetails.designation", "joinedDetails.grade")}
-              inputRef={(el) => registerFieldRef("joinedDetails.designation", el)}
+          <Autocomplete
+              freeSolo
+              options={DESIGNATION_SUGGESTIONS}
+              value={employmentDetails.joinedDetails.designation}
+              onChange={(_, newVal) => handleJoinedDetailChange("designation", newVal || "")}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Joined Designation"
+                  fullWidth
+                  onBlur={() => handleBlur("joinedDetails.designation")}
+                  onKeyDown={(e) => handleKeyDown(e, "joinedDetails.designation", "joinedDetails.grade")}
+                  inputRef={(el) => registerFieldRef("joinedDetails.designation", el)}
+                  disabled={!isFieldEnabled("joinedDetails.designation")}
+                  error={!!errors["joinedDetails.designation"]}
+                  helperText={errors["joinedDetails.designation"]}
+                />
+              )}
             />
           </Grid>
           <Grid item xs={12} sm={5.5}>
-            <TextField
-              fullWidth
-              select label="Grade"
-              value={employmentDetails.joinedDetails.grade || ""}
-              onChange={(e) => handleJoinedDetailsChange("grade", e.target.value)}
-              required
-              error={!!errors["joinedDetails.grade"]}
-              helperText={errors["joinedDetails.grade"]}
-              onKeyDown={(e) => handleKeyDown(e, "joinedDetails.grade", "joinedDetails.date")}
-              inputRef={(el) => registerFieldRef("joinedDetails.grade", el)}
-              >
-             <MenuItem value="A1">A1</MenuItem>
-              <MenuItem value="A2">A2</MenuItem>
-              <MenuItem value="A3">A3</MenuItem>
-              <MenuItem value="A4">A4</MenuItem>
-              <MenuItem value="A5">A5</MenuItem>
-              <MenuItem value="A6">A6</MenuItem>
-              <MenuItem value="A7">A7</MenuItem>
-              <MenuItem value="B1">B1</MenuItem>
-              <MenuItem value="B2">B2</MenuItem>
-              <MenuItem value="B3">B3</MenuItem>
-              <MenuItem value="C1">C1</MenuItem>
-              <MenuItem value="C2">C2</MenuItem>
-              <MenuItem value="C3">C3</MenuItem>
-              <MenuItem value="C4">C4</MenuItem>
-             </TextField>
+          <TextField
+            select
+            label="Joined Grade"
+            value={employmentDetails.joinedDetails.grade}
+            onChange={(e) => handleJoinedDetailChange("grade", e.target.value)}
+            onBlur={() => handleBlur("joinedDetails.grade")}
+            onKeyDown={(e) => handleKeyDown(e, "joinedDetails.grade", "joinedDetails.date")}
+            inputRef={(el) => registerFieldRef("joinedDetails.grade", el)}
+            disabled={!isFieldEnabled("joinedDetails.grade")}
+            fullWidth
+            error={!!errors["joinedDetails.grade"]}
+            helperText={errors["joinedDetails.grade"]}
+          >
+            {["A1", "A2", "A3", "A4", "A5", "A6", "A7", "B1", "B2", "B3", "C1", "C2", "C3", "C4"].map(g => (
+              <MenuItem key={g} value={g}>{g}</MenuItem>
+            ))}
+          </TextField>
           </Grid>
           <Grid item xs={12} sm={5.5}>
             <TextField
@@ -965,8 +1128,10 @@ const removePromotion = (index) => {
               type="date"
               InputLabelProps={{ shrink: true }}
               value={employmentDetails.joinedDetails.date || ""}
-              onChange={(e) => handleJoinedDetailsChange("date", e.target.value)}
+              onChange={(e) => handleJoinedDetailChange("date", e.target.value)}
               required
+              onBlur={() => handleBlur("joinedDetails.date")}
+              disabled={!isFieldEnabled("joinedDetails.date")}
               error={!!errors["joinedDetails.date"]}
               helperText={errors["joinedDetails.date"]}
               onKeyDown={(e) => {
@@ -995,7 +1160,7 @@ const removePromotion = (index) => {
                       alignItems="center" 
                       sx={{ 
                         ml: -2, 
-                        mt: 10, 
+                        mt: 0, 
                         backgroundColor: "#E0E0E0" ,
                         borderRadius: 1, 
                         boxShadow: 3,  

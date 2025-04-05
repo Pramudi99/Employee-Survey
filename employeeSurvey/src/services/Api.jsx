@@ -357,10 +357,10 @@ export const submitEmployeeData = async (
           ]
         : [],
 
-      employmentDetails: employmentDetails
+        employmentDetails: employmentDetails
         ? {
-            presentJobCategory: employmentDetails.presentJobCategory || "",
             presentJobType: employmentDetails.presentJobType ? Number(employmentDetails.presentJobType) : 0,
+            presentJobCategory: employmentDetails.presentJobCategory || "",
             presentDesignation: employmentDetails.presentDesignation || "",
             presentGrade: employmentDetails.presentGrade || "",
             joinedAs: employmentDetails.joinedAs || "",
@@ -381,7 +381,7 @@ export const submitEmployeeData = async (
                   subFunction: address?.subFunction || "",
                 }))
               : [],
-              
+            
             promotions: Array.isArray(employmentDetails.promotions)
               ? employmentDetails.promotions.map((promotion) => ({
                   grade: promotion?.grade || "",
@@ -395,6 +395,7 @@ export const submitEmployeeData = async (
               : [],
           }
         : null,
+      
 
       dependentDetails: Array.isArray(dependentDetails.dependents)
         ? dependentDetails.dependents.map((dependent) => ({
