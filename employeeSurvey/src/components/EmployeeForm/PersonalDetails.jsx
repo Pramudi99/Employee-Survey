@@ -466,8 +466,31 @@ const PersonalDetailsForm = ({ setPersonalDetails, parentData, checkEPFExistence
     }
   };
 
+
+  const capitalizeEachWord = (str) => {
+    return str.replace(/\b\w+/g, (word) => 
+      word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    );
+  };
+  
+
+
   const handleChange = async (e) => {
     const { name, value } = e.target;
+
+    if (name === "nameWithInitials" || name === "fullName") {
+      const capitalizedValue = capitalizeEachWord(value);
+      setFormData((prevFormData) => {
+        const updatedFormData = { 
+          ...prevFormData, 
+          [name]: capitalizedValue 
+        };
+        setPersonalDetails(updatedFormData);
+        return updatedFormData;
+      });
+      return;
+    }
+    
 
 
     // If NIC number is changed, validate it

@@ -366,10 +366,34 @@ useEffect(() => {
     return { dateOfBirth, gender };
   };
 
+
+
+  const capitalizeEachWord = (str) => {
+    return str.replace(/\b\w+/g, (word) => 
+      word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    );
+  };
+  
+
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     // Flag that this change was initiated by the user
     isUserChange.current = true;
+
+    if (name === "nameWithInitials") {
+      const capitalizedValue = capitalizeEachWord(value);
+      setFormData((prevFormData) => {
+        const updatedFormData = { 
+          ...prevFormData, 
+          [name]: capitalizedValue 
+        };
+        setSpouseDetails(updatedFormData);
+        return updatedFormData;
+      });
+      return;
+    }
+    
     
     setFormData((prevFormData) => {
       let updatedFormData = { ...prevFormData, [name]: value };

@@ -119,6 +119,9 @@ const EmploymentDetailsForm = ({ setEmploymentDetails, parentData }) => {
 const [touched, setTouched] = useState({});
 const [errors, setErrors] = useState({});
 
+const [hasAddedPromotion, setHasAddedPromotion] = useState(false);
+
+
 
   
 
@@ -175,6 +178,9 @@ useEffect(() => {
     const newDetails = {
       ...prevDetails,
       epfNumber: epfNumber, // Set at root level
+      presentJobType: parentData?.presentJobType ?? prevDetails.presentJobType,
+        presentJobTypeDisplay: presentJobTypeMapping.numberToString[parentData?.presentJobType] || prevDetails.presentJobTypeDisplay,
+
       presentJobCategory: parentData?.presentJobCategory || prevDetails.presentJobCategory,
       presentDesignation: parentData?.presentDesignation || prevDetails.presentDesignation,
       presentGrade: parentData?.presentGrade || prevDetails.presentGrade,
@@ -631,6 +637,8 @@ const getSubFunctionSuggestions = (location, functionValue) => {
 };
 // Update the addPromotion function to initialize errors
 const addPromotion = () => {
+  setHasAddedPromotion(true);
+
   setLocalEmploymentDetails((prevDetails) => ({
     ...prevDetails,
     promotions: [...prevDetails.promotions, { 
@@ -648,15 +656,24 @@ const addPromotion = () => {
   setPromotionErrors(prev => [...prev, {}]);
 };
 
-// Update the removePromotion function to also remove errors
 const removePromotion = (index) => {
-  setLocalEmploymentDetails((prevDetails) => ({
-    ...prevDetails,
-    promotions: prevDetails.promotions.filter((_, i) => i !== index)
-  }));
-  
+  setLocalEmploymentDetails((prevDetails) => {
+    const updatedPromotions = prevDetails.promotions.filter((_, i) => i !== index);
+
+    // If only one promotion remains after this, hide the delete icon
+    if (updatedPromotions.length <= 1) {
+      setHasAddedPromotion(false);
+    }
+
+    return {
+      ...prevDetails,
+      promotions: updatedPromotions
+    };
+  });
+
   setPromotionErrors(prev => prev.filter((_, i) => i !== index));
 };
+
  
   return (
      <ThemeProvider theme={textFieldTheme}>
@@ -836,13 +853,14 @@ const removePromotion = (index) => {
 
 
         <Grid item xs={12} sm={3}>
-          <TextField
+        <TextField
             select
             label="Present Job Category"
             name="presentJobCategory"
             fullWidth
             variant="outlined"
-            value={employmentDetails.presentJobCategory}
+            value={employmentDetails.presentJobCategory || ""}
+            onChange={handleChange}
             onBlur={() => handleBlur("presentJobCategory")}
             onKeyDown={(e) => handleKeyDown(e, "presentJobCategory", "presentDesignation")}
             inputRef={(el) => registerFieldRef("presentJobCategory", el)}
@@ -853,6 +871,7 @@ const removePromotion = (index) => {
             <MenuItem value="Executive">Executive</MenuItem>
             <MenuItem value="Non Executive">Non Executive</MenuItem>
           </TextField>
+
         </Grid>
 
 
@@ -1206,20 +1225,9 @@ const removePromotion = (index) => {
             name={`promotion-${index}-grade`}
             required={Object.values(promotion).some(val => val !== "")}
           >
-          <MenuItem value="A1">A1</MenuItem>
-          <MenuItem value="A2">A2</MenuItem>
-          <MenuItem value="A3">A3</MenuItem>
-          <MenuItem value="A4">A4</MenuItem>
-          <MenuItem value="A5">A5</MenuItem>
-          <MenuItem value="A6">A6</MenuItem>
-          <MenuItem value="A7">A7</MenuItem>
-          <MenuItem value="B1">B1</MenuItem>
-          <MenuItem value="B2">B2</MenuItem>
-          <MenuItem value="B3">B3</MenuItem>
-          <MenuItem value="C1">C1</MenuItem>
-          <MenuItem value="C2">C2</MenuItem>
-          <MenuItem value="C3">C3</MenuItem>
-          <MenuItem value="C4">C4</MenuItem>
+           {["A1", "A2", "A3", "A4", "A5", "A6", "A7", "B1", "B2", "B3", "C1", "C2", "C3", "C4"].map(g => (
+            <MenuItem key={g} value={g}>{g}</MenuItem>
+          ))}
           </TextField> 
           </Grid>
 
@@ -1416,11 +1424,14 @@ const removePromotion = (index) => {
         </TextField>
       </Grid>
 
-          <Grid item xs={12}>
-              <IconButton onClick={() => removePromotion(index)} color="error">
-                <Delete />
-              </IconButton>
-          </Grid>
+      <Grid item xs={12}>
+          {hasAddedPromotion && (
+            <IconButton onClick={() => removePromotion(index)} color="error">
+              <Delete />
+            </IconButton>
+          )}
+        </Grid>
+
         </Grid>
       ))}
 

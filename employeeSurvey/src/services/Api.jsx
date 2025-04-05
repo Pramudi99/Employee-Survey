@@ -420,6 +420,7 @@ export const submitEmployeeData = async (
               ? academicDetails.examResults.map((exam) => ({
                   indexNumber: exam.indexNumber || 0,
                   examType: exam.examType || "",
+                  stream: exam.stream || "",
                   attemptYear: exam.attemptYear || 0,
                   attempt: exam.attempt || 0,
                   academicDetailsId: exam.academicDetailsId || 0,

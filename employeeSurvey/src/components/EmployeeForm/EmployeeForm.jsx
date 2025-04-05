@@ -150,6 +150,7 @@ const EmployeeForm = () => {
           examResults: (data.academicDetails.examResults || []).map(exam => ({
             indexNumber: exam.indexNumber?.toString() || "",
             examType: exam.examType || "",
+            stream: exam.stream || "",
             attemptYear: exam.attemptYear?.toString() || "",
             attempt: exam.attempt?.toString() || "",
             academicDetailsId: exam.academicDetailsId || 0,
