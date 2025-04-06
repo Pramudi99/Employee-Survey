@@ -22,7 +22,6 @@ const initialEmploymentDetails = {};
 const initialAcademicDetails = {
   schoolLeavingYear: "",
   schoolLeavingGrade: "",
-  schoolName: "",
   examResults: [
     {
       indexNumber: "",
@@ -146,7 +145,6 @@ const EmployeeForm = () => {
         setAcademicDetails({
           schoolLeavingYear: data.academicDetails.schoolLeavingYear?.toString() || "",
           schoolLeavingGrade: data.academicDetails.schoolLeavingGrade?.toString() || "",
-          schoolName: data.academicDetails.schoolName || "",
           examResults: (data.academicDetails.examResults || []).map(exam => ({
             indexNumber: exam.indexNumber?.toString() || "",
             examType: exam.examType || "",
@@ -221,7 +219,6 @@ const EmployeeForm = () => {
       setAcademicDetails({
         schoolLeavingYear: "",
         schoolLeavingGrade: "",
-        schoolName: "",
         examResults: [
           {
             indexNumber: "",
@@ -294,18 +291,22 @@ const EmployeeForm = () => {
         <Button variant="contained" color="secondary" onClick={handleFetchEmployeeData}>
           Fetch Employee Data
         </Button>
+         {epfNumber && epfNumber.length > 0 && (
+          <DownloadPDFButton epfNumber={epfNumber} />
+        )}
       </Box>
 
       <Box display="flex" gap={2} mt={2} width="100%">
         <Paper elevation={3} sx={{ padding: 3, flex: 1, width: "100%" }} style={{ backgroundColor: "#FDFDFD" }}>
           <PersonalDetailsForm parentData={personalDetails} setPersonalDetails={handlePersonalDetailsChange} checkEPFExistence={checkEPFExistence}/>
          <DependentDetails parentData={dependentDetails} setDependentDetails={setDependentDetails}  numberOfDependents={personalDetails.numberOfDependents || 0} />
-          <ContactDetails parentData={contactDetails} setContactDetails={setContactDetails} />
-          {/* Conditionally render SpouseDetailsForm based on isMarried state */}
+         {/* Conditionally render SpouseDetailsForm based on isMarried state */}
           {isMarried && (
             <SpouseDetailsForm parentData={spouseDetails} setSpouseDetails={setSpouseDetails} />
           )}
           
+          <ContactDetails parentData={contactDetails} setContactDetails={setContactDetails} />
+         
           <EmploymentDetailsForm parentData={employmentDetails} setEmploymentDetails={setEmploymentDetails} />
           <AcademicDetails setAcademicDetails={setAcademicDetails} parentData={academicDetails}/>
         </Paper>

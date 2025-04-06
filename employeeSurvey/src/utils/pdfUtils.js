@@ -817,6 +817,78 @@ if (employeeData.spouseDetails &&
  currentY += lineHeight;
 }
 
+
+
+
+    // 6/7. DEPENDENT DETAILS SECTION
+    const dependentSectionNumber =
+    employeeData.spouseDetails && Object.keys(employeeData.spouseDetails).length > 0
+      ? '6'
+      : '5';
+    
+    const dependents = employeeData.dependentDetails?.dependents || employeeData.dependents || [];
+    
+    if (dependents.length > 0) {
+    checkPageSpace();
+    addSectionHeader(`${dependentSectionNumber}. DEPENDENT DETAILS`);
+    
+    pdf.setFont(undefined, 'normal');
+    pdf.text(`Total Number of Dependents: ${employeeData.numberOfDependents || dependents.length}`, margin.left, currentY);
+    currentY += lineHeight * 1.5;
+    
+    const headers = ['Name', 'Gender', 'Date of Birth', 'Occupation', 'Occupation Address'];
+    const columnWidths = [45, 25, 30, 35, 60];
+    
+    // Draw header background
+    // Draw header background
+    pdf.setFillColor(220, 220, 220); // Light gray background for header
+    let x = margin.left;
+    headers.forEach((header, i) => {
+      pdf.rect(x, currentY, columnWidths[i], 10, ); // 'F' fills the cell
+      pdf.setTextColor(0, 0, 0); // Ensure text color is black
+      pdf.setFont(undefined, 'bold');
+      pdf.text(header, x + 2, currentY + 7);
+      x += columnWidths[i];
+    });
+    
+    
+    currentY += 11;
+    
+    pdf.setFont(undefined, 'normal');
+    
+    dependents.forEach((dep) => {
+      checkPageSpace(12);
+    
+      const rowData = [
+        dep.fullName || dep.dependentFullName || 'N/A',
+        dep.gender || dep.dependentGender || 'N/A',
+        formatDate(dep.dateOfBirth || dep.dependentDateOfBirth),
+        dep.occupation || dep.dependentOccupation || 'N/A',
+        dep.occupationAddress || 'N/A',
+      ];
+    
+      let x = margin.left;
+      const rowHeight = 10;
+    
+      // Draw row background and text
+      rowData.forEach((text, i) => {
+        pdf.rect(x, currentY, columnWidths[i], rowHeight); // Draw border
+        const lines = pdf.splitTextToSize(text, columnWidths[i] - 4);
+        pdf.text(lines, x + 2, currentY + 5);
+        x += columnWidths[i];
+      });
+    
+      currentY += rowHeight;
+    });
+    }
+
+
+
+
+
+
+
+
 // Update section numbers based on whether spouse details exist AND marital status is married
 const isMarriedWithSpouseDetails = 
   employeeData.spouseDetails && 
@@ -896,35 +968,75 @@ if (employeeData.academicDetails) {
     } else {
       addField('Academic Information', 'No academic details available');
     }
+
+
+
+
     
-    // 6/7. DEPENDENT DETAILS SECTION (number depends on whether spouse details exist)
-    const dependentSectionNumber = 
-      (employeeData.spouseDetails && Object.keys(employeeData.spouseDetails).length > 0) ? '6' : '5';
+//     // 6/7. DEPENDENT DETAILS SECTION
+// const dependentSectionNumber =
+// employeeData.spouseDetails && Object.keys(employeeData.spouseDetails).length > 0
+//   ? '6'
+//   : '5';
+
+// const dependents = employeeData.dependentDetails?.dependents || employeeData.dependents || [];
+
+// if (dependents.length > 0) {
+// checkPageSpace();
+// addSectionHeader(`${dependentSectionNumber}. DEPENDENT DETAILS`);
+
+// pdf.setFont(undefined, 'normal');
+// pdf.text(`Total Number of Dependents: ${employeeData.numberOfDependents || dependents.length}`, margin.left, currentY);
+// currentY += lineHeight * 1.5;
+
+// const headers = ['Name', 'Gender', 'Date of Birth', 'Occupation', 'Occupation Address'];
+// const columnWidths = [45, 25, 30, 35, 60];
+
+// // Draw header background
+// // Draw header background
+// pdf.setFillColor(220, 220, 220); // Light gray background for header
+// let x = margin.left;
+// headers.forEach((header, i) => {
+//   pdf.rect(x, currentY, columnWidths[i], 10, ); // 'F' fills the cell
+//   pdf.setTextColor(0, 0, 0); // Ensure text color is black
+//   pdf.setFont(undefined, 'bold');
+//   pdf.text(header, x + 2, currentY + 7);
+//   x += columnWidths[i];
+// });
+
+
+// currentY += 11;
+
+// pdf.setFont(undefined, 'normal');
+
+// dependents.forEach((dep) => {
+//   checkPageSpace(12);
+
+//   const rowData = [
+//     dep.fullName || dep.dependentFullName || 'N/A',
+//     dep.gender || dep.dependentGender || 'N/A',
+//     formatDate(dep.dateOfBirth || dep.dependentDateOfBirth),
+//     dep.occupation || dep.dependentOccupation || 'N/A',
+//     dep.occupationAddress || 'N/A',
+//   ];
+
+//   let x = margin.left;
+//   const rowHeight = 10;
+
+//   // Draw row background and text
+//   rowData.forEach((text, i) => {
+//     pdf.rect(x, currentY, columnWidths[i], rowHeight); // Draw border
+//     const lines = pdf.splitTextToSize(text, columnWidths[i] - 4);
+//     pdf.text(lines, x + 2, currentY + 5);
+//     x += columnWidths[i];
+//   });
+
+//   currentY += rowHeight;
+// });
+// }
+
+  
     
-    if (employeeData.dependentDetails && employeeData.dependentDetails.length > 0) {
-      checkPageSpace();
-      addSectionHeader(`${dependentSectionNumber}. DEPENDENT DETAILS`);
-      
-      // Display number of dependents
-      pdf.text(`Total Number of Dependents: ${employeeData.numberOfDependents || employeeData.dependentDetails.length}`, margin.left, currentY);
-      currentY += lineHeight * 1.5;
-      
-      employeeData.dependentDetails.forEach((dependent, index) => {
-        checkPageSpace(30);
-        pdf.setFillColor(240, 240, 240);
-        pdf.rect(margin.left, currentY - 5, 170, 7, 'F');
-        pdf.setFont(undefined, 'bold');
-        pdf.text(`Dependent ${index + 1}: ${dependent.dependentFullName || 'N/A'}`, margin.left + 5, currentY);
-        pdf.setFont(undefined, 'normal');
-        currentY += lineHeight;
-        
-        addField('Gender', dependent.dependentGender, 10);
-        addField('Date of Birth', formatDate(dependent.dependentDateOfBirth), 10);
-        addField('Occupation', dependent.dependentOccupation, 10);
-        addField('Occupation Address', dependent.occupationAddress, 10);
-        currentY += lineHeight * 0.5;
-      });
-    }
     
     // Add footer with page numbers
     const totalPages = pdf.internal.getNumberOfPages();
@@ -946,6 +1058,9 @@ if (employeeData.academicDetails) {
     throw new Error("Failed to generate PDF. Please try again later.");
   }
 };
+
+
+
 
 // Alternative approach using HTML rendering for more complex layouts
 export const downloadEmployeeDataAsPDFFromHTML = async (epfNumber, elementId) => {

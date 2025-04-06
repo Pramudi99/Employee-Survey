@@ -1517,7 +1517,6 @@ const AcademicDetails = ({ setAcademicDetails, parentData }) => {
   const [formData, setFormData] = useState({
     schoolLeavingYear: "",
     schoolLeavingGrade: "",
-    schoolName: "",
     examResults: [
       {
         indexNumber: "",
@@ -1543,7 +1542,6 @@ const AcademicDetails = ({ setAcademicDetails, parentData }) => {
   const [errors, setErrors] = useState({
     schoolLeavingYear: false,
     schoolLeavingGrade: false,
-    schoolName: false,
     examResults: [
       {
         examType: false,
@@ -1564,14 +1562,12 @@ const AcademicDetails = ({ setAcademicDetails, parentData }) => {
   const [showErrors, setShowErrors] = useState({
     schoolLeavingYear: false,
     schoolLeavingGrade: false,
-    schoolName: false
     // similarly you could track exam fields in detail if needed
   });
 
   const [errorMessages, setErrorMessages] = useState({
     schoolLeavingYear: "",
     schoolLeavingGrade: "",
-    schoolName: ""
     // similarly for exam fields
   });
 
@@ -1580,12 +1576,11 @@ const AcademicDetails = ({ setAcademicDetails, parentData }) => {
 
   const fieldDependencies = {
     schoolLeavingGrade: ["schoolLeavingYear"],
-    schoolName: ["schoolLeavingYear", "schoolLeavingGrade"]
     // Example: If examType depends on schoolName, you'd do:
     // "examResults[0].examType": ["schoolName"]
   };
 
-  const topLevelFieldsOrder = ["schoolLeavingYear", "schoolLeavingGrade", "schoolName"];
+  const topLevelFieldsOrder = ["schoolLeavingYear", "schoolLeavingGrade"];
 
   useEffect(() => {
     if (!parentData || Object.keys(parentData).length === 0) {
@@ -1593,7 +1588,6 @@ const AcademicDetails = ({ setAcademicDetails, parentData }) => {
       setFormData({
         schoolLeavingYear: "",
         schoolLeavingGrade: "",
-        schoolName: "",
         examResults: [
           {
             indexNumber: "",
@@ -1616,7 +1610,6 @@ const AcademicDetails = ({ setAcademicDetails, parentData }) => {
       setErrors({
         schoolLeavingYear: false,
         schoolLeavingGrade: false,
-        schoolName: false,
         examResults: [
           {
             examType: false,
@@ -1644,7 +1637,6 @@ const AcademicDetails = ({ setAcademicDetails, parentData }) => {
       const initialErrors = {
         schoolLeavingYear: !parentData.schoolLeavingYear,
         schoolLeavingGrade: !parentData.schoolLeavingGrade,
-        schoolName: !parentData.schoolName,
         examResults: parentData.examResults.map(exam => ({
           examType: !exam.examType,
           indexNumber: false,
@@ -1699,9 +1691,16 @@ const AcademicDetails = ({ setAcademicDetails, parentData }) => {
         errorMsg = "This field is required.";
       }
     // Determine which fields are required
-    if (field === "schoolLeavingYear" || field === "schoolLeavingGrade" || field === "schoolName") {
-      isValid = value.trim() !== "";
-    } else if (field === "examType" && examIndex !== null) {
+    if (field === "schoolLeavingYear") {
+      const yearPattern = /^\d{4}$/;
+      isValid = yearPattern.test(value.trim());
+      errorMsg = isValid ? "" : "Enter a valid 4-digit year.";
+    } else if (field === "schoolLeavingGrade") {
+      const gradePattern = /^\d{1,2}$/;
+      isValid = gradePattern.test(value.trim()) && parseInt(value) <= 13;
+      errorMsg = isValid ? "" : "Enter a valid grade (1-13).";
+    }
+     else if (field === "examType" && examIndex !== null) {
       isValid = value.trim() !== "";
     } else if (field === "stream" && examIndex !== null) {
       // Stream is required when examType is A/L
@@ -1997,15 +1996,15 @@ const handleChange = (e, fieldName, examIndex = null, subjectIndex = null) => {
             value={formData.schoolLeavingYear}
             inputRef={(el) => (fieldRefs.current["schoolLeavingYear"] = el)}
             onFocus={() => handleFieldFocus("schoolLeavingYear")}
-            onKeyDown={(e) =>
-              handleKeyDown(e, "schoolLeavingYear", "schoolLeavingGrade")
-            }
+            onKeyDown={(e) => handleKeyDown(e, "schoolLeavingYear", "schoolLeavingGrade")}
             onChange={(e) => handleChange(e, "schoolLeavingYear")}
+            onInput={(e) => {
+              e.target.value = e.target.value.replace(/\D/g, "").slice(0, 4);
+            }}
             error={errors.schoolLeavingYear && showErrors.schoolLeavingYear}
-            helperText={
-              showErrors.schoolLeavingYear ? errorMessages.schoolLeavingYear : ""
-            }
+            helperText={showErrors.schoolLeavingYear ? errorMessages.schoolLeavingYear : ""}
           />
+
         </Grid>
         <Grid item xs={6}>
         <TextField
@@ -2014,28 +2013,15 @@ const handleChange = (e, fieldName, examIndex = null, subjectIndex = null) => {
             value={formData.schoolLeavingGrade}
             inputRef={(el) => (fieldRefs.current["schoolLeavingGrade"] = el)}
             onFocus={() => handleFieldFocus("schoolLeavingGrade")}
-            onKeyDown={(e) =>
-              handleKeyDown(e, "schoolLeavingGrade", "schoolName")
-            }
+            onKeyDown={(e) => handleKeyDown(e, "schoolLeavingGrade", "schoolName")}
             onChange={(e) => handleChange(e, "schoolLeavingGrade")}
+            onInput={(e) => {
+              e.target.value = e.target.value.replace(/\D/g, "").slice(0, 2);
+            }}
             error={errors.schoolLeavingGrade && showErrors.schoolLeavingGrade}
-            helperText={
-              showErrors.schoolLeavingGrade ? errorMessages.schoolLeavingGrade : ""
-            }
+            helperText={showErrors.schoolLeavingGrade ? errorMessages.schoolLeavingGrade : ""}
           />
-        </Grid>
-        <Grid item xs={12}>
-        <TextField
-            label="School Name"
-            fullWidth
-            value={formData.schoolName}
-            inputRef={(el) => (fieldRefs.current["schoolName"] = el)}
-            onFocus={() => handleFieldFocus("schoolName")}
-            onKeyDown={(e) => handleKeyDown(e, "schoolName", "")}
-            onChange={(e) => handleChange(e, "schoolName")}
-            error={errors.schoolName && showErrors.schoolName}
-            helperText={showErrors.schoolName ? errorMessages.schoolName : ""}
-          />
+
         </Grid>
         
         <Grid item xs={12} container spacing={2} sx={{ mt: 2 }}>

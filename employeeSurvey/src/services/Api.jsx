@@ -415,7 +415,6 @@ export const submitEmployeeData = async (
             schoolLeavingYear: academicDetails.schoolLeavingYear || 0,
             // Fix type: schoolLeavingGrade should be a string, not a number
             schoolLeavingGrade: academicDetails.schoolLeavingGrade || "",
-            schoolName: academicDetails.schoolName || "",
             examResults: Array.isArray(academicDetails.examResults)
               ? academicDetails.examResults.map((exam) => ({
                   indexNumber: exam.indexNumber || 0,

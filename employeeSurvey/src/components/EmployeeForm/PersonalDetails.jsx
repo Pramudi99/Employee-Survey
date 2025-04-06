@@ -72,6 +72,7 @@ const PersonalDetailsForm = ({ setPersonalDetails, parentData, checkEPFExistence
   });
 
   const [errors, setErrors] = useState({
+    profileImage: false,
     epfNumber: false,
     nameWithInitials: false,
     title: false,
@@ -85,6 +86,7 @@ const PersonalDetailsForm = ({ setPersonalDetails, parentData, checkEPFExistence
   });
 
   const [errorMessages, setErrorMessages] = useState({
+    profileImage: "",
     epfNumber: "",
     nameWithInitials: "",
     title: "",
@@ -98,6 +100,7 @@ const PersonalDetailsForm = ({ setPersonalDetails, parentData, checkEPFExistence
   });
 
   const [showErrors, setShowErrors] = useState({
+    profileImage: false,
     epfNumber: false,
     nameWithInitials: false,
     title: false,
@@ -112,8 +115,9 @@ const PersonalDetailsForm = ({ setPersonalDetails, parentData, checkEPFExistence
 
   // Define the order and dependencies of fields
   const fieldDependencies = {
-    title: ["epfNumber"],
-    nameWithInitials: ["epfNumber", "title"],
+    epfNumber: ["profileImage"],
+    title: ["profileImage", "epfNumber"],
+    nameWithInitials: ["profileImage","epfNumber", "title"],
     fullName: ["epfNumber", "title", "nameWithInitials"],
     nicNumber: ["epfNumber", "title", "nameWithInitials", "fullName"],
     dateOfBirth: ["epfNumber", "title", "nameWithInitials", "fullName", "nicNumber"],
@@ -171,6 +175,7 @@ const PersonalDetailsForm = ({ setPersonalDetails, parentData, checkEPFExistence
   // Field requirement check
   const isFieldRequired = (field) => {
     const requiredFields = [
+      "profileImage",
       "epfNumber", "nameWithInitials", "title", "fullName", 
       "nicNumber", "dateOfBirth", "maritalStatus",
       "religion", "race", "numberOfDependents"
@@ -190,6 +195,10 @@ const PersonalDetailsForm = ({ setPersonalDetails, parentData, checkEPFExistence
     setIsNicValidated(false); // Reset validation status if NIC is invalid
     return false;
   };
+
+
+  const [isEpfValid, setIsEpfValid] = useState(false);
+
 
   // Enhanced EPF Number Validation Function
   const validateEPFNumber = useCallback(async (value) => {
@@ -238,12 +247,14 @@ const PersonalDetailsForm = ({ setPersonalDetails, parentData, checkEPFExistence
           ...prev, 
           epfNumber: "EPF Number already exists in the system"
         }));
+        setIsEpfValid(false);
         setShowErrors(prev => ({...prev, epfNumber: true}));
         return false;
       }
-
-      // If all validations pass
+      setIsEpfValid(true);
       return true;
+      // If all validations pass
+      // return true;
     } catch (error) {
       console.error("EPF Existence Check Error:", error);
       setErrors(prev => ({...prev, epfNumber: true}));
@@ -260,6 +271,15 @@ const PersonalDetailsForm = ({ setPersonalDetails, parentData, checkEPFExistence
  
   const handleImageChange = (event) => {
     const file = event.target.files[0];
+
+    if (!file) {
+      setErrors(prev => ({ ...prev, profileImage: true }));
+      setErrorMessages(prev => ({ ...prev, profileImage: "Profile photo is required" }));
+      setShowErrors(prev => ({ ...prev, profileImage: true }));
+      return;
+    }
+    
+
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -428,21 +448,29 @@ const PersonalDetailsForm = ({ setPersonalDetails, parentData, checkEPFExistence
   // Validate field dependencies before allowing focus
   const validateFieldDependencies = (fieldName) => {
     const dependencies = fieldDependencies[fieldName] || [];
-    
+  
     for (let depField of dependencies) {
-      if (!isFieldFilled(depField)) {
-        // Set error for the missing dependency
-        setErrors(prev => ({...prev, [depField]: true}));
+      if (depField === "profileImage" && !formData.profileImage) {
+        // Show error for missing profile image
+        setErrors(prev => ({ ...prev, profileImage: true }));
+        setErrorMessages(prev => ({ ...prev, profileImage: "Profile photo is required" }));
+        setShowErrors(prev => ({ ...prev, profileImage: true }));
+        return false;
+      } else if (!isFieldFilled(depField)) {
+        // Show error for other unfilled dependencies
+        setErrors(prev => ({ ...prev, [depField]: true }));
         setErrorMessages(prev => ({
-          ...prev, 
+          ...prev,
           [depField]: `Please fill ${depField.replace(/([A-Z])/g, ' $1').toLowerCase()} first`
         }));
-        setShowErrors(prev => ({...prev, [depField]: true}));
+        setShowErrors(prev => ({ ...prev, [depField]: true }));
         return false;
       }
     }
+  
     return true;
   };
+  
 
   // Modify handleFocus to check dependencies
   const handleFocus = (e) => {
@@ -467,6 +495,9 @@ const PersonalDetailsForm = ({ setPersonalDetails, parentData, checkEPFExistence
   };
 
 
+  
+
+
   const capitalizeEachWord = (str) => {
     return str.replace(/\b\w+/g, (word) => 
       word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
@@ -477,62 +508,62 @@ const PersonalDetailsForm = ({ setPersonalDetails, parentData, checkEPFExistence
 
   const handleChange = async (e) => {
     const { name, value } = e.target;
-
-    if (name === "nameWithInitials" || name === "fullName") {
-      const capitalizedValue = capitalizeEachWord(value);
-      setFormData((prevFormData) => {
-        const updatedFormData = { 
-          ...prevFormData, 
-          [name]: capitalizedValue 
-        };
-        setPersonalDetails(updatedFormData);
-        return updatedFormData;
-      });
-      return;
+    let processedValue = value;
+    let additionalUpdates = {};
+  
+    // Handle nameWithInitials capitalization and validation
+    if (name === "nameWithInitials") {
+      const regex = /^[A-Za-z.\s]*$/; // allow only letters, dot, and space
+      if (!regex.test(value)) {
+        setErrors(prev => ({ ...prev, [name]: true }));
+        setErrorMessages(prev => ({ ...prev, [name]: "Only letters and '.' are allowed" }));
+        setShowErrors(prev => ({ ...prev, [name]: true }));
+        return;
+      }
+      processedValue = capitalizeEachWord(value);
     }
-    
-
-
+  
+    // Handle fullName capitalization and validation
+    if (name === "fullName") {
+      const regex = /^[A-Za-z\s]*$/; // allow only letters and spaces
+      if (!regex.test(value)) {
+        setErrors(prev => ({ ...prev, [name]: true }));
+        setErrorMessages(prev => ({ ...prev, [name]: "Only letters and spaces are allowed" }));
+        setShowErrors(prev => ({ ...prev, [name]: true }));
+        return;
+      }
+      processedValue = capitalizeEachWord(value);
+    }
+  
     // If NIC number is changed, validate it
     if (name === "nicNumber" && !isNicValidated) {
       validateNIC(value);
     }
-
-
-
-   // Special handling for drivingLicense and passportNumber fields to prevent symbols
-  if (name === "drivingLicense" || name === "passportNumber") {
-    // Regular expression to allow only alphanumeric characters (letters and digits)
-    const cleanedValue = value.replace(/[^a-zA-Z0-9]/g, "");
-    setFormData((prevFormData) => {
-      const updatedFormData = { 
-        ...prevFormData, 
-        [name]: cleanedValue 
-      };
-      setPersonalDetails(updatedFormData);
-      return updatedFormData;
-    });
-    return;
-  }
   
+    // Special handling for drivingLicense and passportNumber fields
+    if (name === "drivingLicense" || name === "passportNumber") {
+      // Regular expression to allow only alphanumeric characters
+      processedValue = value.replace(/[^a-zA-Z0-9]/g, "");
+    }
+    
     // Special handling for religion field
     if (name === "religion") {
       // Get numeric value for database storage
       const numericValue = religionMapping.stringToNumber[value];
       
-      // Update form data
-      setFormData((prevFormData) => {
-        const updatedFormData = { 
-          ...prevFormData, 
-          religion: numericValue, // Store numeric value
-          religionDisplay: value  // Keep display value for UI
-        };
-        
-        // Update parent component with personal details
-        setPersonalDetails(updatedFormData);
-        
-        return updatedFormData;
-      });
+      // Update form data with both numeric and display values
+      setFormData(prevFormData => ({
+        ...prevFormData,
+        religion: numericValue,
+        religionDisplay: value
+      }));
+      
+      // Update parent component
+      setPersonalDetails(prev => ({
+        ...prev,
+        religion: numericValue,
+        religionDisplay: value
+      }));
       
       // Validate the field
       validateField(name, numericValue);
@@ -545,48 +576,47 @@ const PersonalDetailsForm = ({ setPersonalDetails, parentData, checkEPFExistence
       if (!/^\d*$/.test(value)) {
         return;
       }
-  
       // Validate EPF number as user types
       await validateEPFNumber(value);
     }
   
     // Special handling for NIC number
     if (name === "nicNumber") {
-      // First 9 characters must be digits
+      // Various validation for NIC number formats
       if (value.length <= 9) {
         if (!/^\d*$/.test(value)) {
           validateField(name, value);
           setShowErrors(prev => ({...prev, [name]: true}));
-          return; // Prevent update with invalid character
+          return;
         }
-      } 
-      // 10th character can be V, X, or a digit
-      else if (value.length === 10) {
+      } else if (value.length === 10) {
         if (!/^\d{9}([VvXx]|\d)$/.test(value)) {
           validateField(name, value);
           setShowErrors(prev => ({...prev, [name]: true}));
           return;
         }
-      } 
-      // If 10th character was V or X, no more characters allowed
-      else if (value.length > 10 && /^\d{9}[VvXx]/.test(value)) {
+      } else if (value.length > 10 && /^\d{9}[VvXx]/.test(value)) {
         validateField(name, value);
         setShowErrors(prev => ({...prev, [name]: true}));
         return;
-      } 
-      // If continuing with digits, only allow up to 12 total
-      else if (value.length > 10 && value.length <= 12) {
+      } else if (value.length > 10 && value.length <= 12) {
         if (!/^\d+$/.test(value)) {
           validateField(name, value);
           setShowErrors(prev => ({...prev, [name]: true}));
           return;
         }
-      } 
-      // Never allow more than 12 characters
-      else if (value.length > 12) {
+      } else if (value.length > 12) {
         validateField(name, value);
         setShowErrors(prev => ({...prev, [name]: true}));
         return;
+      }
+      
+      // Extract details from NIC if valid
+      const { dateOfBirth, gender } = extractNICDetails(value);
+      if (dateOfBirth) {
+        additionalUpdates = { dateOfBirth, gender };
+        // Validate dateOfBirth field
+        validateField("dateOfBirth", dateOfBirth);
       }
       
       // Run validation anyway to update error state
@@ -597,7 +627,7 @@ const PersonalDetailsForm = ({ setPersonalDetails, parentData, checkEPFExistence
     if (name === "numberOfDependents") {
       const numValue = parseInt(value, 10);
       
-      // Allow empty string (for user to clear input) but validate it
+      // Allow empty string but validate it
       if (value === "") {
         validateField(name, value);
         setShowErrors(prev => ({...prev, [name]: true}));
@@ -609,33 +639,23 @@ const PersonalDetailsForm = ({ setPersonalDetails, parentData, checkEPFExistence
       }
     }
   
-    // Update form data
-    setFormData((prevFormData) => {
-      let updatedFormData = { ...prevFormData, [name]: value };
-  
-      // Special handling for NIC number to extract details
-      if (name === "nicNumber") {
-        const { dateOfBirth, gender } = extractNICDetails(value);
-        
-        // Only update date of birth and gender if a valid NIC was provided
-        if (dateOfBirth) {
-          updatedFormData = { 
-            ...updatedFormData, 
-            dateOfBirth, 
-            gender 
-          };
-          
-          // Also validate the date of birth field since it was auto-filled
-          validateField("dateOfBirth", dateOfBirth);
-        }
-      }
-      
-      // Update parent component with personal details
-      setPersonalDetails(updatedFormData);
-      
-      return updatedFormData;
-    });
+    // First update form data
+    setFormData(prevFormData => ({
+      ...prevFormData,
+      [name]: processedValue,
+      ...additionalUpdates
+    }));
+    
+    // Then update parent component (outside the state update callback)
+    setPersonalDetails(prev => ({
+      ...prev,
+      [name]: processedValue,
+      ...additionalUpdates
+    }));
   };
+
+
+
 
   // Handle key down for field navigation and validation
   const handleKeyDown = async (e, fieldName) => {
@@ -734,52 +754,60 @@ const PersonalDetailsForm = ({ setPersonalDetails, parentData, checkEPFExistence
 
   return (
     <ThemeProvider theme={textFieldTheme}>
-       <Grid item xs={12} container justifyContent="center" alignItems="center" sx={{ mt: 2, mb: 2 }}>
-    <Grid item xs={12} sm={3} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-      <div 
-        style={{ 
-          width: '150px', 
-          height: '150px', 
-          border: '1px dashed #ccc', 
-          borderRadius: '50%', 
-          display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'center',
-          overflow: 'hidden',
-          position: 'relative'
-        }}
+      <Grid item xs={12} container justifyContent="center" alignItems="center" sx={{ mt: 2, mb: 2 }}>
+  <Grid item xs={12} sm={3} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+    <div 
+      style={{ 
+        width: '150px', 
+        height: '150px', 
+        border: errors.profileImage && showErrors.profileImage ? '2px solid red' : '1px dashed #ccc', 
+        borderRadius: '50%', 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center',
+        overflow: 'hidden',
+        position: 'relative'
+      }}
+    >
+      {imagePreview ? (
+        <img 
+          src={imagePreview} 
+          alt="Profile Preview" 
+          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+        />
+      ) : (
+        <CameraAltIcon style={{ fontSize: 40, color: '#aaa' }} />
+      )}
+    </div>
+
+    <input
+      accept="image/*"
+      style={{ display: 'none' }}
+      id="profile-image-upload"
+      type="file"
+      onChange={handleImageChange}
+    />
+
+    <label htmlFor="profile-image-upload">
+      <Button 
+        variant="outlined" 
+        component="span"
+        size="small"
+        sx={{ mt: 1 }}
       >
-        {imagePreview ? (
-          <img 
-            src={imagePreview} 
-            alt="Profile Preview" 
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-          />
-        ) : (
-          <CameraAltIcon style={{ fontSize: 40, color: '#aaa' }} />
-        )}
-      </div>
-      
-      <input
-        accept="image/*"
-        style={{ display: 'none' }}
-        id="profile-image-upload"
-        type="file"
-        onChange={handleImageChange}
-      />
-      
-      <label htmlFor="profile-image-upload">
-        <Button 
-          variant="outlined" 
-          component="span"
-          size="small"
-          sx={{ mt: 1 }}
-        >
-          {imagePreview ? 'Change Photo' : 'Upload Photo'}
-        </Button>
-      </label>
-    </Grid>
+        {imagePreview ? 'Change Photo' : 'Upload Photo'}
+      </Button>
+    </label>
+
+    {/* Error message under the button */}
+    {errors.profileImage && showErrors.profileImage && (
+      <Typography color="error" variant="caption" sx={{ mt: 1 }}>
+        {errorMessages.profileImage || "Profile image is required"}
+      </Typography>
+    )}
   </Grid>
+</Grid>
+
 
     <Grid container spacing={2}>
       <Typography 
@@ -847,12 +875,13 @@ const PersonalDetailsForm = ({ setPersonalDetails, parentData, checkEPFExistence
             variant="outlined" 
             value={formData.epfNumber} 
             onChange={handleChange} 
+            onFocus={handleFocus}
             onBlur={handleBlur}
             required 
             error={shouldShowError("epfNumber")}
             helperText={getHelperText("epfNumber")}
             placeholder="Enter 7-digit EPF number"
-            inputProps={{ maxLength: 7 }}           
+            inputProps={{ maxLength: 7,  readOnly: !formData.profileImage }}           
           />
           </Grid>
 
@@ -867,6 +896,7 @@ const PersonalDetailsForm = ({ setPersonalDetails, parentData, checkEPFExistence
             onChange={handleChange} 
             onBlur={handleBlur}
             onFocus={handleFocus}
+            disabled={!isEpfValid}
             onKeyDown={(e) => handleKeyDown(e, "title")}
             inputRef={(el) => fieldRefs.current["title"] = el}
             required
@@ -951,6 +981,7 @@ const PersonalDetailsForm = ({ setPersonalDetails, parentData, checkEPFExistence
             required 
             error={shouldShowError("dateOfBirth")}
             helperText={getHelperText("dateOfBirth")}
+            InputProps={{ readOnly: isNicValidated }}
           />
         </Grid>
         <Grid item xs={12} sm={4}>
