@@ -3128,7 +3128,7 @@ const textFieldTheme = createTheme({
   }
 });
 
-const ContactDetails = forwardRef(({ setContactDetails, parentData }, ref) => {
+const ContactDetails = forwardRef(({ setContactDetails, parentData, spouseDetails, dependentDetails }, ref) => {
   // Initialize with empty object if parentData is undefined
   const initialData = parentData || {};
   const prevParentDataRef = useRef(initialData);
@@ -3401,6 +3401,39 @@ const ContactDetails = forwardRef(({ setContactDetails, parentData }, ref) => {
     let newValue = value;
   
     formUpdatedByUser.current = true;
+
+    if (name === "emergencyContactRelation") {
+      const updatedFormData = { ...formData, emergencyContactRelation: value };
+    
+      if (value === "Spouse" && spouseDetails) {
+        updatedFormData.emergencyContactName = spouseDetails.fullName || "";
+        updatedFormData.emergencyContactMobile = spouseDetails.contactNumber?.toString() || "";
+        updatedFormData.emergencyContactAddress = spouseDetails.address || "";
+        updatedFormData.emergencyContactLandNo = spouseDetails.workPlaceTeleNumber?.toString() || "";
+      } else if (value !== "") {
+        const matchedDependent = dependentDetails?.dependents?.find(
+          (d) => d.relationship?.toLowerCase() === value.toLowerCase()
+        );
+    
+        if (matchedDependent) {
+          updatedFormData.emergencyContactName = matchedDependent.fullName || "";
+          updatedFormData.emergencyContactAddress = matchedDependent.occupationAddress || "";
+          updatedFormData.emergencyContactMobile = ""; // You can add contact fields in dependents if available
+          updatedFormData.emergencyContactLandNo = "";
+        } else {
+          updatedFormData.emergencyContactName = "";
+          updatedFormData.emergencyContactAddress = "";
+          updatedFormData.emergencyContactMobile = "";
+          updatedFormData.emergencyContactLandNo = "";
+        }
+      }
+    
+      setFormData(updatedFormData);
+      return;
+    }
+    
+    
+
   
     // Capitalize each word for address fields
     if (name === 'permanentAddress' || name === 'temporaryAddress') {
@@ -3455,27 +3488,62 @@ const ContactDetails = forwardRef(({ setContactDetails, parentData }, ref) => {
       .join(' ');
   };
   
-
+  
+  const generateAddressSuggestions = () => {
+    const suggestions = [];
+  
+    if (formData.permanentAddress) {
+      suggestions.push({
+        key: "permanent",
+        label: formData.permanentAddress,
+        postalCode: formData.permanentPostalCode,
+        district: formData.permanentDistrict,
+        province: formData.permanentProvince,
+        distance: formData.distantBetWorkPlaceAndPermanentAddress,
+        source: "Permanent Address"
+      });
+    }
+  
+    if (spouseDetails?.address) {
+      suggestions.push({
+        key: "spouse",
+        label: spouseDetails.address,
+        postalCode: spouseDetails.postalCode?.toString() || "",
+        district: "",
+        province: "",
+        distance: "",
+        source: "Spouse Address"
+      });
+    }
+  
+    return suggestions;
+  };
+  
   
    // Function to generate auto-suggest options for temporary address
    const generateTemporaryAddressSuggestions = () => {
-    // If permanent address is empty, return empty array
-    if (!formData.permanentAddress) return [];
-
-    // Create suggestions based on permanent address
-    const suggestions = [
-      {
+    const suggestions = [];
+  
+    const spouseAddr = spouseDetails?.address?.trim().toLowerCase() || "";
+    const permanentAddr = formData.permanentAddress?.trim().toLowerCase() || "";
+  
+    // Only add permanent address if it exists and either:
+    // 1. Spouse address is not present
+    // 2. Spouse address is the same as permanent address
+    if (formData.permanentAddress && (!spouseAddr || spouseAddr === permanentAddr)) {
+      suggestions.push({
+        key: `permanent-${formData.permanentAddress}`,
         label: formData.permanentAddress,
         postalCode: formData.permanentPostalCode,
         district: formData.permanentDistrict,
         province: formData.permanentProvince,
         distance: formData.distantBetWorkPlaceAndPermanentAddress
-      },
-    ];
-
+      });
+    }
+  
     return suggestions;
   };
-
+  
   // Handle address suggestion selection
   const handleAddressSuggestionSelect = (event, newValue) => {
     // Create a copy of current form data
@@ -3519,6 +3587,37 @@ const ContactDetails = forwardRef(({ setContactDetails, parentData }, ref) => {
     }
   };
   
+  const generateEmergencyContactAddressSuggestions = () => {
+    const suggestions = [];
+  
+    const permanent = formData.permanentAddress?.trim();
+    const temporary = formData.temporaryAddress?.trim();
+  
+    const seen = new Set();
+  
+    if (permanent && !seen.has(permanent.toLowerCase())) {
+      suggestions.push({
+        key: "permanent",
+        label: permanent,
+        source: "Permanent Address"
+      });
+      seen.add(permanent.toLowerCase());
+    }
+  
+    if (temporary && !seen.has(temporary.toLowerCase())) {
+      suggestions.push({
+        key: "temporary",
+        label: temporary,
+        source: "Temporary Address"
+      });
+      seen.add(temporary.toLowerCase());
+    }
+  
+    return suggestions;
+  };
+  
+
+
   // Handle key press events
   const handleKeyPress = (e) => {
     const { name, value } = e.target;
@@ -3581,20 +3680,57 @@ const ContactDetails = forwardRef(({ setContactDetails, parentData }, ref) => {
       </Typography>
       <Grid container spacing={1}>
         <Grid item xs={12} sm={10}>
-          <TextField 
-            label="Permanent Address" 
-            name="permanentAddress" 
-            fullWidth 
-            variant="outlined" 
-            value={formData.permanentAddress} 
-            onChange={handleChange}
-            onFocus={handleFocus}
-            onKeyPress={handleKeyPress}
-            error={!!errors.permanentAddress}
-            helperText={errors.permanentAddress || ''}
-            inputRef={el => inputRefs.current.permanentAddress = el}
-            required 
+        <Autocomplete
+            freeSolo
+            options={generateAddressSuggestions()}
+            getOptionLabel={(option) =>
+              typeof option === "object" ? `${option.label} (${option.source})` : option
+            }
+            getOptionKey={(option) => option.key}  // ✅ This line is optional if you control the rendering via renderOption
+            renderOption={(props, option) => (
+              <li {...props} key={option.key}>
+                {option.label} ({option.source})
+              </li>
+            )}
+            value={formData.permanentAddress}
+            onChange={(event, newValue) => {
+              if (typeof newValue === "object" && newValue !== null) {
+                const updated = {
+                  ...formData,
+                  permanentAddress: newValue.label || "",
+                  permanentPostalCode: newValue.postalCode || ""
+                };
+                setFormData(updated);
+                formUpdatedByUser.current = true;
+              } else {
+                handleChange({ target: { name: "permanentAddress", value: newValue || "" } });
+              }
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Permanent Address"
+                name="permanentAddress"
+                fullWidth
+                variant="outlined"
+                value={formData.permanentAddress}
+                onChange={(e) => {
+                  handleChange({
+                    target: {
+                      name: 'permanentAddress',
+                      value: e.target.value
+                    }
+                  });
+                }}
+                error={!!errors.permanentAddress}
+                helperText={errors.permanentAddress || ''}
+                inputRef={(el) => inputRefs.current.permanentAddress = el}
+                required
+                onKeyPress={handleKeyPress}
+              />
+            )}
           />
+
         </Grid>
         <Grid item xs={12} sm={2}>
           <TextField 
@@ -3755,6 +3891,11 @@ const ContactDetails = forwardRef(({ setContactDetails, parentData }, ref) => {
               getOptionLabel={(option) => 
                 typeof option === 'object' ? option.label : option
               }
+              renderOption={(props, option) => (
+                <li {...props} key={option.key}>
+                  {option.label}
+                </li>
+              )}
               onChange={handleAddressSuggestionSelect}
               renderInput={(params) => (
                 <TextField 
@@ -3909,21 +4050,49 @@ const ContactDetails = forwardRef(({ setContactDetails, parentData }, ref) => {
           />
         </Grid>
         <Grid item xs={12} sm={12}>
-          <TextField 
-            label="Contact Address"
-            name="emergencyContactAddress"
-            fullWidth 
-            variant="outlined" 
-            value={formData.emergencyContactAddress} 
-            onChange={handleChange}
-            onFocus={handleFocus}
-            onKeyPress={handleKeyPress}
-            error={!!errors.emergencyContactAddress}
-            helperText={errors.emergencyContactAddress || ''}
-            inputRef={el => inputRefs.current.emergencyContactAddress = el}
-            required 
+          <Autocomplete
+            freeSolo
+            options={generateEmergencyContactAddressSuggestions()}
+            getOptionLabel={(option) => typeof option === "object" ? `${option.label} (${option.source})` : option}
+            renderOption={(props, option) => (
+              <li {...props} key={option.key}>
+                {option.label} ({option.source})
+              </li>
+            )}
+            value={formData.emergencyContactAddress}
+            onChange={(event, newValue) => {
+              if (typeof newValue === "object" && newValue !== null) {
+                setFormData(prev => ({
+                  ...prev,
+                  emergencyContactAddress: newValue.label
+                }));
+              } else {
+                handleChange({
+                  target: {
+                    name: "emergencyContactAddress",
+                    value: newValue || ""
+                  }
+                });
+              }
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Contact Address"
+                name="emergencyContactAddress"
+                fullWidth
+                variant="outlined"
+                onChange={(e) => handleChange(e)}
+                error={!!errors.emergencyContactAddress}
+                helperText={errors.emergencyContactAddress || ""}
+                inputRef={el => inputRefs.current.emergencyContactAddress = el}
+                required
+                onKeyPress={handleKeyPress}
+              />
+            )}
           />
         </Grid>
+
         <Grid item xs={12} sm={6}>
           <TextField 
             label="Contact Mobile No"

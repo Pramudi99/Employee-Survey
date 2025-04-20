@@ -376,7 +376,7 @@ const textFieldTheme = createTheme({
   }
 });
 
-const DependentDetailsTable = forwardRef(({ setDependentDetails, parentData, numberOfDependents }, ref) => {
+const DependentDetailsTable = forwardRef(({ setDependentDetails, parentData, numberOfDependents, spouseDetails }, ref) => {
     const [dependentDetails, setLocalDependentDetails] = useState({
         dependents: [],
     });
@@ -536,27 +536,50 @@ const DependentDetailsTable = forwardRef(({ setDependentDetails, parentData, num
       };
       
 
-    // Handle field updates
-    const handleDependentChange = (index, field, value) => {
+      const handleDependentChange = (index, field, value) => {
         const updatedDependents = [...dependentDetails.dependents];
+      
         updatedDependents[index][field] = value;
-        
-        // Update local state
+      
+        if (field === "relationship") {
+            if (value === "Spouse" && spouseDetails) {
+              // Autofill from spouse details
+              updatedDependents[index] = {
+                ...updatedDependents[index],
+                relationship: value,
+                fullName: spouseDetails.fullName || "",
+                dateOfBirth: spouseDetails.dateOfBirth || "",
+                occupation: spouseDetails.workPlaceAddress ? "Employed" : "",
+                occupationAddress: spouseDetails.workPlaceAddress || "",
+                gender: spouseDetails.title?.toLowerCase() === "mr" ? "Male" : "Female",
+              };
+            } else {
+              // Clear the auto-filled fields if switching away from Spouse
+              updatedDependents[index] = {
+                ...updatedDependents[index],
+                relationship: value,
+                fullName: "",
+                dateOfBirth: "",
+                occupation: "",
+                occupationAddress: "",
+                gender: "",
+              };
+            }
+          }          
+      
         setLocalDependentDetails({ dependents: updatedDependents });
-        
-        // Mark field as touched
+      
+        // Mark field as touched and validate
         const newTouched = [...touched];
-        if (!newTouched[index]) {
-            newTouched[index] = {};
-        }
+        if (!newTouched[index]) newTouched[index] = {};
         newTouched[index][field] = true;
         setTouched(newTouched);
-        
-        // Validate immediately
+      
         setTimeout(() => {
-            validateDependent(updatedDependents[index], index);
+          validateDependent(updatedDependents[index], index);
         }, 0);
-    };
+      };
+      
 
     // Should display error for a field?
     const shouldShowError = (index, field) => {

@@ -731,13 +731,17 @@ const dependentRef = useRef(null);
       <Box display="flex" gap={2} mt={2} width="100%">
         <Paper elevation={3} sx={{ padding: 3, flex: 1, width: "100%" }} style={{ backgroundColor: "#FDFDFD" }}>
           <PersonalDetailsForm ref={personalRef} parentData={personalDetails} setPersonalDetails={handlePersonalDetailsChange} checkEPFExistence={checkEPFExistence}/>
-         <DependentDetails ref={dependentRef} parentData={dependentDetails} setDependentDetails={setDependentDetails}  numberOfDependents={personalDetails.numberOfDependents || 0} />
-         {/* Conditionally render SpouseDetailsForm based on isMarried state */}
+          {/* Conditionally render SpouseDetailsForm based on isMarried state */}
           {isMarried && (
             <SpouseDetailsForm parentData={spouseDetails} setSpouseDetails={setSpouseDetails} />
           )}
+
+         <DependentDetails ref={dependentRef} parentData={dependentDetails} setDependentDetails={setDependentDetails} 
+          numberOfDependents={personalDetails.numberOfDependents || 0 }  spouseDetails={spouseDetails} />
+         
           
-          <ContactDetails ref={contactRef} parentData={contactDetails} setContactDetails={setContactDetails} />
+          <ContactDetails ref={contactRef} parentData={contactDetails} setContactDetails={setContactDetails} 
+           dependentDetails={dependentDetails} spouseDetails={spouseDetails}/>
          
           <EmploymentDetailsForm ref={employmentRef} parentData={employmentDetails} setEmploymentDetails={setEmploymentDetails} />
           <AcademicDetails ref={academicRef} setAcademicDetails={setAcademicDetails} parentData={academicDetails}/>
