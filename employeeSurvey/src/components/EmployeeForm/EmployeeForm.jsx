@@ -451,7 +451,7 @@ const contactRef = useRef();
 const employmentRef = useRef();
 const academicRef = useRef();
 const spouseRef = useRef();
-const dependentRef = useRef();
+const dependentRef = useRef(null);
   
 
   useEffect(() => {
@@ -587,6 +587,11 @@ const dependentRef = useRef();
   const isSpouseValid = isMarried ? spouseRef.current?.validateForm?.() ?? true : true;
   const isDependentValid = dependentRef.current?.validateForm?.() ?? true;
 
+  if (!isDependentValid) {
+    setErrorMessage("Please complete all required Dependent Details.");
+    setErrorOpen(true);
+    return;
+  }
   const allValid = [isPersonalValid, isContactValid, isEmploymentValid, isAcademicValid, isSpouseValid, isDependentValid].every(Boolean);
 
   if (!allValid) {
@@ -594,6 +599,8 @@ const dependentRef = useRef();
     setErrorOpen(true);
     return;
   }
+
+
 
     console.log("Submitting data:", {
       personalDetails,
@@ -724,7 +731,7 @@ const dependentRef = useRef();
       <Box display="flex" gap={2} mt={2} width="100%">
         <Paper elevation={3} sx={{ padding: 3, flex: 1, width: "100%" }} style={{ backgroundColor: "#FDFDFD" }}>
           <PersonalDetailsForm ref={personalRef} parentData={personalDetails} setPersonalDetails={handlePersonalDetailsChange} checkEPFExistence={checkEPFExistence}/>
-         <DependentDetails parentData={dependentDetails} setDependentDetails={setDependentDetails}  numberOfDependents={personalDetails.numberOfDependents || 0} />
+         <DependentDetails ref={dependentRef} parentData={dependentDetails} setDependentDetails={setDependentDetails}  numberOfDependents={personalDetails.numberOfDependents || 0} />
          {/* Conditionally render SpouseDetailsForm based on isMarried state */}
           {isMarried && (
             <SpouseDetailsForm parentData={spouseDetails} setSpouseDetails={setSpouseDetails} />

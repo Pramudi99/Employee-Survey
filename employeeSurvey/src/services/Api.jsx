@@ -404,18 +404,21 @@ export const submitEmployeeData = async (
         : null,
       
 
-      dependentDetails: Array.isArray(dependentDetails.dependents)
-        ? dependentDetails.dependents.map((dependent) => ({
-            dependentDetailsID: dependent?.dependentDetailsID || 0,
-            dependentRelationship: dependent?.relationship || "",
-            dependentFullName: dependent?.fullName || "",
-            dependentGender: dependent?.gender || "",
-            dependentDateOfBirth: formatDate(dependent?.dateOfBirth),
-            dependentOccupation: dependent?.occupation || "",
-            occupationAddress: dependent?.occupationAddress || "",
-            epfNumber: personalDetails?.epfNumber || "",
-          }))
-        : [],
+        dependentDetails:
+        Array.isArray(dependentDetails.dependents) && personalDetails?.numberOfDependents > 0
+          ? dependentDetails.dependents.map((dependent) => ({
+              dependentDetailsID: dependent?.dependentDetailsID || 0,
+              dependentRelationship: dependent?.relationship || "",
+              dependentFullName: dependent?.fullName || "",
+              dependentGender: dependent?.gender || "",
+              dependentDateOfBirth: formatDate(dependent?.dateOfBirth),
+              dependentOccupation: dependent?.occupation || "",
+              occupationAddress: dependent?.occupationAddress || "",
+              epfNumber: personalDetails?.epfNumber || "",
+            }))
+          : [],
+
+      
 
       academicDetails: academicDetails
         ? {

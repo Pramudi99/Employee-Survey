@@ -323,7 +323,19 @@
 
 
 
-import React, { useState, useEffect } from 'react';
+
+
+
+
+
+
+
+
+
+
+
+
+import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { 
     TextField, 
     Grid, 
@@ -364,7 +376,7 @@ const textFieldTheme = createTheme({
   }
 });
 
-const DependentDetailsTable = ({ setDependentDetails, parentData, numberOfDependents }) => {
+const DependentDetailsTable = forwardRef(({ setDependentDetails, parentData, numberOfDependents }, ref) => {
     const [dependentDetails, setLocalDependentDetails] = useState({
         dependents: [],
     });
@@ -407,23 +419,45 @@ const DependentDetailsTable = ({ setDependentDetails, parentData, numberOfDepend
     }, [numberOfDependents, parentData]);
 
     useEffect(() => {
-        // Validate all fields when dependents change
-        if (dependentDetails.dependents.length > 0) {
-            dependentDetails.dependents.forEach((dependent, index) => {
-                validateDependent(dependent, index);
-            });
+        if (!numberOfDependents || numberOfDependents <= 0) return;
+      
+        const hasErrors = dependentDetails.dependents.some((dep, idx) => !validateDependent(dep, idx));
+      
+        if (!hasErrors) {
+          setDependentDetails((prev) => {
+            if (JSON.stringify(prev) !== JSON.stringify(dependentDetails)) {
+              return dependentDetails;
+            }
+            return prev;
+          });
         }
-        
-        // Only update parent if there are no validation errors
-        if (!hasValidationErrors()) {
-            setDependentDetails((prev) => {
-                if (JSON.stringify(prev) !== JSON.stringify(dependentDetails)) {
-                    return dependentDetails;
-                }
-                return prev;
-            });
+      }, [dependentDetails, numberOfDependents]);
+      
+
+
+
+      useImperativeHandle(ref, () => ({
+        validateForm: () => {
+          if (numberOfDependents > 0) {
+            const hasErrors = errors.some(errorObj => Object.keys(errorObj).length > 0);
+            if (hasErrors) {
+              // optionally, trigger touched state to show errors
+              const newTouched = dependentDetails.dependents.map(() => ({
+                relationship: true,
+                fullName: true,
+                gender: true,
+                dateOfBirth: true,
+                occupation: true,
+                occupationAddress: true,
+              }));
+              setTouched(newTouched);
+            }
+            return !hasErrors;
+          }
+          return true; // if numberOfDependents is 0, no validation needed
         }
-    }, [dependentDetails]);
+      }));
+      
 
     // Mark a field as touched
     const handleBlur = (index, field) => {
@@ -666,6 +700,6 @@ const DependentDetailsTable = ({ setDependentDetails, parentData, numberOfDepend
             </Grid>
         </ThemeProvider>
     );
-};
+});
 
 export default DependentDetailsTable;

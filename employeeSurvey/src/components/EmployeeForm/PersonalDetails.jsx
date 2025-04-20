@@ -1620,31 +1620,24 @@ const PersonalDetailsForm = forwardRef(({ setPersonalDetails, parentData, checkE
     } 
 
     else if (name === "numberOfDependents") {
-      // Check if it's empty
-      if (!value || value.toString().trim() === "") {
+      if (value === "" || value === null || value === undefined) {
         isValid = false;
         message = "Number of Dependents is required";
-      } 
-      // Check if it's a valid number between 0 and 15
-      else {
+      } else {
         const numValue = parseInt(value, 10);
         if (isNaN(numValue)) {
           isValid = false;
           message = "Please enter a valid number";
-          setShowErrors(prev => ({...prev, [name]: true}));
-        } 
-        else if (numValue < 0) {
+        } else if (numValue < 0) {
           isValid = false;
           message = "Minimum value is 0";
-          setShowErrors(prev => ({...prev, [name]: true}));
-        }
-        else if (numValue > 15) {
+        } else if (numValue > 15) {
           isValid = false;
           message = "Maximum value is 15";
-          setShowErrors(prev => ({...prev, [name]: true}));
         }
       }
     }
+    
 
     else {
       // Default message for other fields
@@ -1754,18 +1747,22 @@ const PersonalDetailsForm = forwardRef(({ setPersonalDetails, parentData, checkE
 
 
  
-useImperativeHandle(ref, () => ({
-  validateForm: () => {
-    let isValid = true;
-    for (const key of Object.keys(errors)) {
-      if (isFieldRequired(key) && (!formData[key] || errors[key])) {
-        setShowErrors((prev) => ({ ...prev, [key]: true }));
-        isValid = false;
+  useImperativeHandle(ref, () => ({
+    validateForm: () => {
+      let isValid = true;
+      for (const key of Object.keys(errors)) {
+        const value = formData[key];
+        const isEmpty = value === undefined || value === null || value === "";
+  
+        if (isFieldRequired(key) && (isEmpty || errors[key])) {
+          setShowErrors((prev) => ({ ...prev, [key]: true }));
+          isValid = false;
+        }
       }
+      return isValid;
     }
-    return isValid;
-  }
-}));
+  }));
+  
 
 
 
