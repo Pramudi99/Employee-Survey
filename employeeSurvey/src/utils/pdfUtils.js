@@ -906,11 +906,11 @@ if (employeeData.academicDetails) {
   const academic = employeeData.academicDetails;
   const labelWidth = 65;
   
-  pdf.setFont(undefined, 'bold');
-  pdf.text('School:', margin.left, currentY);
-  pdf.setFont(undefined, 'normal');
-  pdf.text(String(academic.schoolName || 'N/A'), margin.left + labelWidth, currentY);
-  currentY += lineHeight;
+  // pdf.setFont(undefined, 'bold');
+  // pdf.text('School:', margin.left, currentY);
+  // pdf.setFont(undefined, 'normal');
+  // pdf.text(String(academic.schoolName || 'N/A'), margin.left + labelWidth, currentY);
+  // currentY += lineHeight;
   
   pdf.setFont(undefined, 'bold');
   pdf.text('School Leaving Year:', margin.left, currentY);
@@ -937,7 +937,16 @@ if (employeeData.academicDetails) {
           pdf.setFillColor(240, 240, 240);
           pdf.rect(margin.left, currentY - 5, 170, 7, 'F');
           pdf.setFont(undefined, 'bold');
-          pdf.text(`${index + 1}. ${exam.examType || 'Exam'} (Year: ${exam.attemptYear || 'N/A'}, Attempt: ${exam.attempt || 'N/A'})`, margin.left + 5, currentY);
+          let examHeader = `${index + 1}. ${exam.examType || 'Exam'} (Year: ${exam.attemptYear || 'N/A'}, Attempt: ${exam.attempt || 'N/A'})`;
+
+          // Check if the exam type is A/L and append stream if available
+          const examType = (exam.examType || '').toLowerCase().replace(/\s+/g, '');
+          if (examType.includes('a/l')) {
+            examHeader += `, Stream: ${exam.stream || 'N/A'}`;
+          }
+
+          pdf.text(examHeader, margin.left + 5, currentY);
+
           pdf.setFont(undefined, 'normal');
           currentY += lineHeight;
           

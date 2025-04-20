@@ -325,6 +325,11 @@ export const submitEmployeeData = async (
               contactId: contactDetails.contactId
                 ? Number(contactDetails.contactId)
                 : 0,
+              emergencyContactName: contactDetails.emergencyContactName || "",
+              emergencyContactMobile: contactDetails.emergencyContactMobile ? Number(contactDetails.emergencyContactMobile) : 0,
+              emergencyContactLandNo: contactDetails.emergencyContactLandNo ? Number(contactDetails.emergencyContactLandNo) : 0,
+              emergencyContactRelation: contactDetails.emergencyContactRelation || "",
+              emergencyContactAddress: contactDetails.emergencyContactAddress || "",
               temporaryAddress: contactDetails.temporaryAddress || "",
               temporaryPostalCode: contactDetails.temporaryPostalCode
                 ? Number(contactDetails.temporaryPostalCode)
@@ -382,17 +387,19 @@ export const submitEmployeeData = async (
                 }))
               : [],
             
-            promotions: Array.isArray(employmentDetails.promotions)
-              ? employmentDetails.promotions.map((promotion) => ({
-                  grade: promotion?.grade || "",
-                  designation: promotion?.designation || "",
-                  durationFrom: promotion ? formatDate(promotion?.durationFrom) : "",
-                  durationTo: promotion ? formatDate(promotion?.durationTo) : "",
-                  location: promotion?.location || "",
-                  function: promotion?.function || "",
-                  subFunction: promotion?.subFunction || "",
-                }))
-              : [],
+              promotions: Array.isArray(employmentDetails.promotions)
+              ? employmentDetails.promotions
+                  .filter(promo => promo.durationFrom && promo.durationTo && promo.grade && promo.designation) // Add any required fields here
+                  .map(promotion => ({
+                    grade: promotion.grade,
+                    designation: promotion.designation,
+                    durationFrom: formatDate(promotion.durationFrom),
+                    durationTo: formatDate(promotion.durationTo),
+                    location: promotion.location || "",
+                    function: promotion.function || "",
+                    subFunction: promotion.subFunction || ""
+                  }))
+              : [],            
           }
         : null,
       
@@ -400,6 +407,7 @@ export const submitEmployeeData = async (
       dependentDetails: Array.isArray(dependentDetails.dependents)
         ? dependentDetails.dependents.map((dependent) => ({
             dependentDetailsID: dependent?.dependentDetailsID || 0,
+            dependentRelationship: dependent?.relationship || "",
             dependentFullName: dependent?.fullName || "",
             dependentGender: dependent?.gender || "",
             dependentDateOfBirth: formatDate(dependent?.dateOfBirth),

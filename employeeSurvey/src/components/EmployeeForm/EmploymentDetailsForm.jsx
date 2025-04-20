@@ -4,7 +4,7 @@
 
 
 
-import React, { useState, useEffect, useRef, useMemo} from "react";
+import React, { useState, useEffect, useRef, useMemo, forwardRef, useImperativeHandle} from "react";
 import {
   TextField,
   Grid,
@@ -70,7 +70,7 @@ const textFieldTheme = createTheme({
   }
 });
 
-const EmploymentDetailsForm = ({ setEmploymentDetails, parentData }) => {
+const EmploymentDetailsForm = forwardRef(({ setEmploymentDetails, parentData }, ref) => {
   const [employmentDetails, setLocalEmploymentDetails] = useState({
     epfNumber: "",
     presentJobType: "",
@@ -133,6 +133,9 @@ const [hasAddedPromotion, setHasAddedPromotion] = useState(false);
   const prevEmploymentDetails = useRef(employmentDetails);
   // Create refs for all required fields to enable focus navigation
   const fieldRefs = useRef({});
+
+  const [submitAttempted, setSubmitAttempted] = useState(false);
+
 
 
 
@@ -247,66 +250,24 @@ useEffect(() => {
 }, [employmentDetails, setEmploymentDetails]);
 
 
+useImperativeHandle(ref, () => ({
+  validateForm: () => {
+    setSubmitAttempted(true); // trigger global showErrors mode
+    const hasFormErrors = validateForm();
+    const hasPromotionErrors = validateAllPromotions();
+    return !(hasFormErrors || hasPromotionErrors);
+  }
+}));
+
+
+
+
 const validateField = (field, value) => {
   let error = "";
   if (!value) error = "This field is required";
   setErrors(prev => ({ ...prev, [field]: error }));
   return error;
 };
-
-
-
-// const validateField = (fieldName, value) => {
-//   let errorMessage = "";
-
-//   switch (fieldName) {
-//     case "presentJobType":
-//       if (!value) {
-//         errorMessage = "Job Type is required";
-//       }
-//       break;
-//     case "presentJobCategory":
-//       if (!value) {
-//         errorMessage = "Job Category is required";
-//       }
-//       break;
-//     case "presentDesignation":
-//       if (!value) {
-//         errorMessage = "Designation is required";
-//       }
-//       break;
-//     case "presentGrade":
-//       if (!value) {
-//         errorMessage = "Grade is required";
-//       }
-//       break;
-//     case "joinedAs":
-//       if (!value) {
-//         errorMessage = "Joined As is required";
-//       }
-//       break;
-//     case "joinedDetails":
-//       if (!value.joinedType) {
-//         errorMessage = "Joined Type is required";
-//       }
-//       break;
-//     case "employmentAddresses":
-//       if (!value || value.location === "") {
-//         errorMessage = "Location is required";
-//       }
-//       break;
-//     case "promotions":
-//       if (!value.grade) {
-//         errorMessage = "Promotion Grade is required";
-//       }
-//       break;
-//     default:
-//       break;
-//   }
-
-//   return errorMessage;
-// };
-
 
 
 
@@ -481,20 +442,6 @@ const handleKeyDown = (e, fieldName, nextFieldName) => {
   const registerFieldRef = (field, element) => {
     if (element) fieldRefs.current[field] = element;
   };
-
-
-  // const handleJoinedDetailsChange = (field, value) => {
-  //   // Clear error when user types
-  //   setErrors(prev => ({
-  //     ...prev,
-  //     [`joinedDetails.${field}`]: ""
-  //   }));
-    
-  //   setLocalEmploymentDetails((prevDetails) => ({
-  //     ...prevDetails,
-  //     joinedDetails: { ...prevDetails.joinedDetails, [field]: value },
-  //   }));
-  // };
 
 
   const handleJoinedDetailChange = (field, value) => {
@@ -843,8 +790,8 @@ const removePromotion = (index) => {
             onKeyDown={(e) => handleKeyDown(e, "presentJobType", "presentJobCategory")}
             inputRef={(el) => registerFieldRef("presentJobType", el)}
             disabled={!isFieldEnabled("presentJobType")}
-            error={!!errors.presentJobTypeDisplay}
-            helperText={errors.presentJobTypeDisplay}
+            error={!!errors.presentJobType && (touched.presentJobType || submitAttempted)} // show error only after touch or submit
+            helperText={(touched.presentJobType || submitAttempted) ? errors.presentJobType : ""}
         >
           <MenuItem value="Permanent">Permanent</MenuItem>
           <MenuItem value="Contract">Contract</MenuItem>
@@ -1445,7 +1392,7 @@ const removePromotion = (index) => {
     </Grid>
     </ThemeProvider>
   );
-};
+});
 
 export default EmploymentDetailsForm;
 

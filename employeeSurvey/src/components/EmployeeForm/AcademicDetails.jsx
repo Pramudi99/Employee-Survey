@@ -1458,7 +1458,7 @@
 
 
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
 import {
   TextField,
   Grid,
@@ -1498,20 +1498,78 @@ const textFieldTheme = createTheme({
   }
 });
 
-const AcademicDetails = ({ setAcademicDetails, parentData }) => {
+const AcademicDetails = forwardRef(({ setAcademicDetails, parentData }, ref) => {
+
+  const OL_SUBJECTS = [
+    { code: "11", label: "Buddhism" },
+    { code: "12", label: "Saivanery" },
+    { code: "14", label: "Catholicism" },
+    { code: "15", label: "Christianity" },
+    { code: "16", label: "Islam" },
+    { code: "21", label: "Sinhala Language & Literature" },
+    { code: "22", label: "Tamil Language & Literature" },
+    { code: "31", label: "English Language" },
+    { code: "32", label: "Mathematics" },
+    { code: "33", label: "History" },
+    { code: "34", label: "Science" },
+    { code: "40", label: "Music (Oriental)" },
+    { code: "41", label: "Music (Western)" },
+    { code: "42", label: "Music (Carnatic)" },
+    { code: "43", label: "Art" },
+    { code: "44", label: "Dancing (Oriental)" },
+    { code: "45", label: "Dancing (Bharata)" },
+    { code: "46", label: "Appreciation of English Literary Texts" },
+    { code: "47", label: "Appreciation of Sinhala Literary Texts" },
+    { code: "48", label: "Appreciation of Tamil Literary Texts" },
+    { code: "49", label: "Appreciation of Arabic Literary Texts" },
+    { code: "50", label: "Drama and Theatre (Sinhala)" },
+    { code: "51", label: "Drama and Theatre (Tamil)" },
+    { code: "52", label: "Drama and Theatre (English)" },
+    { code: "60", label: "Business & Accounting Studies" },
+    { code: "61", label: "Geography" },
+    { code: "62", label: "Civic Education" },
+    { code: "63", label: "Entrepreneurship Studies" },
+    { code: "64", label: "Second Language (Sinhala)" },
+    { code: "65", label: "Second Language (Tamil)" },
+    { code: "66", label: "Pali" },
+    { code: "67", label: "Sanskrit" },
+    { code: "68", label: "French" },
+    { code: "69", label: "German" },
+    { code: "70", label: "Hindi" },
+    { code: "71", label: "Japanese" },
+    { code: "72", label: "Arabic" },
+    { code: "73", label: "Korean" },
+    { code: "74", label: "Chinese" },
+    { code: "75", label: "Russian" },
+    { code: "80", label: "Information & Communication Technology" },
+    { code: "81", label: "Agriculture & Food Technology" },
+    { code: "82", label: "Aquatic Bioresources Technology" },
+    { code: "84", label: "Art & Crafts" },
+    { code: "85", label: "Home Economics" },
+    { code: "86", label: "Health & Physical Education" },
+    { code: "87", label: "Communication & Media Studies" },
+    { code: "88", label: "Design & Construction Technology" },
+    { code: "89", label: "Design & Mechanical Technology" },
+    { code: "90", label: "Design, Electrical & Electronic Technology" },
+    { code: "92", label: "Electronic Writing & Shorthand (Sinhala)" },
+    { code: "93", label: "Electronic Writing & Shorthand (Tamil)" },
+    { code: "94", label: "Electronic Writing & Shorthand (English)" }
+  ];
+  
+
   // Define the streams and subjects
   const streams = {
-    "Maths_Stream": ["Combined Mathematics", "Physics", "Chemistry", "ICT"],
-    "Bio_Science_Stream": ["Biology", "Chemistry", "Physics", "Agricultural Science"],
-    "Commerce_Stream": ["Business Studies", "Accounting", "Economics", "Business Statistics"],
-    "Arts_Stream": [
+    "Maths": ["Combined Mathematics", "Physics", "Chemistry", "ICT"],
+    "Bio Science": ["Biology", "Chemistry", "Physics", "Agricultural Science"],
+    "Commerce": ["Business Studies", "Accounting", "Economics", "Business Statistics"],
+    "Arts": [
       "Buddhism", "Hinduism", "Islam", "Christianity", "Buddhist Civilization", "Hindu Civilization", 
       "Islam Civilization", "Christian Civilization", "Greek and Roman Civilization", "Sinhala", 
       "Tamil", "English", "Pali", "Sanskrit", "Arabic", "Hindi", "Japanese", "Chinese", "Korean", 
       "Malay", "French", "German", "Russian", "Political Science", "History", "Geography", "Logic", 
       "Mass Media", "Dancing", "Music", "Drama", "Arts", "Home Science", "ICT"
     ],
-    "Technology_Stream": ["Engineering Technology", "Science for Technology", "Bio-system Technology", "ICT"]
+    "Technology": ["Engineering Technology", "Science for Technology", "Bio-system Technology", "ICT"]
   };
 
   const [formData, setFormData] = useState({
@@ -1536,6 +1594,73 @@ const AcademicDetails = ({ setAcademicDetails, parentData }) => {
     ],
   });
 
+
+  useImperativeHandle(ref, () => ({
+    validateForm: () => {
+      let valid = true;
+      const newErrors = {
+        schoolLeavingYear: false,
+        schoolLeavingGrade: false,
+        examResults: []
+      };
+
+      if (!formData.schoolLeavingYear || !/^\d{4}$/.test(formData.schoolLeavingYear)) {
+        newErrors.schoolLeavingYear = true;
+        valid = false;
+      }
+      if (!formData.schoolLeavingGrade || parseInt(formData.schoolLeavingGrade) > 13) {
+        newErrors.schoolLeavingGrade = true;
+        valid = false;
+      }
+
+      // Loop through exams
+      formData.examResults.forEach((exam, i) => {
+        const examErrors = {
+          examType: false,
+          indexNumber: false,
+          attemptYear: false,
+          attempt: false,
+          stream: false,
+          subjectTable: []
+        };
+
+        if (!exam.examType) {
+          examErrors.examType = true;
+          valid = false;
+        }
+
+        if (exam.examType === 'A/L' && !exam.stream) {
+          examErrors.stream = true;
+          valid = false;
+        }
+
+        exam.subjectTable.forEach((subj, j) => {
+          const subjectErrors = {
+            subjectName: false,
+            subjectResults: false
+          };
+          if (!subj.subjectName) {
+            subjectErrors.subjectName = true;
+            valid = false;
+          }
+          if (!subj.subjectResults) {
+            subjectErrors.subjectResults = true;
+            valid = false;
+          }
+          examErrors.subjectTable.push(subjectErrors);
+        });
+
+        newErrors.examResults.push(examErrors);
+      });
+
+      setErrors(newErrors);
+      setShowErrors({
+        schoolLeavingYear: !!newErrors.schoolLeavingYear,
+        schoolLeavingGrade: !!newErrors.schoolLeavingGrade,
+      });
+      return valid;
+    }
+  }));
         
 
   // Add errors state to track validation errors
@@ -2104,11 +2229,11 @@ const handleChange = (e, fieldName, examIndex = null, subjectIndex = null) => {
                         error={errors.examResults[examIndex]?.stream}
                         helperText={errors.examResults[examIndex]?.stream ? "Stream is required" : ""}
                       >
-                        <MenuItem value="Maths_Stream">Maths Stream</MenuItem>
-                        <MenuItem value="Bio_Science_Stream">Bio Science Stream</MenuItem>
-                        <MenuItem value="Commerce_Stream">Commerce Stream</MenuItem>
-                        <MenuItem value="Arts_Stream">Arts Stream</MenuItem>
-                        <MenuItem value="Technology_Stream">Technology Stream</MenuItem>
+                         <MenuItem value="Maths">Maths Stream</MenuItem>
+                          <MenuItem value="Bio Science">Bio Science Stream</MenuItem>
+                          <MenuItem value="Commerce">Commerce Stream</MenuItem>
+                          <MenuItem value="Arts">Arts Stream</MenuItem>
+                          <MenuItem value="Technology">Technology Stream</MenuItem>
                       </TextField>
                     </Grid>
                   )}
@@ -2159,48 +2284,61 @@ const handleChange = (e, fieldName, examIndex = null, subjectIndex = null) => {
                       <Grid item xs={5}>
                         {/* For A/L with a selected stream, provide subject dropdown */}
                         {exam.examType === "A/L" && exam.stream ? (
-                         <TextField 
-                         select
-                         label="Subject Name" 
-                         fullWidth 
-                         value={subject.subjectName || ''}
-                         onChange={(e) => handleChange(e, "subjectName", examIndex, subjectIndex)}
-                         onKeyDown={(e) => handleKeyDown(e, getFieldId("subjectResults", examIndex, subjectIndex), "subjectName", examIndex, subjectIndex)}
-                         inputRef={(el) => fieldRefs.current[getFieldId("subjectName", examIndex, subjectIndex)] = el}
-                         required={exam.examType === "A/L"}
-                         error={errors.examResults[examIndex]?.subjectTable[subjectIndex]?.subjectName}
-                         helperText={errors.examResults[examIndex]?.subjectTable[subjectIndex]?.subjectName ? "Subject is required" : ""}
-                         variant="standard"
-                       >
-                         {/* Default empty option */}
-                         <MenuItem value="">Select a subject</MenuItem>
-                         
-                         {/* Always include the current value, even if it's not in the available list */}
-                         {subject.subjectName && 
-                          !getAvailableSubjects(examIndex).includes(subject.subjectName) && 
-                          subject.subjectName !== "" && (
-                           <MenuItem value={subject.subjectName}>{subject.subjectName}</MenuItem>
-                         )}
-                         
-                         {/* Stream-specific subjects that haven't been selected yet */}
-                         {getAvailableSubjects(examIndex).map(availableSubject => (
-                           <MenuItem key={availableSubject} value={availableSubject}>
-                             {availableSubject}
-                           </MenuItem>
-                         ))}
-                       </TextField>
-                        ) : (
-                          // For O/L, keep regular text field
-                          <TextField 
-                            label="Subject Name" 
-                            fullWidth 
-                            value={subject.subjectName} 
-                            onChange={(e) => handleChange(e, "subjectName", examIndex, subjectIndex)} 
-                            onKeyDown={(e) => handleKeyDown(e, getFieldId("subjectResults", examIndex, subjectIndex), "subjectName", examIndex, subjectIndex)}
-                            inputRef={(el) => fieldRefs.current[getFieldId("subjectName", examIndex, subjectIndex)] = el}
-                            variant="standard"
-                          />
-                        )}
+  // A/L subject dropdown based on stream
+  <TextField 
+    select
+    label="Subject Name" 
+    fullWidth 
+    value={subject.subjectName || ''}
+    onChange={(e) => handleChange(e, "subjectName", examIndex, subjectIndex)}
+    onKeyDown={(e) => handleKeyDown(e, getFieldId("subjectResults", examIndex, subjectIndex), "subjectName", examIndex, subjectIndex)}
+    inputRef={(el) => fieldRefs.current[getFieldId("subjectName", examIndex, subjectIndex)] = el}
+    required
+    variant="standard"
+    error={errors.examResults[examIndex]?.subjectTable[subjectIndex]?.subjectName}
+    helperText={errors.examResults[examIndex]?.subjectTable[subjectIndex]?.subjectName ? "Subject is required" : ""}
+  >
+    <MenuItem value="">Select a subject</MenuItem>
+    {subject.subjectName && !getAvailableSubjects(examIndex).includes(subject.subjectName) && (
+      <MenuItem value={subject.subjectName}>{subject.subjectName}</MenuItem>
+    )}
+    {getAvailableSubjects(examIndex).map(sub => (
+      <MenuItem key={sub} value={sub}>{sub}</MenuItem>
+    ))}
+  </TextField>
+) : exam.examType === "O/L" ? (
+  // O/L subject dropdown
+  <TextField 
+    select
+    label="Subject Name" 
+    fullWidth 
+    value={subject.subjectName || ''}
+    onChange={(e) => handleChange(e, "subjectName", examIndex, subjectIndex)}
+    onKeyDown={(e) => handleKeyDown(e, getFieldId("subjectResults", examIndex, subjectIndex), "subjectName", examIndex, subjectIndex)}
+    inputRef={(el) => fieldRefs.current[getFieldId("subjectName", examIndex, subjectIndex)] = el}
+    required
+    variant="standard"
+    error={errors.examResults[examIndex]?.subjectTable[subjectIndex]?.subjectName}
+    helperText={errors.examResults[examIndex]?.subjectTable[subjectIndex]?.subjectName ? "Subject is required" : ""}
+  >
+    <MenuItem value="">Select a subject</MenuItem>
+    {OL_SUBJECTS.map(s => (
+      <MenuItem key={s.code} value={s.label}>{s.label}</MenuItem>
+    ))}
+  </TextField>
+) : (
+  // Default input when examType not selected yet
+  <TextField 
+    label="Subject Name" 
+    fullWidth 
+    value={subject.subjectName} 
+    onChange={(e) => handleChange(e, "subjectName", examIndex, subjectIndex)} 
+    onKeyDown={(e) => handleKeyDown(e, getFieldId("subjectResults", examIndex, subjectIndex), "subjectName", examIndex, subjectIndex)}
+    inputRef={(el) => fieldRefs.current[getFieldId("subjectName", examIndex, subjectIndex)] = el}
+    variant="standard"
+  />
+)}
+
                       </Grid>
                       <Grid item xs={1.5}>
                         <TextField 
@@ -2314,6 +2452,6 @@ const handleChange = (e, fieldName, examIndex = null, subjectIndex = null) => {
     </Grid>
     </ThemeProvider>
   );
-};
+});
 
 export default AcademicDetails;

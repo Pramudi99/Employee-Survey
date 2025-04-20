@@ -377,6 +377,7 @@ const DependentDetailsTable = ({ setDependentDetails, parentData, numberOfDepend
         if (numberOfDependents && numberOfDependents > 0) {
             const newDependents = Array(numberOfDependents).fill().map((_, index) => {
                 return parentData?.dependents?.[index] || { 
+                    relationship: "",
                     fullName: "", 
                     gender: "", 
                     dateOfBirth: "", 
@@ -390,6 +391,7 @@ const DependentDetailsTable = ({ setDependentDetails, parentData, numberOfDepend
             // Initialize errors and touched arrays
             setErrors(Array(numberOfDependents).fill({}));
             setTouched(Array(numberOfDependents).fill({
+                relationship: false,
                 fullName: false,
                 gender: false,
                 dateOfBirth: false,
@@ -440,7 +442,11 @@ const DependentDetailsTable = ({ setDependentDetails, parentData, numberOfDepend
     const validateDependent = (dependent, index) => {
         const dependentErrors = {};
         
-        // All fields are required
+        if (!dependent.relationship || dependent.relationship.trim() === "") {
+            dependentErrors.relationship = "Relationship is required";
+          }
+          
+
         if (!dependent.fullName || dependent.fullName.trim() === "") {
             dependentErrors.fullName = "Full name is required";
         }
@@ -475,6 +481,26 @@ const DependentDetailsTable = ({ setDependentDetails, parentData, numberOfDepend
     const hasValidationErrors = () => {
         return errors.some(errorObj => Object.keys(errorObj).length > 0);
     };
+
+
+    const isRowDisabled = (index) => {
+        if (index === 0) return false; // First row is always enabled
+      
+        const prev = dependentDetails.dependents[index - 1];
+        const prevErrors = errors[index - 1];
+      
+        const requiredFields = ["relationship", "fullName", "gender", "dateOfBirth", "occupation"];
+        const isPrevValid = requiredFields.every(field => 
+          prev?.[field] && !prevErrors?.[field]
+        );
+      
+        if (prev.occupation === "Employed") {
+          return !(isPrevValid && prev.occupationAddress && !prevErrors?.occupationAddress);
+        }
+      
+        return !isPrevValid;
+      };
+      
 
     // Handle field updates
     const handleDependentChange = (index, field, value) => {
@@ -515,7 +541,8 @@ const DependentDetailsTable = ({ setDependentDetails, parentData, numberOfDepend
                     <Table>
                         <TableHead>
                             <TableRow>
-                                <TableCell>Dependent</TableCell>
+                                <TableCell>No</TableCell>
+                                <TableCell>Relationship*</TableCell>
                                 <TableCell>Full Name*</TableCell>
                                 <TableCell>Gender*</TableCell>
                                 <TableCell>Date of Birth*</TableCell>
@@ -527,6 +554,30 @@ const DependentDetailsTable = ({ setDependentDetails, parentData, numberOfDepend
                             {dependentDetails.dependents.map((dependent, index) => (
                                 <TableRow key={index}>
                                     <TableCell>{index + 1}</TableCell>
+
+                                    <TableCell>
+                                        <TextField
+                                        fullWidth
+                                        select
+                                        label="Relationship"
+                                        value={dependent.relationship}
+                                        onChange={(e) => handleDependentChange(index, "relationship", e.target.value)}
+                                        onBlur={() => handleBlur(index, "relationship")}
+                                        error={shouldShowError(index, "relationship")}
+                                        disabled={isRowDisabled(index)}
+                                        required
+                                        >
+                                        <MenuItem value="Spouse">Spouse</MenuItem>
+                                        <MenuItem value="Parent">Parent</MenuItem>
+                                        <MenuItem value="Child">Child</MenuItem>
+                                        <MenuItem value="Sibling">Sibling</MenuItem>
+                                        <MenuItem value="Other">Other</MenuItem>
+                                        </TextField>
+                                        {shouldShowError(index, "relationship") && (
+                                        <FormHelperText error>{errors[index]?.relationship}</FormHelperText>
+                                        )}
+                                    </TableCell>
+
                                     <TableCell>
                                         <TextField 
                                             fullWidth 
@@ -537,6 +588,7 @@ const DependentDetailsTable = ({ setDependentDetails, parentData, numberOfDepend
                                             error={shouldShowError(index, "fullName")}
                                             helperText={shouldShowError(index, "fullName") ? errors[index].fullName : ""}
                                             required
+                                            disabled={isRowDisabled(index)}
                                         />
                                     </TableCell>
                                     <TableCell>
@@ -549,6 +601,7 @@ const DependentDetailsTable = ({ setDependentDetails, parentData, numberOfDepend
                                             onBlur={() => handleBlur(index, "gender")}
                                             error={shouldShowError(index, "gender")}
                                             required
+                                            disabled={isRowDisabled(index)}
                                         >
                                             <MenuItem value="Male">Male</MenuItem>
                                             <MenuItem value="Female">Female</MenuItem>
@@ -569,6 +622,7 @@ const DependentDetailsTable = ({ setDependentDetails, parentData, numberOfDepend
                                             error={shouldShowError(index, "dateOfBirth")}
                                             helperText={shouldShowError(index, "dateOfBirth") ? errors[index].dateOfBirth : ""}
                                             required
+                                            disabled={isRowDisabled(index)}
                                         />
                                     </TableCell>
                                     <TableCell>
@@ -581,6 +635,7 @@ const DependentDetailsTable = ({ setDependentDetails, parentData, numberOfDepend
                                             onBlur={() => handleBlur(index, "occupation")}
                                             error={shouldShowError(index, "occupation")}
                                             required
+                                            disabled={isRowDisabled(index)}
                                         >
                                             <MenuItem value="Employed">Employed</MenuItem>
                                             <MenuItem value="Studies">Studies</MenuItem>
