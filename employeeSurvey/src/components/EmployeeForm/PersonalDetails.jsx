@@ -1778,6 +1778,24 @@ const PersonalDetailsForm = forwardRef(({ setPersonalDetails, parentData, checkE
     const { name, value } = e.target;
     let processedValue = value;
     let additionalUpdates = {};
+
+    if (name === "drivingLicense" || name === "passportNumber") {
+      const upperValue = value.toUpperCase(); // force uppercase
+    
+      setFormData(prevFormData => ({
+        ...prevFormData,
+        [name]: upperValue,
+      }));
+    
+      setPersonalDetails(prev => ({
+        ...prev,
+        [name]: upperValue,
+      }));
+    
+      return; // exit early to skip the rest of handleChange
+    }
+    
+    
   
     // Handle nameWithInitials capitalization and validation
     if (name === "nameWithInitials") {

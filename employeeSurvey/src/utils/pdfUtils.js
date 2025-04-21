@@ -409,8 +409,10 @@ export const downloadEmployeeDataAsPDF = async (epfNumber) => {
 
 
      // 2. CONTACT DETAILS SECTION
-checkPageSpace();
-addSectionHeader('2. CONTACT DETAILS');
+     pdf.addPage(); // <-- This forces a new page
+     currentY = margin.top; // Reset Y position on the new page
+     addSectionHeader('2. CONTACT DETAILS');
+     
 
 if (employeeData.contactDetails && employeeData.contactDetails.length > 0) {
   const contact = employeeData.contactDetails[0];
@@ -524,7 +526,48 @@ if (employeeData.contactDetails && employeeData.contactDetails.length > 0) {
   pdf.text('Telephone Number:', margin.left, currentY);
   pdf.setFont(undefined, 'normal');
   pdf.text(String(contact.telephoneNumber || 'N/A'), margin.left + labelWidth, currentY);
-  currentY += lineHeight;
+  currentY += lineHeight * 1.5;
+  
+
+  checkPageSpace(); // Optional, in case content is near page bottom
+
+pdf.setFillColor(235, 235, 235);
+pdf.rect(margin.left - 2, currentY - 4, 173, 6, 'F');
+pdf.setFont(undefined, 'bold');
+pdf.text('Emergency Contact Details:', margin.left, currentY);
+pdf.setFont(undefined, 'normal');
+currentY += lineHeight;
+
+pdf.setFont(undefined, 'bold');
+pdf.text('Relation:', margin.left, currentY);
+pdf.setFont(undefined, 'normal');
+pdf.text(String(contact.emergencyContactRelation || 'N/A'), margin.left + labelWidth, currentY);
+currentY += lineHeight;
+
+pdf.setFont(undefined, 'bold');
+pdf.text('Name:', margin.left, currentY);
+pdf.setFont(undefined, 'normal');
+pdf.text(String(contact.emergencyContactName || 'N/A'), margin.left + labelWidth, currentY);
+currentY += lineHeight;
+
+pdf.setFont(undefined, 'bold');
+pdf.text('Mobile Number:', margin.left, currentY);
+pdf.setFont(undefined, 'normal');
+pdf.text(String(contact.emergencyContactMobile || 'N/A'), margin.left + labelWidth, currentY);
+currentY += lineHeight;
+
+pdf.setFont(undefined, 'bold');
+pdf.text('Land Number:', margin.left, currentY);
+pdf.setFont(undefined, 'normal');
+pdf.text(String(contact.emergencyContactLandNo || 'N/A'), margin.left + labelWidth, currentY);
+currentY += lineHeight;
+
+pdf.setFont(undefined, 'bold');
+pdf.text('Address:', margin.left, currentY);
+pdf.setFont(undefined, 'normal');
+pdf.text(String(contact.emergencyContactAddress || 'N/A'), margin.left + labelWidth, currentY);
+currentY += lineHeight;
+
 } else {
   pdf.setFont(undefined, 'bold');
   pdf.text('Contact Information:', margin.left, currentY);
@@ -533,8 +576,13 @@ if (employeeData.contactDetails && employeeData.contactDetails.length > 0) {
   currentY += lineHeight;
 }
 
+
+
+
+
 // 3. EMPLOYMENT DETAILS SECTION
-checkPageSpace();
+pdf.addPage(); // <-- This forces a new page
+currentY = margin.top; // Reset Y position on the new page
 addSectionHeader('3. EMPLOYMENT DETAILS');
 
 if (employeeData.employmentDetails) {
@@ -548,6 +596,18 @@ if (employeeData.employmentDetails) {
   pdf.text('Current Position:', margin.left, currentY);
   pdf.setFont(undefined, 'normal');
   currentY += lineHeight;
+
+  const jobTypeMap = {
+    1: "Permanent",
+    2: "Contract"
+  };
+  
+  pdf.setFont(undefined, 'bold');
+  pdf.text('Present Job Type:', margin.left, currentY);
+  pdf.setFont(undefined, 'normal');
+  pdf.text(jobTypeMap[employment.presentJobType] || 'N/A', margin.left + labelWidth, currentY);
+  currentY += lineHeight ;
+  
   
   pdf.setFont(undefined, 'bold');
   pdf.text('Job Category:', margin.left, currentY);
@@ -582,6 +642,7 @@ if (employeeData.employmentDetails) {
     // pdf.setFont(undefined, 'normal');
     // pdf.text(String(employment.joinedAs || 'N/A'), margin.left + labelWidth, currentY);
     // currentY += lineHeight;
+
     
     pdf.setFont(undefined, 'bold');
     pdf.text('Joined Type:', margin.left, currentY);
@@ -631,121 +692,151 @@ if (employment.employmentAddresses && employment.employmentAddresses.length > 0)
   pdf.text('Employment Locations:', margin.left, currentY);
   pdf.setFont(undefined, 'normal');
   currentY += lineHeight;
-  
+
   // Define column widths and positions
   const col1 = margin.left;
   const col2 = margin.left + 90;
   const colWidth = 85;
-  
+
   // Table headers with background
   pdf.setFillColor(235, 235, 235);
   pdf.rect(col1, currentY - 5, colWidth, 7, 'F');
   pdf.rect(col2, currentY - 5, colWidth, 7, 'F');
-  
+
   pdf.setFont(undefined, 'bold');
   pdf.text('Permanent Location', col1 + 5, currentY);
   pdf.text('Temporary Location', col2 + 5, currentY);
   pdf.setFont(undefined, 'normal');
   currentY += lineHeight;
-  
+
   // Find permanent and temporary addresses
-  const permanentAddresses = employment.employmentAddresses.filter(addr => 
+  const permanentAddresses = employment.employmentAddresses.filter(addr =>
     addr.addressType?.toLowerCase() === 'permanent');
-  const temporaryAddresses = employment.employmentAddresses.filter(addr => 
+  const temporaryAddresses = employment.employmentAddresses.filter(addr =>
     addr.addressType?.toLowerCase() === 'temporary');
-  
-  // Calculate how many rows we need (maximum of permanent or temporary count)
+
+  // Calculate how many rows we need
   const rowCount = Math.max(permanentAddresses.length, temporaryAddresses.length);
-  
-  // Loop through and display addresses side by side
+
   for (let i = 0; i < rowCount; i++) {
     checkPageSpace();
-    
-    // Left column - Permanent
-    if (i < permanentAddresses.length) {
-      const pAddr = permanentAddresses[i];
-      pdf.text(`Location: ${pAddr.location || 'N/A'}`, col1 + 5, currentY);
-      currentY += lineHeight - 2;
-      pdf.text(`Function: ${pAddr.function || 'N/A'}`, col1 + 5, currentY);
-      currentY += lineHeight - 2;
-      pdf.text(`Sub-Function: ${pAddr.subFunction || 'N/A'}`, col1 + 5, currentY);
-      
-      // If we have more permanent addresses, add a separator
-      if (i < permanentAddresses.length - 1) {
-        currentY += lineHeight - 2;
-        pdf.setDrawColor(200, 200, 200);
-        pdf.line(col1 + 5, currentY, col1 + colWidth - 5, currentY);
-      }
+
+    const rowHeight = lineHeight * 3;
+    const pAddr = permanentAddresses[i] || {};
+    const tAddr = temporaryAddresses[i] || {};
+
+    const baseY = currentY;
+
+    // Permanent column
+    pdf.text(`Location: ${pAddr.location || 'N/A'}`, col1 + 5, baseY);
+    pdf.text(`Function: ${pAddr.function || 'N/A'}`, col1 + 5, baseY + lineHeight);
+    pdf.text(`Sub-Function: ${pAddr.subFunction || 'N/A'}`, col1 + 5, baseY + lineHeight * 2);
+
+    // Temporary column
+    pdf.text(`Location: ${tAddr.location || 'N/A'}`, col2 + 5, baseY);
+    pdf.text(`Function: ${tAddr.function || 'N/A'}`, col2 + 5, baseY + lineHeight);
+    pdf.text(`Sub-Function: ${tAddr.subFunction || 'N/A'}`, col2 + 5, baseY + lineHeight * 2);
+
+    // Divider lines (optional)
+    if (i < rowCount - 1) {
+      pdf.setDrawColor(200, 200, 200);
+      pdf.line(col1 + 5, baseY + rowHeight, col1 + colWidth - 5, baseY + rowHeight);
+      pdf.line(col2 + 5, baseY + rowHeight, col2 + colWidth - 5, baseY + rowHeight);
     }
-    
-    // Reset Y position to start of this entry
-    const entryStartY = currentY - (lineHeight * 2 - 4); 
-    
-    // Right column - Temporary
-    if (i < temporaryAddresses.length) {
-      const tAddr = temporaryAddresses[i];
-      pdf.text(`Location: ${tAddr.location || 'N/A'}`, col2 + 5, entryStartY);
-      pdf.text(`Function: ${tAddr.function || 'N/A'}`, col2 + 5, entryStartY + lineHeight - 2);
-      pdf.text(`Sub-Function: ${tAddr.subFunction || 'N/A'}`, col2 + 5, entryStartY + lineHeight * 2 - 4);
-      
-      // If we have more temporary addresses, add a separator
-      if (i < temporaryAddresses.length - 1) {
-        pdf.setDrawColor(200, 200, 200);
-        pdf.line(col2 + 5, entryStartY + lineHeight * 3 - 6, col2 + colWidth - 5, entryStartY + lineHeight * 3 - 6);
-      }
-    }
-    
-    // Advance to the next set of addresses
-    currentY += lineHeight;
+
+    currentY += rowHeight + 2; // spacing between rows
   }
-  
-  currentY += lineHeight * 2; 
+
+  currentY += lineHeight; // extra spacing after section
 }
+
       
      // Promotion history
-if (employment.promotions && employment.promotions.length > 0) {
-  checkPageSpace();
-  pdf.setFont(undefined, 'bold');
-  pdf.text('Promotion History:', margin.left, currentY);
-  pdf.setFont(undefined, 'normal');
-  currentY += lineHeight;
-  
-  // Table header for promotions
-  pdf.setFillColor(235, 235, 235);
-  pdf.rect(margin.left, currentY - 5, 175, 7, 'F');
-  pdf.setFont(undefined, 'bold');
-  
-  pdf.text('Grade', margin.left + 2, currentY);
-  pdf.text('Designation', margin.left + 20, currentY);
-  pdf.text('From', margin.left + 47, currentY);
-  pdf.text('To', margin.left + 69, currentY);
-  pdf.text('Location', margin.left + 91, currentY);
-  pdf.text('Function', margin.left + 117, currentY);
-  pdf.text('Sub-Function', margin.left + 147, currentY);
-  pdf.setFont(undefined, 'normal');
-  currentY += lineHeight;
-  
-  employment.promotions.forEach((promotion) => {
-    checkPageSpace(10);
+     if (employment.promotions && employment.promotions.length > 0) {
+      checkPageSpace();
+      pdf.setFont(undefined, 'bold');
+      pdf.text('Promotion History:', margin.left, currentY);
+      pdf.setFont(undefined, 'normal');
+      currentY += lineHeight;
     
-    // All details in one line
-    pdf.text(promotion.grade || '', margin.left + 2, currentY);
-    pdf.text(promotion.designation || '', margin.left + 20, currentY);
+      // Table header
+      pdf.setFillColor(235, 235, 235);
+      pdf.rect(margin.left, currentY - 5, 175, 7, 'F');
+      pdf.setFont(undefined, 'bold');
     
-    pdf.text(formatDate(promotion.durationFrom), margin.left + 47, currentY);
-    pdf.text(formatDate(promotion.durationTo), margin.left + 69, currentY);
-    pdf.text(promotion.location || '', margin.left + 91, currentY);
-    pdf.text(promotion.function || '', margin.left + 117, currentY);
-    pdf.text(promotion.subFunction || '', margin.left + 147, currentY);
+      const colWidths = {
+        grade: 15,
+        designation: 25,
+        from: 18,
+        to: 18,
+        location: 25,
+        function: 25,
+        subFunction: 30,
+      };
     
-    // Add divider line and spacing
-    currentY += lineHeight;
-    pdf.setDrawColor(200, 200, 200);
-    pdf.line(margin.left + 5, currentY, margin.left + 300, currentY);
-    pdf.setDrawColor(0, 0, 0);
-    currentY += lineHeight * 0.5;
-  });
-}
+      const colPositions = {
+        grade: margin.left + 2,
+        designation: margin.left + 18,
+        from: margin.left + 45,
+        to: margin.left + 65,
+        location: margin.left + 85,
+        function: margin.left + 110,
+        subFunction: margin.left + 135,
+      };
+    
+      pdf.text('Grade', colPositions.grade, currentY);
+      pdf.text('Designation', colPositions.designation, currentY);
+      pdf.text('From', colPositions.from, currentY);
+      pdf.text('To', colPositions.to, currentY);
+      pdf.text('Location', colPositions.location, currentY);
+      pdf.text('Function', colPositions.function, currentY);
+      pdf.text('Sub-Function', colPositions.subFunction, currentY);
+      pdf.setFont(undefined, 'normal');
+      currentY += lineHeight;
+    
+      employment.promotions.forEach((promotion) => {
+        checkPageSpace(15);
+    
+        // Use splitTextToSize for each column cell
+        const lines = {
+          grade: pdf.splitTextToSize(promotion.grade || '', colWidths.grade),
+          designation: pdf.splitTextToSize(promotion.designation || '', colWidths.designation),
+          from: pdf.splitTextToSize(formatDate(promotion.durationFrom), colWidths.from),
+          to: pdf.splitTextToSize(formatDate(promotion.durationTo), colWidths.to),
+          location: pdf.splitTextToSize(promotion.location || '', colWidths.location),
+          function: pdf.splitTextToSize(promotion.function || '', colWidths.function),
+          subFunction: pdf.splitTextToSize(promotion.subFunction || '', colWidths.subFunction),
+        };
+    
+        const maxLines = Math.max(
+          lines.grade.length,
+          lines.designation.length,
+          lines.from.length,
+          lines.to.length,
+          lines.location.length,
+          lines.function.length,
+          lines.subFunction.length
+        );
+    
+        for (let i = 0; i < maxLines; i++) {
+          if (i > 0) checkPageSpace(7); // each wrapped line might need space
+          pdf.text(lines.grade[i] || '', colPositions.grade, currentY);
+          pdf.text(lines.designation[i] || '', colPositions.designation, currentY);
+          pdf.text(lines.from[i] || '', colPositions.from, currentY);
+          pdf.text(lines.to[i] || '', colPositions.to, currentY);
+          pdf.text(lines.location[i] || '', colPositions.location, currentY);
+          pdf.text(lines.function[i] || '', colPositions.function, currentY);
+          pdf.text(lines.subFunction[i] || '', colPositions.subFunction, currentY);
+          currentY += lineHeight;
+        }
+    
+        pdf.setDrawColor(200, 200, 200);
+        pdf.line(margin.left, currentY, margin.left + 175, currentY);
+        pdf.setDrawColor(0, 0, 0);
+        currentY += lineHeight * 0.5;
+      });
+    }
+    
       
     } else {
       addField('Employment Information', 'No employment details available');
@@ -823,8 +914,8 @@ if (employeeData.spouseDetails &&
     // 6/7. DEPENDENT DETAILS SECTION
     const dependentSectionNumber =
     employeeData.spouseDetails && Object.keys(employeeData.spouseDetails).length > 0
-      ? '6'
-      : '5';
+      ? '5'
+      : '4';
     
     const dependents = employeeData.dependentDetails?.dependents || employeeData.dependents || [];
     
@@ -832,12 +923,13 @@ if (employeeData.spouseDetails &&
     checkPageSpace();
     addSectionHeader(`${dependentSectionNumber}. DEPENDENT DETAILS`);
     
+    
     pdf.setFont(undefined, 'normal');
     pdf.text(`Total Number of Dependents: ${employeeData.numberOfDependents || dependents.length}`, margin.left, currentY);
     currentY += lineHeight * 1.5;
     
     const headers = ['Name', 'Gender', 'Date of Birth', 'Occupation', 'Occupation Address'];
-    const columnWidths = [45, 25, 30, 35, 60];
+    const columnWidths = [45, 22, 28, 30, 45];
     
     // Draw header background
     // Draw header background
@@ -888,7 +980,6 @@ if (employeeData.spouseDetails &&
 
 
 
-
 // Update section numbers based on whether spouse details exist AND marital status is married
 const isMarriedWithSpouseDetails = 
   employeeData.spouseDetails && 
@@ -898,7 +989,7 @@ const isMarriedWithSpouseDetails =
 
   pdf.addPage();
  currentY = margin.top; 
-const academicSectionNumber = isMarriedWithSpouseDetails ? '5' : '4';
+const academicSectionNumber = isMarriedWithSpouseDetails ? '6' : '5';
 checkPageSpace();
 addSectionHeader(`${academicSectionNumber}. ACADEMIC DETAILS`);
 

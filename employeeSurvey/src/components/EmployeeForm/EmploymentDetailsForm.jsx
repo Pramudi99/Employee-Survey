@@ -582,6 +582,22 @@ const getSubFunctionSuggestions = (location, functionValue) => {
     };
   });
 };
+
+
+const canAddPromotion = () => {
+  if (employmentDetails.promotions.length === 0) return true;
+
+  const lastPromotion = employmentDetails.promotions[employmentDetails.promotions.length - 1];
+
+  // Check if all fields are filled
+  return Object.entries(lastPromotion).every(([key, value]) => {
+    if (key === "subFunction" && !lastPromotion.function) return true; // subFunction is optional if function not filled
+    return value !== "";
+  });
+};
+
+
+
 // Update the addPromotion function to initialize errors
 const addPromotion = () => {
   setHasAddedPromotion(true);
@@ -1382,10 +1398,18 @@ const removePromotion = (index) => {
         </Grid>
       ))}
 
-      <Grid item xs={12}>
-            <Button variant="text" startIcon={<Add />} onClick={addPromotion} sx={{ mt: 2 }}>
-                Add Promotion
-            </Button>
+      <Grid item xs={12} sx={{ ml: 2, mt: -2 }}>
+        
+      <Button 
+          variant="text" 
+          startIcon={<Add />} 
+          onClick={addPromotion} 
+          sx={{ mt: 2 }}
+          disabled={!canAddPromotion()} // Disable based on validation
+        >
+          Add Promotion
+        </Button>
+
       </Grid>
       </Grid>
     </Grid>
