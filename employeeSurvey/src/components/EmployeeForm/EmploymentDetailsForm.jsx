@@ -175,7 +175,8 @@ useEffect(() => {
     }
     
     // Get the EPF number from parentData
-    const epfNumber = parentData?.epfNumber || prevDetails.epfNumber;
+    const epfNumber = prevDetails.epfNumber;
+
     
     // Otherwise, handle regular updates
     const newDetails = {
@@ -191,7 +192,7 @@ useEffect(() => {
       joinedDetails: parentData?.joinedDetails
         ? {
             joinedType: parentData.joinedDetails.joinedType || prevDetails.joinedDetails.joinedType,
-            epfNumber: epfNumber, // Make sure to set here too
+            epfNumber: prevDetails.joinedDetails.epfNumber || "",
             designation: parentData.joinedDetails.designation || prevDetails.joinedDetails.designation,
             grade: parentData.joinedDetails.grade || prevDetails.joinedDetails.grade,
             date: parentData.joinedDetails.date || prevDetails.joinedDetails.date,
@@ -941,7 +942,6 @@ const removePromotion = (index) => {
               fullWidth
               label="EPF Number"
               value={employmentDetails.epfNumber || employmentDetails.joinedDetails.epfNumber || ""}
-              InputProps={{ readOnly: true }}
               onChange={(e) => {
                 // Update both locations to keep them in sync
                 setLocalEmploymentDetails(prev => ({
@@ -1044,7 +1044,6 @@ const removePromotion = (index) => {
               fullWidth
               label="Contract No"
               value={employmentDetails.epfNumber || employmentDetails.joinedDetails.epfNumber || ""}
-              InputProps={{ readOnly: true }}
               onChange={(e) => {
                 // Update both locations to keep them in sync
                 setLocalEmploymentDetails(prev => ({

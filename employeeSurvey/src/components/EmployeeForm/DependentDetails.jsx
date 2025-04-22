@@ -308,7 +308,7 @@ const DependentDetailsTable = forwardRef(({ setDependentDetails, parentData, num
                                         <TextField
                                         fullWidth
                                         select
-                                        label="Relationship"
+                                        label="Relationship" 
                                         value={dependent.relationship}
                                         onChange={(e) => handleDependentChange(index, "relationship", e.target.value)}
                                         onBlur={() => handleBlur(index, "relationship")}

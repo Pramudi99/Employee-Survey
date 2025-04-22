@@ -1,4 +1,7 @@
-// import React, { useState, useEffect, useRef, useCallback } from "react";
+
+
+
+// import React, { useState, useEffect, useRef, useCallback,  forwardRef, useImperativeHandle  } from "react";
 // import { TextField, Grid, MenuItem, Typography } from "@mui/material";
 // import { createTheme, ThemeProvider } from "@mui/material/styles";
 // import CameraAltIcon from '@mui/icons-material/CameraAlt';
@@ -50,7 +53,7 @@
 //   }
 // });
 
-// const PersonalDetailsForm = ({ setPersonalDetails, parentData, checkEPFExistence }) => {
+// const PersonalDetailsForm = forwardRef(({ setPersonalDetails, parentData, checkEPFExistence }, ref) => {
 //   const [formData, setFormData] = useState({
 //     profileImage: null,
 //     imageContentType: "",
@@ -225,13 +228,13 @@
 //     }
 
 //     // Check if contains only numbers
-//     if (!/^\d*$/.test(value)) {
+//     if (!/^[A-Z0-9]*$/.test(value)) {
 //       setErrors(prev => ({...prev, epfNumber: true}));
-//       setErrorMessages(prev => ({...prev, epfNumber: "EPF Number must contain only numbers"}));
+//       setErrorMessages(prev => ({...prev, epfNumber: "EPF Number must contain only uppercase letters and numbers"}));
 //       setShowErrors(prev => ({...prev, epfNumber: true}));
 //       return false;
 //     }
-
+    
 //     // Check length constraints
 //     if (value.length < 4) {
 //       setErrors(prev => ({...prev, epfNumber: true}));
@@ -372,31 +375,24 @@
 //     } 
 
 //     else if (name === "numberOfDependents") {
-//       // Check if it's empty
-//       if (!value || value.toString().trim() === "") {
+//       if (value === "" || value === null || value === undefined) {
 //         isValid = false;
 //         message = "Number of Dependents is required";
-//       } 
-//       // Check if it's a valid number between 0 and 15
-//       else {
+//       } else {
 //         const numValue = parseInt(value, 10);
 //         if (isNaN(numValue)) {
 //           isValid = false;
 //           message = "Please enter a valid number";
-//           setShowErrors(prev => ({...prev, [name]: true}));
-//         } 
-//         else if (numValue < 0) {
+//         } else if (numValue < 0) {
 //           isValid = false;
 //           message = "Minimum value is 0";
-//           setShowErrors(prev => ({...prev, [name]: true}));
-//         }
-//         else if (numValue > 15) {
+//         } else if (numValue > 15) {
 //           isValid = false;
 //           message = "Maximum value is 15";
-//           setShowErrors(prev => ({...prev, [name]: true}));
 //         }
 //       }
 //     }
+    
 
 //     else {
 //       // Default message for other fields
@@ -505,7 +501,24 @@
 //   };
 
 
+ 
+//   useImperativeHandle(ref, () => ({
+//     validateForm: () => {
+//       let isValid = true;
+//       for (const key of Object.keys(errors)) {
+//         const value = formData[key];
+//         const isEmpty = value === undefined || value === null || value === "";
   
+//         if (isFieldRequired(key) && (isEmpty || errors[key])) {
+//           setShowErrors((prev) => ({ ...prev, [key]: true }));
+//           isValid = false;
+//         }
+//       }
+//       return isValid;
+//     }
+//   }));
+  
+
 
 
 //   const capitalizeEachWord = (str) => {
@@ -520,6 +533,24 @@
 //     const { name, value } = e.target;
 //     let processedValue = value;
 //     let additionalUpdates = {};
+
+//     if (name === "drivingLicense" || name === "passportNumber") {
+//       const upperValue = value.toUpperCase(); // force uppercase
+    
+//       setFormData(prevFormData => ({
+//         ...prevFormData,
+//         [name]: upperValue,
+//       }));
+    
+//       setPersonalDetails(prev => ({
+//         ...prev,
+//         [name]: upperValue,
+//       }));
+    
+//       return; // exit early to skip the rest of handleChange
+//     }
+    
+    
   
 //     // Handle nameWithInitials capitalization and validation
 //     if (name === "nameWithInitials") {
@@ -582,10 +613,23 @@
   
 //     // Special handling for EPF number
 //     if (name === "epfNumber") {
-//       // Only allow numeric input
-//       if (!/^\d*$/.test(value)) {
-//         return;
+//       if (name === "epfNumber") {
+//         const cleanedValue = value.toUpperCase().replace(/[^A-Z0-9]/g, ""); // remove symbols and force uppercase
+      
+//         setFormData(prevFormData => ({
+//           ...prevFormData,
+//           epfNumber: cleanedValue
+//         }));
+      
+//         setPersonalDetails(prev => ({
+//           ...prev,
+//           epfNumber: cleanedValue
+//         }));
+      
+//         await validateEPFNumber(cleanedValue);
+//         return; // exit to skip the general update below
 //       }
+      
 //       // Validate EPF number as user types
 //       await validateEPFNumber(value);
 //     }
@@ -1227,9 +1271,13 @@
 //     </Grid>
 //     </ThemeProvider>
 //   );
-// };
+// });
 
 // export default PersonalDetailsForm;
+
+
+
+
 
 
 
@@ -1251,6 +1299,9 @@ import { TextField, Grid, MenuItem, Typography } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
 import { Button, IconButton } from "@mui/material";
+import LockIcon from '@mui/icons-material/Lock';
+import LockOpenIcon from '@mui/icons-material/LockOpen';
+
 
 // Religion mapping between UI strings and DB numbers
 const religionMapping = {
@@ -1378,6 +1429,9 @@ const PersonalDetailsForm = forwardRef(({ setPersonalDetails, parentData, checkE
     numberOfDependents: ["profileImage","epfNumber", "title", "nameWithInitials", "fullName", "nicNumber", "dateOfBirth", "maritalStatus", "religion", "race"]
   };
 
+
+  const [isNicLocked, setIsNicLocked] = useState(false);
+
   // Add this new state for the image preview
   const [imagePreview, setImagePreview] = useState(null);
 
@@ -1442,17 +1496,18 @@ const PersonalDetailsForm = forwardRef(({ setPersonalDetails, parentData, checkE
   };
 
 
-   // NIC validation logic
-   const validateNIC = (nic) => {
-    // Check NIC format (either 9 digits + V/X or 12 digits)
+  const validateNIC = (nic) => {
     const isValid = /^\d{9}[VvXx]$/.test(nic) || /^\d{12}$/.test(nic);
     if (isValid) {
-      setIsNicValidated(true); // Lock the NIC field after validation
+      setIsNicValidated(true);
+      setIsNicLocked(true);  // Lock it only after successful validation
       return true;
     }
-    setIsNicValidated(false); // Reset validation status if NIC is invalid
+    setIsNicValidated(false);
+    setIsNicLocked(false);  // Keep it unlocked if invalid
     return false;
   };
+  
 
 
   const [isEpfValid, setIsEpfValid] = useState(false);
@@ -1473,13 +1528,13 @@ const PersonalDetailsForm = forwardRef(({ setPersonalDetails, parentData, checkE
     }
 
     // Check if contains only numbers
-    if (!/^\d*$/.test(value)) {
+    if (!/^[A-Z0-9]*$/.test(value)) {
       setErrors(prev => ({...prev, epfNumber: true}));
-      setErrorMessages(prev => ({...prev, epfNumber: "EPF Number must contain only numbers"}));
+      setErrorMessages(prev => ({...prev, epfNumber: "EPF Number must contain only uppercase letters and numbers"}));
       setShowErrors(prev => ({...prev, epfNumber: true}));
       return false;
     }
-
+    
     // Check length constraints
     if (value.length < 4) {
       setErrors(prev => ({...prev, epfNumber: true}));
@@ -1858,10 +1913,23 @@ const PersonalDetailsForm = forwardRef(({ setPersonalDetails, parentData, checkE
   
     // Special handling for EPF number
     if (name === "epfNumber") {
-      // Only allow numeric input
-      if (!/^\d*$/.test(value)) {
-        return;
+      if (name === "epfNumber") {
+        const cleanedValue = value.toUpperCase().replace(/[^A-Z0-9]/g, ""); // remove symbols and force uppercase
+      
+        setFormData(prevFormData => ({
+          ...prevFormData,
+          epfNumber: cleanedValue
+        }));
+      
+        setPersonalDetails(prev => ({
+          ...prev,
+          epfNumber: cleanedValue
+        }));
+      
+        await validateEPFNumber(cleanedValue);
+        return; // exit to skip the general update below
       }
+      
       // Validate EPF number as user types
       await validateEPFNumber(value);
     }
@@ -2232,27 +2300,41 @@ const PersonalDetailsForm = forwardRef(({ setPersonalDetails, parentData, checkE
           />
         </Grid>
         <Grid item xs={4}>
-          <TextField 
-            label="NIC Number" 
-            name="nicNumber" 
-            fullWidth 
-            variant="outlined" 
-            value={formData.nicNumber} 
-            onChange={handleChange} 
-            onFocus={handleFocus}
-            onBlur={handleBlur}
-            onKeyDown={(e) => handleKeyDown(e, "nicNumber")}
-            inputRef={(el) => fieldRefs.current["nicNumber"] = el}
-            required 
-            error={shouldShowError("nicNumber")}
-            helperText={getHelperText("nicNumber")}
-            inputProps={{ maxLength: 12 }}
-            placeholder="9 digits + V/X or 12 digits"
-            InputProps={{
-              readOnly: isNicValidated || !areDependenciesMet("nicNumber")// Lock the NIC field once validated
-            }}
+        <TextField 
+  label="NIC Number" 
+  name="nicNumber" 
+  fullWidth 
+  variant="outlined" 
+  value={formData.nicNumber} 
+  onChange={handleChange} 
+  onFocus={handleFocus}
+  onBlur={handleBlur}
+  onKeyDown={(e) => handleKeyDown(e, "nicNumber")}
+  inputRef={(el) => fieldRefs.current["nicNumber"] = el}
+  required 
+  error={shouldShowError("nicNumber")}
+  helperText={getHelperText("nicNumber")}
+  inputProps={{ maxLength: 12 }}
+  placeholder="9 digits + V/X or 12 digits"
+  InputProps={{
+    readOnly: isNicLocked || !areDependenciesMet("nicNumber"),
+    endAdornment: isNicLocked && (
+      <IconButton
+        onClick={() => {
+          setIsNicLocked(false); 
+          setIsNicValidated(false); // allow re-entry
+        }}
+        edge="end"
+        size="small"
+        sx={{ ml: 1 }}
+        aria-label="unlock-nic"
+      >
+        <LockIcon fontSize="small" />
+      </IconButton>
+    )
+  }}
+/>
 
-          />
         </Grid>
         <Grid item xs={12} sm={4}>
           <TextField 
@@ -2506,6 +2588,22 @@ const PersonalDetailsForm = forwardRef(({ setPersonalDetails, parentData, checkE
 });
 
 export default PersonalDetailsForm;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useImperativeHandle, forwardRef  } from "react";
 import { TextField, Grid, Typography, MenuItem } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 
@@ -29,7 +29,7 @@ const textFieldTheme = createTheme({
   }
 });
 
-const SpouseDetailsForm = ({ setSpouseDetails, parentData }) => {
+const SpouseDetailsForm = forwardRef(({ setSpouseDetails, parentData  }, ref) => {
   const [formData, setFormData] = useState({
     title: "",
     nameWithInitials: "",
@@ -150,6 +150,27 @@ const SpouseDetailsForm = ({ setSpouseDetails, parentData }) => {
     }
   }, [parentData]);
 
+
+  useImperativeHandle(ref, () => ({
+    validateForm: () => {
+      let isValid = true;
+      const updatedTouched = {};
+      const updatedErrors = {};
+  
+      Object.keys(formData).forEach((key) => {
+        if (isFieldRequired(key)) {
+          updatedTouched[key] = true;
+          const valid = validateField(key, formData[key]);
+          if (!valid) isValid = false;
+        }
+      });
+  
+      setTouched((prev) => ({ ...prev, ...updatedTouched }));
+      return isValid;
+    }
+  }));
+
+
   const [isNicValidated, setIsNicValidated] = useState(false); 
 
   const fieldDependencies = {
@@ -225,17 +246,21 @@ const SpouseDetailsForm = ({ setSpouseDetails, parentData }) => {
     return requiredFields.includes(field);
   };
 
-  // NIC validation logic
+
+  
+
   const validateNIC = (nic) => {
-    // Check NIC format (either 9 digits + V/X or 12 digits)
     const isValid = /^\d{9}[VvXx]$/.test(nic) || /^\d{12}$/.test(nic);
     if (isValid) {
-      setIsNicValidated(true); // Lock the NIC field after validation
+      setIsNicValidated(true);
+      setIsNicLocked(true); // Lock after validation
       return true;
     }
-    setIsNicValidated(false); // Reset validation status if NIC is invalid
+    setIsNicValidated(false);
+    setIsNicLocked(false); // Unlock if invalid
     return false;
   };
+  
 
   // Function to validate a field
   const validateField = (name, value) => {
@@ -832,6 +857,6 @@ const SpouseDetailsForm = ({ setSpouseDetails, parentData }) => {
     </Grid>
     </ThemeProvider>
   );
-};
+});
 
 export default SpouseDetailsForm;
